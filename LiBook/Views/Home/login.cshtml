@@ -47,14 +47,18 @@
     <div class="forgot-overlay" id="forgotOverlay">
         <!-- Step 1: Email -->
         <div class="forgot-modal active" id="stepEmail">
-            <h2>To reset your password, please enter your email address.<br>A verification code will be sent shortly.</h2>
+            <h2 class="forgot-msg">To reset your password, please enter your email address.</h2>
+            <h2 class="verify-msg">A verification code will be sent shortly.</h2>
+
             <label>Enter your registered email here:</label>
             <input type="email" id="emailInput" placeholder="Enter email">
             <span class="error-text" id="emailError">Invalid email</span>
+
             <div class="button-group">
-                <button class="cancel-btn" onclick="closeForgot()">Cancel</button>
-                <button class="main-btn" onclick="goToCode()">Send Code</button>
+                <button type="button" class="cancel-btn" onclick="closeForgot()">Cancel</button>
+                <button type="button" class="main-btn" onclick="goToCode()">Send Code</button>
             </div>
+
         </div>
 
         <!-- Step 2: Code -->
@@ -68,18 +72,70 @@
                 <span>-</span>
                 <input maxlength="1">
                 <input maxlength="1">
+                <input maxlength="1">
             </div>
-            <p class="timer">00:30 <span class="resend" onclick="resendCode()">Resend code</span></p>
+            <!-- Timer with dynamic countdown -->
+            <p class="timer">
+                <span id="countdown">00:30</span>
+                <span class="resend" id="resendBtn" onclick="resendCode()">Resend code</span>
+            </p>
+
+
             <div class="button-group">
                 <button class="cancel-btn" onclick="closeForgot()">Cancel</button>
                 <button class="confirm-btn" onclick="goToNewPass()">Confirm</button>
             </div>
         </div>
 
+
+        <!-- Verification Message Modal -->
+        <div class="forgot-modal verify-modal" id="verifyMessage">
+            <h2>A verification code will be sent shortly</h2>
+        </div>
+
         <!-- Step 3: New Password -->
-      
+        <!-- Step 3: Set New Password -->
+        <div class="forgot-modal" id="stepNewPassword">
+            <h2>SET YOUR NEW PASSWORD</h2>
+
+            <label for="newPassword">NEW PASSWORD:</label>
+            <div class="password-container">
+                <input type="password" id="newPassword">
+                <span class="toggle-eye" onclick="togglePassword('newPassword', this)">👁️</span>
+            </div>
+
+            <!-- PASSWORD REQUIREMENTS -->
+            <p class="rules">
+                <strong>Password Requirements:</strong>
+                <ul class="rules-list">
+                    <li>Must be at least 8 characters long</li>
+                    <li>Must include one uppercase letter (A–Z)</li>
+                    <li>Must include one lowercase letter (a–z)</li>
+                    <li>Must include one number (0–9)</li>
+                    <li>Must include one special character (e.g. #, $, %, !)</li>
+                    <li>Must not contain spaces</li>
+                </ul>
+            </p>
+
+            <label for="confirmNewPassword">CONFIRM NEW PASSWORD:</label>
+            <div class="password-container">
+                <input type="password" id="confirmNewPassword">
+                <span class="toggle-eye" onclick="togglePassword('confirmNewPassword', this)">👁️</span>
+            </div>
+
+            <div class="button-group">
+                <button type="button" class="cancel-btn" onclick="closeForgot()">CANCEL</button>
+                <button type="button" class="confirm-btn" onclick="finishReset()">CONFIRM</button>
+            </div>
+        </div>
 
 
-    <script src="~/Scripts/login.js"></script>
+        <!-- Step 4: Success Message -->
+        <div class="forgot-modal verify-modal" id="resetSuccess">
+            <h2>YOUR PASSWORD HAS BEEN RESET SUCCESSFULLY.</h2>
+            <h2>YOU CAN NOW LOG IN WITH YOUR NEW PASSWORD.</h2>
+        </div>
+
+        <script src="~/Scripts/login.js"></script>
 </body>
 </html>
