@@ -1,5 +1,5 @@
 ﻿@{
-    ViewBag.Title = "Login - Admin";
+    ViewBag.Title = "Login - LiBook";
     Layout = null;
 }
 
@@ -10,34 +10,50 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@ViewBag.Title</title>
 
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kumbh+Sans:wght@100..900&family=League+Spartan:wght@100..900&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Young+Serif&display=swap" rel="stylesheet">
+
     <link href="~/Content/login.css" rel="stylesheet" />
 </head>
 <body>
     <div class="login-container">
-        <div class="login-left">
-            <div class="logo-section">
-                <h1 class="logo">QCU <span>LiBook</span></h1>
-                <p class="subtitle">Quezon City University Library Collaboration Room</p>
-            </div>
+        <!-- Logo in top-left corner -->
+        <div class="logo-corner">
+            <h1 class="logo-text">Li<span>Book</span></h1>
+        </div>
+
+        <!-- Centered login card -->
+        <div class="login-card">
+            <h1 class="welcome-title">Welcome to <span class="brand-name">Li<span class="brand-accent">Book</span></span></h1>
 
             <form id="loginForm">
-                <label for="email">EMAIL :</label>
-                <input type="email" id="email" name="email" required>
+                <div class="input-group">
+                    <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24">
+                        <path fill="currentColor" d="M12 12q-1.65 0-2.825-1.175T8 8t1.175-2.825T12 4t2.825 1.175T16 8t-1.175 2.825T12 12m-8 8v-2.8q0-.85.438-1.562T5.6 14.55q1.55-.775 3.15-1.162T12 13t3.25.388t3.15 1.162q.725.375 1.163 1.088T20 17.2V20z" />
+                    </svg>
+                    <input type="email" id="email" name="email" placeholder="Email" required>
+                </div>
 
-                <label for="password">PASSWORD :</label>
-                <input type="password" id="password" name="password" required>
+                <div class="input-group password-group">
+                    <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24">
+                        <path fill="currentColor" d="M17 9V7c0-2.8-2.2-5-5-5S7 4.2 7 7v2c-1.7 0-3 1.3-3 3v7c0 1.7 1.3 3 3 3h10c1.7 0 3-1.3 3-3v-7c0-1.7-1.3-3-3-3M9 7c0-1.7 1.3-3 3-3s3 1.3 3 3v2H9zm4.1 8.5l-.1.1V17c0 .6-.4 1-1 1s-1-.4-1-1v-1.4c-.6-.6-.7-1.5-.1-2.1s1.5-.7 2.1-.1c.6.5.7 1.5.1 2.1" />
+                    </svg>
+                    <input type="password" id="password" name="password" placeholder="Password" required>
+                    <span class="toggle-eye" onclick="togglePassword('password', this)">
+                        <svg class="eye-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                    </span>
+                </div>
 
                 <a href="#" class="forgot-password" onclick="openForgot()">Forgot Password?</a>
+
                 <button type="submit" class="login-btn">LOG IN</button>
             </form>
-
-            <ul class="info-list">
-                <li>Boost your productivity with dedicated study spaces.</li>
-                <li>Collaborate better with the right environment.</li>
-                <li>Book anytime, anywhere in just a few clicks.</li>
-            </ul>
         </div>
-        <div class="login-right"></div>
     </div>
 
     <!-- Forgot Password Modal Overlay -->
@@ -60,7 +76,7 @@
 
         <!-- Step 2: Code -->
         <div class="forgot-modal" id="stepCode">
-            <h2>Enter the code we’ve sent to your email</h2>
+            <h2>Enter the code we've sent to your email</h2>
             <label>Code</label>
             <div class="code-boxes">
                 <input maxlength="1">
@@ -72,7 +88,6 @@
                 <input maxlength="1">
             </div>
 
-            <!-- Timer with dynamic countdown -->
             <p class="timer">
                 <span id="countdown">00:30</span>
                 <span class="resend" id="resendBtn" onclick="resendCode()">Resend code</span>
@@ -88,39 +103,46 @@
             <h2>A verification code will be sent shortly</h2>
         </div>
 
-
         <div class="forgot-modal" id="stepNewPassword">
             <h2>SET YOUR NEW PASSWORD</h2>
 
             <label for="newPassword">NEW PASSWORD:</label>
             <div class="password-container">
                 <input type="password" id="newPassword" placeholder="Enter new password">
-                <span class="toggle-eye" onclick="togglePassword('newPassword', this)">👁️</span>
+                <span class="toggle-eye" onclick="togglePassword('newPassword', this)">
+                    <svg class="eye-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                        <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                </span>
             </div>
-          
-                <p class="rules-title">Password Requirements:</p>
-                <ul class="rules-list">
-                    <li>Must be at least 8 characters long</li>
-                    <li>Must include one uppercase letter (A–Z)</li>
-                    <li>Must include one lowercase letter (a–z)</li>
-                    <li>Must include one number (0–9)</li>
-                    <li>Must include one special character (e.g. #, $, %)</li>
-                    <li>Must not contain spaces</li>
-                </ul>
-
 
             <label for="confirmNewPassword">CONFIRM NEW PASSWORD:</label>
             <div class="password-container">
                 <input type="password" id="confirmNewPassword" placeholder="Re-enter new password">
-                <span class="toggle-eye" onclick="togglePassword('confirmNewPassword', this)">👁️</span>
+                <span class="toggle-eye" onclick="togglePassword('confirmNewPassword', this)">
+                    <svg class="eye-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                        <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                </span>
             </div>
 
             <div class="button-group">
                 <button type="button" class="cancel-btn" onclick="closeForgot()">CANCEL</button>
                 <button type="button" class="confirm-btn" onclick="finishReset()">CONFIRM</button>
             </div>
-        </div>
 
+            <p class="rules-title">Password Requirements:</p>
+            <ul class="rules-list">
+                <li id="rule-length">Must be at least 8 characters long</li>
+                <li id="rule-uppercase">Must include one uppercase letter (A–Z)</li>
+                <li id="rule-lowercase">Must include one lowercase letter (a–z)</li>
+                <li id="rule-number">Must include one number (0–9)</li>
+                <li id="rule-special">Must include one special character (e.g. #, $, %)</li>
+                <li id="rule-space">Must not contain spaces</li>
+            </ul>
+        </div>
 
         <!-- Step 4: Success Message -->
         <div class="forgot-modal verify-modal" id="resetSuccess">
