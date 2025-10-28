@@ -450,3 +450,46 @@ h2 {
         text-align: left; /* semicolon added */
     }
 
+/* reset pass */
+.error-text-container {
+    margin-top: 8px;
+    text-align: left;
+    width: 100%;
+}
+
+.rules-list {
+    list-style-type: disc;
+    padding-left: 20px;
+    margin: 6px 0;
+    color: #c0392b;
+    font-size: 13px;
+    text-align: left;
+}
+
+.error-text,
+.success-text {
+    display: block;
+    margin-top: 8px;
+    color: #c0392b;
+    font-size: 13px;
+    text-align: left;
+    width: 100%;
+}
+
+/* Fix layout so password icons don’t push content sideways */
+.password-container {
+    display: flex;
+    align-items: center;
+    position: relative;
+}
+
+    .password-container input {
+        flex: 1;
+        padding-right: 35px;
+    }
+
+    .password-container .toggle-eye {
+        position: absolute;
+        right: 10px;
+        cursor: pointer;
+    }
