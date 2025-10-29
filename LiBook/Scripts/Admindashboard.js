@@ -1,11 +1,38 @@
-﻿// Sidebar Toggle for Mobile
+﻿// DOM Elements
 const menuToggle = document.getElementById('menuToggle');
 const sidebar = document.getElementById('sidebar');
 const closeSidebar = document.getElementById('closeSidebar');
+const sidebarToggleDesktop = document.getElementById('sidebarToggleDesktop');
+const mainContent = document.querySelector('.main-content');
+const userProfile = document.getElementById('userProfile');
+const userDropdown = document.getElementById('userDropdown');
 
+// Sidebar Toggle for Desktop (Collapse/Expand)
+if (sidebarToggleDesktop) {
+    sidebarToggleDesktop.addEventListener('click', (e) => {
+        e.stopPropagation();
+        sidebar.classList.toggle('collapsed');
+        mainContent.classList.toggle('expanded');
+        localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed'));
+    });
+}
+
+// Restore sidebar state
+window.addEventListener('load', () => {
+    const isCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+    if (isCollapsed) {
+        sidebar.classList.add('collapsed');
+        mainContent.classList.add('expanded');
+    }
+});
+
+// Sidebar Toggle for Mobile
 if (menuToggle) {
     menuToggle.addEventListener('click', () => {
         sidebar.classList.add('active');
+        // Remove collapsed state when opening mobile sidebar
+        sidebar.classList.remove('collapsed');
+        mainContent.classList.remove('expanded');
     });
 }
 
@@ -15,7 +42,7 @@ if (closeSidebar) {
     });
 }
 
-// Close sidebar when clicking outside on mobile
+// Close mobile sidebar when clicking outside
 document.addEventListener('click', (e) => {
     if (window.innerWidth <= 768) {
         if (!sidebar.contains(e.target) && !menuToggle.contains(e.target)) {
@@ -24,30 +51,46 @@ document.addEventListener('click', (e) => {
     }
 });
 
+// User Profile Dropdown
+if (userProfile) {
+    userProfile.addEventListener('click', (e) => {
+        e.stopPropagation();
+        userProfile.classList.toggle('active');
+    });
+}
+
+// Close dropdown when clicking outside
+document.addEventListener('click', () => {
+    if (userProfile) {
+        userProfile.classList.remove('active');
+    }
+});
+
 // Navigation Active State
 const navItems = document.querySelectorAll('.nav-item');
 
 navItems.forEach(item => {
     item.addEventListener('click', (e) => {
-        // Don't prevent default for logout link
-        if (!item.classList.contains('logout')) {
+        // Only prevent default for non-logout items and actual navigation
+        if (!item.classList.contains('logout') && item.getAttribute('href') !== '#') {
             e.preventDefault();
-
-            // Remove active class from all items
             navItems.forEach(nav => nav.classList.remove('active'));
-
-            // Add active class to clicked item
             item.classList.add('active');
 
-            // Get the page name
             const page = item.getAttribute('data-page');
-
-            // Update content header
             updatePageContent(page);
 
-            // Close sidebar on mobile
+            // Close mobile sidebar after navigation
             if (window.innerWidth <= 768) {
                 sidebar.classList.remove('active');
+            }
+
+            // If it's a real navigation, follow the link after a brief delay
+            const href = item.getAttribute('href');
+            if (href && href !== '#') {
+                setTimeout(() => {
+                    window.location.href = href;
+                }, 300);
             }
         }
     });
@@ -81,7 +124,7 @@ function updatePageContent(page) {
         }
     };
 
-    if (pageContent[page]) {
+    if (pageContent[page] && contentHeader && contentSubtext) {
         contentHeader.textContent = pageContent[page].title;
         contentSubtext.textContent = pageContent[page].subtitle;
     }
@@ -89,46 +132,268 @@ function updatePageContent(page) {
 
 // Initialize Dashboard Data
 function initializeDashboard() {
-    // Simulate loading real data
     setTimeout(() => {
-        // Update stats with realistic data
-        document.getElementById('totalReservations').textContent = '47';
-        document.getElementById('activeLibrarians').textContent = '8';
-        document.getElementById('availableRooms').textContent = '12';
-        document.getElementById('pendingApprovals').textContent = '5';
-
-        // Update percentage changes
-        document.getElementById('reservationsChange').textContent = '12%';
-        document.getElementById('librariansChange').textContent = '0%';
-        document.getElementById('roomsChange').textContent = '3%';
-        document.getElementById('approvalsChange').textContent = '25%';
-    }, 1000);
+        // Only update if we're on the dashboard page
+        if (document.querySelector('.content-header h1').textContent === 'Dashboard') {
+            document.getElementById('totalReservations').textContent = '47';
+            document.getElementById('availableRooms').textContent = '12';
+            document.getElementById('pendingApprovals').textContent = '5';
+            document.getElementById('reservationsChange').textContent = '12%';
+            document.getElementById('roomsChange').textContent = '3%';
+            document.getElementById('approvalsChange').textContent = '25%';
+            initializeCharts();
+        }
+    }, 500);
 }
 
-// Quick Action Functions
-function manageReservations() {
-    alert('Opening Reservations Management...\n\nThis would navigate to the reservations management page.');
+// Chart.js Configuration
+let reservationsChart;
+let roomUtilizationChart;
+
+function initializeCharts() {
+    // Only initialize charts if we're on the dashboard
+    if (document.querySelector('.content-header h1').textContent !== 'Dashboard') {
+        return;
+    }
+
+    // Reservations Trend Line Chart
+    const reservationsCtx = document.getElementById('reservationsChart');
+    if (reservationsCtx) {
+        reservationsChart = new Chart(reservationsCtx, {
+            type: 'line',
+            data: {
+                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                datasets: [{
+                    label: 'Reservations',
+                    data: [12, 19, 15, 25, 22, 18, 24],
+                    borderColor: '#2c3e50',
+                    backgroundColor: 'rgba(44, 62, 80, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 5,
+                    pointBackgroundColor: '#2c3e50',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointHoverRadius: 7,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: '#2c3e50',
+                        padding: 12,
+                        borderRadius: 8,
+                        titleFont: {
+                            size: 14,
+                            family: 'Kumbh Sans'
+                        },
+                        bodyFont: {
+                            size: 13,
+                            family: 'Kumbh Sans'
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)',
+                            drawBorder: false
+                        },
+                        ticks: {
+                            font: {
+                                family: 'Kumbh Sans',
+                                size: 12
+                            },
+                            color: '#7f8c8d'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false,
+                            drawBorder: false
+                        },
+                        ticks: {
+                            font: {
+                                family: 'Kumbh Sans',
+                                size: 12
+                            },
+                            color: '#7f8c8d'
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Room Utilization Pie Chart
+    const roomUtilizationCtx = document.getElementById('roomUtilizationChart');
+    if (roomUtilizationCtx) {
+        roomUtilizationChart = new Chart(roomUtilizationCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Available', 'Occupied', 'Maintenance', 'Reserved'],
+                datasets: [{
+                    data: [35, 25, 10, 30],
+                    backgroundColor: [
+                        '#27ae60',
+                        '#e74c3c',
+                        '#f39c12',
+                        '#2c3e50'
+                    ],
+                    borderWidth: 0,
+                    hoverOffset: 10
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 20,
+                            font: {
+                                family: 'Kumbh Sans',
+                                size: 13
+                            },
+                            color: '#2c3e50',
+                            usePointStyle: true,
+                            pointStyle: 'circle'
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: '#2c3e50',
+                        padding: 12,
+                        borderRadius: 8,
+                        titleFont: {
+                            size: 14,
+                            family: 'Kumbh Sans'
+                        },
+                        bodyFont: {
+                            size: 13,
+                            family: 'Kumbh Sans'
+                        },
+                        callbacks: {
+                            label: function (context) {
+                                let label = context.label || '';
+                                let value = context.parsed || 0;
+                                let total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                let percentage = ((value / total) * 100).toFixed(1);
+                                return label + ': ' + percentage + '%';
+                            }
+                        }
+                    }
+                },
+                cutout: '65%'
+            }
+        });
+    }
 }
 
-function manageLibrarians() {
-    alert('Opening Librarian Management...\n\nThis would navigate to the librarian management page.');
+// Chart period selector
+const chartPeriod = document.getElementById('chartPeriod');
+if (chartPeriod) {
+    chartPeriod.addEventListener('change', (e) => {
+        const period = e.target.value;
+        updateReservationsChart(period);
+    });
 }
 
-function manageRooms() {
-    alert('Opening Room Management...\n\nThis would navigate to the room management page.');
+function updateReservationsChart(period) {
+    let labels, data;
+
+    switch (period) {
+        case 'week':
+            labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+            data = [12, 19, 15, 25, 22, 18, 24];
+            break;
+        case 'month':
+            labels = ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
+            data = [65, 78, 82, 71];
+            break;
+        case 'year':
+            labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            data = [245, 289, 312, 267, 298, 275, 256, 241, 289, 312, 298, 276];
+            break;
+    }
+
+    if (reservationsChart) {
+        reservationsChart.data.labels = labels;
+        reservationsChart.data.datasets[0].data = data;
+        reservationsChart.update();
+    }
 }
 
-function viewReports() {
-    alert('Opening Reports...\n\nThis would navigate to the reports page.');
-}
-
+// Navigation Functions
 function viewAllReservations() {
-    alert('Viewing All Reservations...\n\nThis would show all reservation records.');
+    showNotification('Viewing All Reservations...', 'info');
+    // Actual navigation would go here
+    // window.location.href = '/AdminDashboard/Reservations';
 }
 
 function viewAllRooms() {
-    alert('Viewing All Rooms...\n\nThis would show complete room availability and details.');
+    showNotification('Viewing All Rooms...', 'info');
+    // Actual navigation would go here
+    // window.location.href = '/AdminDashboard/Rooms';
 }
+
+// Simple notification system
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 1rem 1.5rem;
+        background: ${type === 'info' ? '#2c3e50' : '#c62828'};
+        color: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        z-index: 10000;
+        font-family: 'Kumbh Sans', sans-serif;
+        animation: slideIn 0.3s ease;
+    `;
+    notification.textContent = message;
+    document.body.appendChild(notification);
+
+    setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
+}
+
+// Animation styles
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideIn {
+        from {
+            transform: translateX(400px);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+    @keyframes slideOut {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        to {
+            transform: translateX(400px);
+            opacity: 0;
+        }
+    }
+`;
+document.head.appendChild(style);
 
 // Animate stats on scroll
 const observerOptions = {
@@ -143,7 +408,7 @@ const observer = new IntersectionObserver((entries) => {
             entry.target.style.transform = 'translateY(20px)';
 
             setTimeout(() => {
-                entry.target.style.transition = 'all 0.5s ease';
+                entry.target.style.transition = 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)';
                 entry.target.style.opacity = '1';
                 entry.target.style.transform = 'translateY(0)';
             }, 100);
@@ -153,129 +418,53 @@ const observer = new IntersectionObserver((entries) => {
     });
 }, observerOptions);
 
-// Observe stat cards
-document.querySelectorAll('.stat-card').forEach((card, index) => {
-    setTimeout(() => {
-        observer.observe(card);
-    }, index * 100);
-});
+// Observe stat cards only on dashboard
+if (document.querySelector('.content-header h1').textContent === 'Dashboard') {
+    document.querySelectorAll('.stat-card').forEach((card, index) => {
+        setTimeout(() => {
+            observer.observe(card);
+        }, index * 100);
+    });
+}
 
 // Search functionality
 const searchInput = document.querySelector('.search-bar input');
-
 if (searchInput) {
     searchInput.addEventListener('input', (e) => {
         const searchTerm = e.target.value.toLowerCase();
         console.log('Searching for:', searchTerm);
-        // Implement search logic here
+        // Implement actual search functionality here
     });
 }
 
 // Notification button click
 const notificationBtn = document.querySelector('.notification-btn');
-
 if (notificationBtn) {
     notificationBtn.addEventListener('click', () => {
-        alert('You have 3 new notifications:\n\n1. New reservation request pending\n2. Room maintenance scheduled\n3. System update available');
+        showNotification('You have 3 new notifications', 'info');
     });
 }
 
-// User profile click
-const userProfile = document.querySelector('.user-profile');
-
-if (userProfile) {
-    userProfile.addEventListener('click', () => {
-        // Toggle dropdown or navigate to profile
-        console.log('User profile clicked');
+// Smooth scroll for cards - only on dashboard
+if (document.querySelector('.content-header h1').textContent === 'Dashboard') {
+    document.querySelectorAll('.card').forEach(card => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
     });
 }
-
-// Quick action buttons
-const actionButtons = document.querySelectorAll('.action-btn');
-
-actionButtons.forEach(button => {
-    button.addEventListener('click', createRipple);
-});
-
-// Activity items hover effect
-const activityItems = document.querySelectorAll('.activity-item');
-
-activityItems.forEach(item => {
-    item.addEventListener('mouseenter', () => {
-        item.style.backgroundColor = '#f8f9fa';
-        item.style.transition = 'background-color 0.3s ease';
-    });
-
-    item.addEventListener('mouseleave', () => {
-        item.style.backgroundColor = 'transparent';
-    });
-});
-
-// Book items hover effect
-const bookItems = document.querySelectorAll('.book-item');
-
-bookItems.forEach(item => {
-    item.addEventListener('mouseenter', () => {
-        item.style.backgroundColor = '#f8f9fa';
-        item.style.transition = 'background-color 0.3s ease';
-    });
-
-    item.addEventListener('mouseleave', () => {
-        item.style.backgroundColor = 'transparent';
-    });
-});
-
-// Auto-update stats (simulated)
-function updateStats() {
-    const statValues = document.querySelectorAll('.stat-details h3');
-
-    statValues.forEach(stat => {
-        const currentValue = parseInt(stat.textContent.replace(/,/g, ''));
-        const change = Math.floor(Math.random() * 5) - 2; // Random change between -2 and +2
-        const newValue = Math.max(0, currentValue + change);
-
-        if (change !== 0) {
-            animateValue(stat, currentValue, newValue, 1000);
-        }
-    });
-}
-
-function animateValue(element, start, end, duration) {
-    const range = end - start;
-    const increment = range / (duration / 16);
-    let current = start;
-
-    const timer = setInterval(() => {
-        current += increment;
-
-        if ((increment > 0 && current >= end) || (increment < 0 && current <= end)) {
-            current = end;
-            clearInterval(timer);
-        }
-
-        element.textContent = Math.floor(current).toLocaleString();
-    }, 16);
-}
-
-// Update stats every 30 seconds (optional - comment out if not needed)
-// setInterval(updateStats, 30000);
-
-// Smooth scroll for cards
-document.querySelectorAll('.card').forEach(card => {
-    card.style.opacity = '0';
-    card.style.transform = 'translateY(20px)';
-});
 
 window.addEventListener('load', () => {
-    document.querySelectorAll('.card').forEach((card, index) => {
-        setTimeout(() => {
-            card.style.transition = 'all 0.5s ease';
-            card.style.opacity = '1';
-            card.style.transform = 'translateY(0)';
-        }, index * 150);
-    });
+    // Animate cards only on dashboard
+    if (document.querySelector('.content-header h1').textContent === 'Dashboard') {
+        document.querySelectorAll('.card').forEach((card, index) => {
+            setTimeout(() => {
+                card.style.transition = 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)';
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }, index * 150 + 500);
+        });
+    }
 
-    // Initialize dashboard data
     initializeDashboard();
 });
 
@@ -287,28 +476,10 @@ window.addEventListener('resize', () => {
         if (window.innerWidth > 768) {
             sidebar.classList.remove('active');
         }
+        if (userProfile) {
+            userProfile.classList.remove('active');
+        }
     }, 250);
 });
 
-// Add ripple effect to buttons
-function createRipple(event) {
-    const button = event.currentTarget;
-    const ripple = document.createElement('span');
-
-    const diameter = Math.max(button.clientWidth, button.clientHeight);
-    const radius = diameter / 2;
-
-    ripple.style.width = ripple.style.height = `${diameter}px`;
-    ripple.style.left = `${event.clientX - button.offsetLeft - radius}px`;
-    ripple.style.top = `${event.clientY - button.offsetTop - radius}px`;
-    ripple.classList.add('ripple');
-
-    const rippleElement = button.getElementsByClassName('ripple')[0];
-    if (rippleElement) {
-        rippleElement.remove();
-    }
-
-    button.appendChild(ripple);
-}
-
-console.log('Dashboard initialized successfully!');
+console.log('Improved Dashboard initialized successfully!');

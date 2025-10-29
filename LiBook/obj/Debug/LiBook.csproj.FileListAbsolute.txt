@@ -165,3 +165,12 @@ C:\Users\eugene\source\repos\LiBook\LiBook\bin\Microsoft.Owin.xml
 C:\Users\eugene\source\repos\LiBook\LiBook\bin\Microsoft.Owin.Host.SystemWeb.xml
 C:\Users\eugene\source\repos\LiBook\LiBook\bin\Microsoft.Owin.Security.xml
 C:\Users\eugene\source\repos\LiBook\LiBook\bin\Microsoft.Owin.Security.Cookies.xml
+C:\Users\Brian A. Dijamco\source\repos\LiBook\LiBook\bin\Microsoft.Owin.dll
+C:\Users\Brian A. Dijamco\source\repos\LiBook\LiBook\bin\Microsoft.Owin.Host.SystemWeb.dll
+C:\Users\Brian A. Dijamco\source\repos\LiBook\LiBook\bin\Microsoft.Owin.Security.Cookies.dll
+C:\Users\Brian A. Dijamco\source\repos\LiBook\LiBook\bin\Microsoft.Owin.Security.dll
+C:\Users\Brian A. Dijamco\source\repos\LiBook\LiBook\bin\Owin.dll
+C:\Users\Brian A. Dijamco\source\repos\LiBook\LiBook\bin\Microsoft.Owin.xml
+C:\Users\Brian A. Dijamco\source\repos\LiBook\LiBook\bin\Microsoft.Owin.Host.SystemWeb.xml
+C:\Users\Brian A. Dijamco\source\repos\LiBook\LiBook\bin\Microsoft.Owin.Security.xml
+C:\Users\Brian A. Dijamco\source\repos\LiBook\LiBook\bin\Microsoft.Owin.Security.Cookies.xml
