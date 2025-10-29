@@ -4,12 +4,12 @@ namespace LiBook.Controllers
 {
     public class HomeController : Controller
     {
-        public ActionResult Index()
+        public ActionResult Login()
         {
             return View();
         }
 
-        public ActionResult Login()
+        public ActionResult Admindashboard()
         {
             return View();
         }

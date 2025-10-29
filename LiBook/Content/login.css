@@ -24,6 +24,16 @@ body {
     justify-content: center;
 }
 
+.login-error-message {
+    color: #e74c3c;
+    margin-bottom: 15px;
+    text-align: center;
+    padding: 10px;
+    background-color: #ffe6e6;
+    border-radius: 5px;
+    border: 1px solid #e74c3c;
+}
+
 .rules-title {
     font-size: 14px;
     font-weight: 600;

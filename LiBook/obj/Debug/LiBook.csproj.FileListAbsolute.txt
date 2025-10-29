@@ -156,3 +156,12 @@ C:\Users\Brian A. Dijamco\source\repos\LiBook\LiBook\obj\Debug\LiBook.csproj.Cor
 C:\Users\Brian A. Dijamco\source\repos\LiBook\LiBook\obj\Debug\LiBook.csproj.Up2Date
 C:\Users\Brian A. Dijamco\source\repos\LiBook\LiBook\obj\Debug\LiBook.dll
 C:\Users\Brian A. Dijamco\source\repos\LiBook\LiBook\obj\Debug\LiBook.pdb
+C:\Users\eugene\source\repos\LiBook\LiBook\bin\Microsoft.Owin.dll
+C:\Users\eugene\source\repos\LiBook\LiBook\bin\Microsoft.Owin.Host.SystemWeb.dll
+C:\Users\eugene\source\repos\LiBook\LiBook\bin\Microsoft.Owin.Security.Cookies.dll
+C:\Users\eugene\source\repos\LiBook\LiBook\bin\Microsoft.Owin.Security.dll
+C:\Users\eugene\source\repos\LiBook\LiBook\bin\Owin.dll
+C:\Users\eugene\source\repos\LiBook\LiBook\bin\Microsoft.Owin.xml
+C:\Users\eugene\source\repos\LiBook\LiBook\bin\Microsoft.Owin.Host.SystemWeb.xml
+C:\Users\eugene\source\repos\LiBook\LiBook\bin\Microsoft.Owin.Security.xml
+C:\Users\eugene\source\repos\LiBook\LiBook\bin\Microsoft.Owin.Security.Cookies.xml

@@ -4,28 +4,26 @@
     // ======================
     // LOGIN VALIDATION
     // ======================
+    // ======================
+    // LOGIN VALIDATION
+    // ======================
     loginForm.addEventListener("submit", function (e) {
-        e.preventDefault();
         const email = document.getElementById("email").value.trim();
         const password = document.getElementById("password").value.trim();
 
         if (!email || !password) {
+            e.preventDefault();
             showToast("Please enter both email and password.", "error");
             return;
         }
 
         // Show loading state
         const loginBtn = this.querySelector('.login-btn');
-        const originalText = loginBtn.textContent;
         loginBtn.textContent = "LOGGING IN...";
         loginBtn.disabled = true;
 
-        // Simulate login API call
-        setTimeout(() => {
-            loginBtn.textContent = originalText;
-            loginBtn.disabled = false;
-            showToast("Login successful!", "success");
-        }, 1500);
+        // Let the form submit naturally to the server
+        // Remove e.preventDefault() to allow form submission
     });
 
     // ======================
