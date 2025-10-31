@@ -1,13 +1,18 @@
-﻿// DOM Elements
+﻿// ========================================
+// DOM ELEMENT REFERENCES
+// ========================================
 const menuToggle = document.getElementById('menuToggle');
 const sidebar = document.getElementById('sidebar');
 const closeSidebar = document.getElementById('closeSidebar');
 const sidebarToggleDesktop = document.getElementById('sidebarToggleDesktop');
 const mainContent = document.querySelector('.main-content');
 const userProfile = document.getElementById('userProfile');
-const userDropdown = document.getElementById('userDropdown');
 
-// Sidebar Toggle for Desktop (Collapse/Expand)
+// ========================================
+// SIDEBAR FUNCTIONALITY
+// ========================================
+
+// Desktop Sidebar Toggle
 if (sidebarToggleDesktop) {
     sidebarToggleDesktop.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -18,7 +23,7 @@ if (sidebarToggleDesktop) {
 }
 
 // Restore sidebar state
-window.addEventListener('load', () => {
+window.addEventListener('DOMContentLoaded', () => {
     const isCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
     if (isCollapsed) {
         sidebar.classList.add('collapsed');
@@ -26,11 +31,10 @@ window.addEventListener('load', () => {
     }
 });
 
-// Sidebar Toggle for Mobile
+// Mobile Sidebar Toggle
 if (menuToggle) {
     menuToggle.addEventListener('click', () => {
         sidebar.classList.add('active');
-        // Remove collapsed state when opening mobile sidebar
         sidebar.classList.remove('collapsed');
         mainContent.classList.remove('expanded');
     });
@@ -42,16 +46,18 @@ if (closeSidebar) {
     });
 }
 
-// Close mobile sidebar when clicking outside
+// Close sidebar when clicking outside on mobile
 document.addEventListener('click', (e) => {
     if (window.innerWidth <= 768) {
-        if (!sidebar.contains(e.target) && !menuToggle.contains(e.target)) {
+        if (sidebar && !sidebar.contains(e.target) && menuToggle && !menuToggle.contains(e.target)) {
             sidebar.classList.remove('active');
         }
     }
 });
 
-// User Profile Dropdown
+// ========================================
+// USER PROFILE DROPDOWN
+// ========================================
 if (userProfile) {
     userProfile.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -60,106 +66,83 @@ if (userProfile) {
 }
 
 // Close dropdown when clicking outside
-document.addEventListener('click', () => {
-    if (userProfile) {
+document.addEventListener('click', (e) => {
+    if (userProfile && !userProfile.contains(e.target)) {
         userProfile.classList.remove('active');
     }
 });
 
-// Navigation Active State
+// ========================================
+// NAVIGATION
+// ========================================
 const navItems = document.querySelectorAll('.nav-item');
 
 navItems.forEach(item => {
     item.addEventListener('click', (e) => {
-        // Only prevent default for non-logout items and actual navigation
         if (!item.classList.contains('logout') && item.getAttribute('href') !== '#') {
-            e.preventDefault();
             navItems.forEach(nav => nav.classList.remove('active'));
             item.classList.add('active');
 
-            const page = item.getAttribute('data-page');
-            updatePageContent(page);
-
-            // Close mobile sidebar after navigation
-            if (window.innerWidth <= 768) {
+            // Close mobile sidebar
+            if (window.innerWidth <= 768 && sidebar) {
                 sidebar.classList.remove('active');
-            }
-
-            // If it's a real navigation, follow the link after a brief delay
-            const href = item.getAttribute('href');
-            if (href && href !== '#') {
-                setTimeout(() => {
-                    window.location.href = href;
-                }, 300);
             }
         }
     });
 });
 
-// Update Page Content
-function updatePageContent(page) {
-    const contentHeader = document.querySelector('.content-header h1');
-    const contentSubtext = document.querySelector('.content-header p');
+// ========================================
+// DASHBOARD DATA INITIALIZATION
+// ========================================
+function initializeDashboardData() {
+    // Check if we're on the dashboard page
+    const isDashboard = document.getElementById('totalReservations') !== null;
 
-    const pageContent = {
-        'dashboard': {
-            title: 'Dashboard',
-            subtitle: 'Welcome back, Administrator! Here\'s an overview of your library system.'
-        },
-        'reservations': {
-            title: 'Reservations Management',
-            subtitle: 'Manage and monitor all room reservation requests and schedules.'
-        },
-        'librarian': {
-            title: 'Librarian Management',
-            subtitle: 'Manage librarian accounts, permissions, and schedules.'
-        },
-        'rooms': {
-            title: 'Room Management',
-            subtitle: 'Configure and manage collaboration rooms and their availability.'
-        },
-        'archives': {
-            title: 'Archives',
-            subtitle: 'Access historical data and archived reservation records.'
-        }
-    };
+    if (isDashboard) {
+        // Update stats
+        const totalReservations = document.getElementById('totalReservations');
+        const availableRooms = document.getElementById('availableRooms');
+        const pendingApprovals = document.getElementById('pendingApprovals');
+        const reservationsChange = document.getElementById('reservationsChange');
+        const roomsChange = document.getElementById('roomsChange');
+        const approvalsChange = document.getElementById('approvalsChange');
 
-    if (pageContent[page] && contentHeader && contentSubtext) {
-        contentHeader.textContent = pageContent[page].title;
-        contentSubtext.textContent = pageContent[page].subtitle;
+        if (totalReservations) totalReservations.textContent = '47';
+        if (availableRooms) availableRooms.textContent = '12';
+        if (pendingApprovals) pendingApprovals.textContent = '5';
+        if (reservationsChange) reservationsChange.textContent = '12%';
+        if (roomsChange) roomsChange.textContent = '3%';
+        if (approvalsChange) approvalsChange.textContent = '25%';
+
+        // Initialize charts
+        initializeCharts();
     }
 }
 
-// Initialize Dashboard Data
-function initializeDashboard() {
-    setTimeout(() => {
-        // Only update if we're on the dashboard page
-        if (document.querySelector('.content-header h1').textContent === 'Dashboard') {
-            document.getElementById('totalReservations').textContent = '47';
-            document.getElementById('availableRooms').textContent = '12';
-            document.getElementById('pendingApprovals').textContent = '5';
-            document.getElementById('reservationsChange').textContent = '12%';
-            document.getElementById('roomsChange').textContent = '3%';
-            document.getElementById('approvalsChange').textContent = '25%';
-            initializeCharts();
-        }
-    }, 500);
-}
-
-// Chart.js Configuration
-let reservationsChart;
-let roomUtilizationChart;
+// ========================================
+// CHART.JS CONFIGURATION
+// ========================================
+let reservationsChart = null;
+let roomUtilizationChart = null;
 
 function initializeCharts() {
-    // Only initialize charts if we're on the dashboard
-    if (document.querySelector('.content-header h1').textContent !== 'Dashboard') {
+    // Wait for Chart.js to be available
+    if (typeof Chart === 'undefined') {
+        console.error('Chart.js is not loaded!');
         return;
     }
 
-    // Reservations Trend Line Chart
-    const reservationsCtx = document.getElementById('reservationsChart');
-    if (reservationsCtx) {
-        reservationsChart = new Chart(reservationsCtx, {
+    // Reservations Chart
+    const reservationsCanvas = document.getElementById('reservationsChart');
+    if (reservationsCanvas) {
+        const ctx = reservationsCanvas.getContext('2d');
+
+        // Destroy existing chart if it exists
+        if (reservationsChart) {
+            reservationsChart.destroy();
+        }
+
+        reservationsChart = new Chart(ctx, {
             type: 'line',
             data: {
                 labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
@@ -175,7 +158,7 @@ function initializeCharts() {
                     pointBackgroundColor: '#2c3e50',
                     pointBorderColor: '#fff',
                     pointBorderWidth: 2,
-                    pointHoverRadius: 7,
+                    pointHoverRadius: 7
                 }]
             },
             options: {
@@ -232,10 +215,17 @@ function initializeCharts() {
         });
     }
 
-    // Room Utilization Pie Chart
-    const roomUtilizationCtx = document.getElementById('roomUtilizationChart');
-    if (roomUtilizationCtx) {
-        roomUtilizationChart = new Chart(roomUtilizationCtx, {
+    // Room Utilization Chart
+    const roomCanvas = document.getElementById('roomUtilizationChart');
+    if (roomCanvas) {
+        const ctx = roomCanvas.getContext('2d');
+
+        // Destroy existing chart if it exists
+        if (roomUtilizationChart) {
+            roomUtilizationChart.destroy();
+        }
+
+        roomUtilizationChart = new Chart(ctx, {
             type: 'doughnut',
             data: {
                 labels: ['Available', 'Occupied', 'Maintenance', 'Reserved'],
@@ -297,16 +287,19 @@ function initializeCharts() {
     }
 }
 
-// Chart period selector
+// ========================================
+// CHART PERIOD SELECTOR
+// ========================================
 const chartPeriod = document.getElementById('chartPeriod');
 if (chartPeriod) {
     chartPeriod.addEventListener('change', (e) => {
-        const period = e.target.value;
-        updateReservationsChart(period);
+        updateReservationsChart(e.target.value);
     });
 }
 
 function updateReservationsChart(period) {
+    if (!reservationsChart) return;
+
     let labels, data;
 
     switch (period) {
@@ -322,29 +315,30 @@ function updateReservationsChart(period) {
             labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
             data = [245, 289, 312, 267, 298, 275, 256, 241, 289, 312, 298, 276];
             break;
+        default:
+            labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+            data = [12, 19, 15, 25, 22, 18, 24];
     }
 
-    if (reservationsChart) {
-        reservationsChart.data.labels = labels;
-        reservationsChart.data.datasets[0].data = data;
-        reservationsChart.update();
-    }
+    reservationsChart.data.labels = labels;
+    reservationsChart.data.datasets[0].data = data;
+    reservationsChart.update();
 }
 
-// Navigation Functions
+// ========================================
+// NAVIGATION FUNCTIONS
+// ========================================
 function viewAllReservations() {
-    showNotification('Viewing All Reservations...', 'info');
-    // Actual navigation would go here
-    // window.location.href = '/AdminDashboard/Reservations';
+    window.location.href = '/AdminDashboard/Reservations';
 }
 
 function viewAllRooms() {
-    showNotification('Viewing All Rooms...', 'info');
-    // Actual navigation would go here
-    // window.location.href = '/AdminDashboard/Rooms';
+    showNotification('Viewing all rooms...', 'info');
 }
 
-// Simple notification system
+// ========================================
+// NOTIFICATION SYSTEM
+// ========================================
 function showNotification(message, type = 'info') {
     const notification = document.createElement('div');
     notification.style.cssText = `
@@ -352,7 +346,7 @@ function showNotification(message, type = 'info') {
         top: 20px;
         right: 20px;
         padding: 1rem 1.5rem;
-        background: ${type === 'info' ? '#2c3e50' : '#c62828'};
+        background: ${type === 'info' ? '#2c3e50' : type === 'success' ? '#27ae60' : '#c62828'};
         color: white;
         border-radius: 12px;
         box-shadow: 0 4px 12px rgba(0,0,0,0.2);
@@ -369,7 +363,7 @@ function showNotification(message, type = 'info') {
     }, 3000);
 }
 
-// Animation styles
+// Add animation styles
 const style = document.createElement('style');
 style.textContent = `
     @keyframes slideIn {
@@ -395,49 +389,20 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
-// Animate stats on scroll
-const observerOptions = {
-    threshold: 0.1,
-    rootMargin: '0px 0px -50px 0px'
-};
-
-const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-        if (entry.isIntersecting) {
-            entry.target.style.opacity = '0';
-            entry.target.style.transform = 'translateY(20px)';
-
-            setTimeout(() => {
-                entry.target.style.transition = 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)';
-                entry.target.style.opacity = '1';
-                entry.target.style.transform = 'translateY(0)';
-            }, 100);
-
-            observer.unobserve(entry.target);
-        }
-    });
-}, observerOptions);
-
-// Observe stat cards only on dashboard
-if (document.querySelector('.content-header h1').textContent === 'Dashboard') {
-    document.querySelectorAll('.stat-card').forEach((card, index) => {
-        setTimeout(() => {
-            observer.observe(card);
-        }, index * 100);
-    });
-}
-
-// Search functionality
+// ========================================
+// SEARCH FUNCTIONALITY
+// ========================================
 const searchInput = document.querySelector('.search-bar input');
 if (searchInput) {
     searchInput.addEventListener('input', (e) => {
         const searchTerm = e.target.value.toLowerCase();
         console.log('Searching for:', searchTerm);
-        // Implement actual search functionality here
     });
 }
 
-// Notification button click
+// ========================================
+// NOTIFICATION BUTTON
+// ========================================
 const notificationBtn = document.querySelector('.notification-btn');
 if (notificationBtn) {
     notificationBtn.addEventListener('click', () => {
@@ -445,35 +410,14 @@ if (notificationBtn) {
     });
 }
 
-// Smooth scroll for cards - only on dashboard
-if (document.querySelector('.content-header h1').textContent === 'Dashboard') {
-    document.querySelectorAll('.card').forEach(card => {
-        card.style.opacity = '0';
-        card.style.transform = 'translateY(20px)';
-    });
-}
-
-window.addEventListener('load', () => {
-    // Animate cards only on dashboard
-    if (document.querySelector('.content-header h1').textContent === 'Dashboard') {
-        document.querySelectorAll('.card').forEach((card, index) => {
-            setTimeout(() => {
-                card.style.transition = 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)';
-                card.style.opacity = '1';
-                card.style.transform = 'translateY(0)';
-            }, index * 150 + 500);
-        });
-    }
-
-    initializeDashboard();
-});
-
-// Handle window resize
+// ========================================
+// WINDOW RESIZE HANDLER
+// ========================================
 let resizeTimer;
 window.addEventListener('resize', () => {
     clearTimeout(resizeTimer);
     resizeTimer = setTimeout(() => {
-        if (window.innerWidth > 768) {
+        if (window.innerWidth > 768 && sidebar) {
             sidebar.classList.remove('active');
         }
         if (userProfile) {
@@ -482,4 +426,20 @@ window.addEventListener('resize', () => {
     }, 250);
 });
 
-console.log('Improved Dashboard initialized successfully!');
+// ========================================
+// INITIALIZATION
+// ========================================
+window.addEventListener('load', () => {
+    console.log('✅ Dashboard Loading...');
+
+    // Initialize dashboard with a small delay to ensure Chart.js is loaded
+    setTimeout(() => {
+        initializeDashboardData();
+        console.log('✅ Dashboard Initialized Successfully!');
+    }, 100);
+});
+
+// Alternative: Use DOMContentLoaded as backup
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('✅ DOM Content Loaded');
+});

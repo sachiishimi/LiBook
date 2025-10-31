@@ -147,6 +147,8 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Content\admindashboard.css" />
+    <Content Include="Content\adminmanagement.css" />
+    <Content Include="Content\archives.css" />
     <Content Include="Content\bootstrap-grid.css" />
     <Content Include="Content\bootstrap-grid.min.css" />
     <Content Include="Content\bootstrap-grid.rtl.css" />
@@ -165,11 +167,16 @@
     <Content Include="Content\bootstrap.rtl.min.css" />
     <Content Include="Content\images\loginbg.png" />
     <Content Include="Content\images\luxurystudio.jpg" />
+    <Content Include="Content\librarian.css" />
+    <Content Include="Content\reservations.css" />
     <Content Include="Content\login.css" />
+    <Content Include="Content\rooms.css" />
     <Content Include="favicon.ico" />
     <Content Include="Global.asax" />
     <Content Include="Content\Site.css" />
     <Content Include="Scripts\Admindashboard.js" />
+    <Content Include="Scripts\adminmanagement.js" />
+    <Content Include="Scripts\archives.js" />
     <Content Include="Scripts\bootstrap.bundle.js" />
     <Content Include="Scripts\bootstrap.bundle.min.js" />
     <Content Include="Scripts\bootstrap.esm.js" />
@@ -186,8 +193,11 @@
     <Content Include="Scripts\jquery.validate.min.js" />
     <Content Include="Scripts\jquery.validate.unobtrusive.js" />
     <Content Include="Scripts\jquery.validate.unobtrusive.min.js" />
+    <Content Include="Scripts\librarian.js" />
     <Content Include="Scripts\login.js" />
     <Content Include="Scripts\modernizr-2.8.3.js" />
+    <Content Include="Scripts\reservations.js" />
+    <Content Include="Scripts\rooms.js" />
     <Content Include="Web.config" />
     <Content Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
@@ -201,6 +211,11 @@
     <Content Include="Views\Shared\_Layout.cshtml" />
     <Content Include="Views\Account\Login.cshtml" />
     <Content Include="Views\AdminDashboard\Index.cshtml" />
+    <Content Include="Views\AdminDashboard\Reservations.cshtml" />
+    <Content Include="Views\AdminDashboard\Librarian.cshtml" />
+    <Content Include="Views\AdminDashboard\AdminManagement.cshtml" />
+    <Content Include="Views\AdminDashboard\Archives.cshtml" />
+    <Content Include="Views\AdminDashboard\Rooms.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
