@@ -1,5 +1,4 @@
-﻿
-@{
+﻿@{
     ViewBag.Title = "Reservations";
 }
 <!DOCTYPE html>
@@ -37,7 +36,7 @@
                 <i class="fas fa-home"></i>
                 <span>Dashboard</span>
             </a>
-            <a href="@Url.Action("Reservations", "AdminDashboard")" class="nav-item" data-page="reservations">
+            <a href="@Url.Action("Reservations", "AdminDashboard")" class="nav-item active" data-page="reservations">
                 <i class="fas fa-calendar-check"></i>
                 <span>Reservations</span>
             </a>
@@ -72,7 +71,7 @@
 
             <div class="search-bar">
                 <i class="fas fa-search"></i>
-                <input type="text" placeholder="Search...">
+                <input type="text" id="roomSearch" placeholder="Search rooms...">
             </div>
 
             <div class="topbar-actions">
@@ -112,15 +111,17 @@
             </div>
         </header>
 
-        <!-- Your Page Content Goes Here -->
+        <!-- Reservations Content -->
         <main class="content">
             <div class="content-header">
-                <h1>Page Title</h1>
-                <p>Page description goes here.</p>
+                <h1>Reservations</h1>
+                <p>Checkout the reservations on the rooms inside the library.</p>
             </div>
 
-            <!-- Add your page-specific content here -->
-
+            <!-- Rooms Grid -->
+            <div class="rooms-grid" id="roomsGrid">
+                <!-- Room cards will be dynamically generated here -->
+            </div>
         </main>
     </div>
 

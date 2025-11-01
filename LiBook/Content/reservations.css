@@ -528,75 +528,706 @@ body {
         font-size: 1rem;
     }
 
-/* ============================================
-   RESPONSIVE STYLES
-   ============================================ */
-@media (max-width: 768px) {
-    .mobile-only {
-        display: flex;
+/* ========================================
+   ROOMS GRID STYLES
+   ======================================== */
+
+.rooms-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+    gap: 1.25rem;
+    margin-top: 1rem;
+}
+
+.room-card {
+    background: var(--white);
+    border-radius: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: all 0.3s ease;
+    border: 1px solid var(--border-color);
+    position: relative;
+    padding: 1.5rem;
+}
+
+    .room-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
     }
 
-    .desktop-only {
-        display: none;
+    .room-card::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 4px;
+        height: 100%;
+        background: var(--success);
+        transition: all 0.3s ease;
     }
 
-    .sidebar {
-        transform: translateX(-100%);
+    .room-card[data-status="occupied"]::before {
+        background: var(--danger);
     }
 
-        .sidebar.active {
-            transform: translateX(0);
-            width: var(--sidebar-width);
-        }
-
-    .close-btn {
-        display: block;
+    .room-card[data-status="maintenance"]::before {
+        background: #f39c12;
     }
 
-    .main-content {
-        margin-left: 0;
+    .room-card[data-status="reserved"]::before {
+        background: #3498db;
     }
 
-    .menu-toggle {
-        display: flex;
+.room-header {
+    margin-bottom: 0.75rem;
+}
+
+.room-name {
+    font-family: 'League Spartan', sans-serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin-bottom: 0.25rem;
+    line-height: 1.3;
+}
+
+.room-type {
+    color: var(--text-light);
+    font-size: 0.85rem;
+    margin-bottom: 0;
+}
+
+.room-status {
+    position: absolute;
+    top: 1.5rem;
+    right: 1.5rem;
+    padding: 0.4rem 0.8rem;
+    border-radius: 8px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: capitalize;
+    letter-spacing: 0.5px;
+}
+
+    .room-status.available {
+        background: rgba(39, 174, 96, 0.1);
+        color: var(--success);
     }
 
-    .topbar {
-        padding: 1rem;
-        margin: 0 1rem 1rem;
-        border-radius: 0 0 20px 20px;
+    .room-status.occupied {
+        background: rgba(231, 76, 60, 0.1);
+        color: var(--danger);
     }
 
-    .search-bar {
-        display: none;
+    .room-status.maintenance {
+        background: rgba(243, 156, 18, 0.1);
+        color: #f39c12;
     }
 
-    .content {
-        padding: 0 1rem 1rem;
+    .room-status.reserved {
+        background: rgba(52, 152, 219, 0.1);
+        color: #3498db;
     }
 
-    .user-info {
-        display: none;
+.room-allowed-users {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    background: linear-gradient(135deg, rgba(44, 62, 80, 0.05) 0%, rgba(255, 193, 7, 0.05) 100%);
+    border-radius: 8px;
+    margin-bottom: 0.75rem;
+    font-size: 0.85rem;
+    color: var(--text-dark);
+    font-weight: 500;
+}
+
+    .room-allowed-users i {
+        color: var(--accent-yellow);
+        font-size: 0.9rem;
     }
 
-    .user-dropdown {
-        right: -50px;
-        min-width: 180px;
+.room-details {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.room-capacity, .room-price {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    color: var(--text-light);
+}
+
+    .room-capacity i {
+        color: var(--text-dark);
+        font-size: 0.9rem;
+    }
+
+.room-price {
+    color: var(--text-dark);
+}
+
+    .room-price i {
+        color: var(--text-dark);
+        font-size: 0.9rem;
+    }
+
+/* Responsive adjustments for rooms grid */
+@media (max-width: 1200px) {
+    .rooms-grid {
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
     }
 }
 
-@media (max-width: 480px) {
-    .content-header h1 {
-        font-size: 1.8rem;
+@media (max-width: 768px) {
+    .rooms-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+}
+
+/* Animation for filtered items */
+.room-card.hidden {
+    display: none;
+}
+
+.room-card.visible {
+    animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
     }
 
-    .topbar {
-        padding: 0.75rem;
-        margin: 0 0.5rem 1rem;
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ========================================
+   ROOM MODAL STYLES
+   ======================================== */
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    padding: 2rem;
+}
+
+    .modal-overlay.active {
+        opacity: 1;
     }
 
-    .user-dropdown {
-        right: -80px;
-        min-width: 160px;
+.modal-content {
+    background: var(--white);
+    border-radius: 20px;
+    width: 100%;
+    max-width: 1200px;
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    transform: scale(0.9);
+    transition: transform 0.3s ease;
+    overflow: hidden;
+}
+
+.modal-overlay.active .modal-content {
+    transform: scale(1);
+}
+
+.modal-header {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 2rem;
+    border-bottom: 2px solid var(--border-color);
+    background: linear-gradient(135deg, var(--light-gray) 0%, var(--white) 100%);
+    border-radius: 20px 20px 0 0;
+}
+
+.modal-back-btn {
+    background: var(--white);
+    border: 2px solid var(--border-color);
+    color: var(--text-dark);
+    font-size: 1.2rem;
+    cursor: pointer;
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+}
+
+    .modal-back-btn:hover {
+        background: var(--primary-blue);
+        color: var(--white);
+        border-color: var(--primary-blue);
+        transform: translateX(-3px);
+    }
+
+.modal-header h2 {
+    font-family: 'League Spartan', sans-serif;
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin: 0;
+    flex: 1;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.modal-action-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 12px;
+    font-family: 'Kumbh Sans', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+    .modal-action-btn i {
+        font-size: 1rem;
+    }
+
+    .modal-action-btn.cancel-selected {
+        background: var(--white);
+        color: var(--primary-red);
+        border: 2px solid var(--primary-red);
+    }
+
+        .modal-action-btn.cancel-selected:hover {
+            background: var(--primary-red);
+            color: var(--white);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(198, 40, 40, 0.3);
+        }
+
+    .modal-action-btn.cancel-all {
+        background: var(--primary-red);
+        color: var(--white);
+        border: 2px solid var(--primary-red);
+    }
+
+        .modal-action-btn.cancel-all:hover {
+            background: #a52020;
+            border-color: #a52020;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(198, 40, 40, 0.4);
+        }
+
+.modal-body {
+    padding: 2rem;
+    flex: 1;
+}
+
+.bookings-table-wrapper {
+    background: var(--white);
+    border-radius: 16px;
+    border: 1px solid var(--border-color);
+    max-height: 500px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    margin-bottom: 1em;
+}
+
+    /* Custom Scrollbar for Table Wrapper */
+    .bookings-table-wrapper::-webkit-scrollbar {
+        width: 10px;
+    }
+
+    .bookings-table-wrapper::-webkit-scrollbar-track {
+        background: var(--light-gray);
+        border-radius: 10px;
+    }
+
+    .bookings-table-wrapper::-webkit-scrollbar-thumb {
+        background: linear-gradient(180deg, var(--primary-blue) 0%, var(--dark-blue) 100%);
+        border-radius: 10px;
+        border: 2px solid var(--light-gray);
+    }
+
+        .bookings-table-wrapper::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(180deg, var(--dark-blue) 0%, var(--primary-blue) 100%);
+        }
+
+.bookings-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+    .bookings-table thead {
+        background: linear-gradient(135deg, var(--dark-blue) 0%, var(--primary-blue) 100%);
+        color: var(--white);
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+
+        .bookings-table thead th {
+            padding: 1.25rem 1rem;
+            text-align: left;
+            font-family: 'League Spartan', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+    .bookings-table tbody tr {
+        border-bottom: 1px solid var(--border-color);
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+        .bookings-table tbody tr:hover {
+            background: var(--light-gray);
+        }
+
+        .bookings-table tbody tr:last-child {
+            border-bottom: none;
+        }
+
+    .bookings-table tbody td {
+        padding: 1.25rem 1rem;
+        font-size: 0.9rem;
+        color: var(--text-dark);
+    }
+
+.booking-checkbox {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    accent-color: var(--primary-red);
+    border-radius: 6px;
+}
+
+/* User Type Badges */
+.user-type-badge {
+    display: inline-block;
+    padding: 0.35rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+    .user-type-badge.student {
+        background: rgba(52, 152, 219, 0.1);
+        color: #3498db;
+    }
+
+    .user-type-badge.faculty {
+        background: rgba(155, 89, 182, 0.1);
+        color: #9b59b6;
+    }
+
+    .user-type-badge.visitor {
+        background: rgba(243, 156, 18, 0.1);
+        color: #f39c12;
+    }
+
+    .user-type-badge.admin {
+        background: rgba(198, 40, 40, 0.1);
+        color: var(--primary-red);
+    }
+
+/* Responsive Modal */
+@media (max-width: 1024px) {
+    .modal-header {
+        flex-wrap: wrap;
+    }
+
+        .modal-header h2 {
+            flex: 1 1 100%;
+            margin-bottom: 1rem;
+        }
+
+    .modal-actions {
+        flex: 1 1 100%;
+    }
+}
+
+@media (max-width: 768px) {
+    .modal-overlay {
+        padding: 1rem;
+    }
+
+    .modal-header {
+        padding: 1.5rem;
+    }
+
+        .modal-header h2 {
+            font-size: 1.4rem;
+        }
+
+    .modal-actions {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .modal-action-btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .modal-body {
+        padding: 1rem;
+    }
+
+    .bookings-table-wrapper {
+        overflow-x: auto;
+    }
+
+    .bookings-table {
+        min-width: 800px;
+    }
+
+        .bookings-table thead th,
+        .bookings-table tbody td {
+            padding: 1rem 0.75rem;
+            font-size: 0.85rem;
+        }
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+        transform: translateX(0);
+    }
+
+    to {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+}
+
+/* ========================================
+   USER DETAIL MODAL STYLES
+   ======================================== */
+
+.user-detail-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(6px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 3000;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    padding: 2rem;
+}
+
+    .user-detail-modal.active {
+        opacity: 1;
+    }
+
+.user-detail-content {
+    background: var(--white);
+    border-radius: 20px;
+    width: 100%;
+    max-width: 600px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    transform: scale(0.9);
+    transition: transform 0.3s ease;
+    overflow: hidden;
+}
+
+.user-detail-modal.active .user-detail-content {
+    transform: scale(1);
+}
+
+.user-detail-header {
+    background: linear-gradient(135deg, var(--dark-blue) 0%, var(--primary-blue) 100%);
+    color: var(--white);
+    padding: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+}
+
+.user-detail-close {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: var(--white);
+    font-size: 1.2rem;
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+    position: absolute;
+    top: 1.5rem;
+    right: 1.5rem;
+}
+
+    .user-detail-close:hover {
+        background: rgba(255, 255, 255, 0.3);
+        transform: rotate(90deg);
+    }
+
+.user-detail-header h3 {
+    font-family: 'League Spartan', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0;
+    flex: 1;
+}
+
+.user-detail-body {
+    padding: 2rem;
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+    /* Custom Scrollbar for User Detail Body */
+    .user-detail-body::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .user-detail-body::-webkit-scrollbar-track {
+        background: var(--light-gray);
+        border-radius: 10px;
+    }
+
+    .user-detail-body::-webkit-scrollbar-thumb {
+        background: linear-gradient(180deg, var(--primary-blue) 0%, var(--dark-blue) 100%);
+        border-radius: 10px;
+    }
+
+        .user-detail-body::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(180deg, var(--dark-blue) 0%, var(--primary-blue) 100%);
+        }
+
+.detail-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.detail-section {
+    margin-bottom: 0;
+}
+
+    .detail-section.full-width {
+        grid-column: 1 / -1;
+    }
+
+.detail-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-light);
+    margin-bottom: 0.5rem;
+}
+
+.detail-value {
+    font-size: 1rem;
+    color: var(--text-dark);
+    font-weight: 500;
+    padding: 0.75rem;
+    background: var(--light-gray);
+    border-radius: 8px;
+    border-left: 3px solid var(--primary-blue);
+}
+
+.members-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.member-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    background: var(--light-gray);
+    border-radius: 8px;
+    font-size: 0.9rem;
+    color: var(--text-dark);
+}
+
+    .member-item i {
+        color: var(--primary-blue);
+        font-size: 0.9rem;
+    }
+
+@media (max-width: 768px) {
+    .user-detail-modal {
+        padding: 1rem;
+    }
+
+    .user-detail-header {
+        padding: 1.5rem;
+    }
+
+        .user-detail-header h3 {
+            font-size: 1.2rem;
+            padding-right: 2rem;
+        }
+
+    .user-detail-close {
+        top: 1rem;
+        right: 1rem;
+        width: 35px;
+        height: 35px;
+    }
+
+    .user-detail-body {
+        padding: 1.5rem;
+    }
+
+    .detail-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
     }
 }
