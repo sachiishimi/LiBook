@@ -600,3 +600,321 @@ body {
         min-width: 160px;
     }
 }
+
+/* ========================================
+   USER MANAGEMENT STYLES
+   ======================================== */
+
+.user-management-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    gap: 1rem;
+}
+
+.tabs-container {
+    display: flex;
+    background: var(--light-gray);
+    border-radius: 12px;
+    padding: 0.25rem;
+    border: 1px solid var(--border-color);
+}
+
+.tab-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    background: transparent;
+    border-radius: 8px;
+    font-family: 'Kumbh Sans', sans-serif;
+    font-weight: 600;
+    color: var(--text-light);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+}
+
+    .tab-btn:hover {
+        color: var(--text-dark);
+        background: rgba(255, 255, 255, 0.5);
+    }
+
+    .tab-btn.active {
+        background: var(--white);
+        color: var(--text-dark);
+        box-shadow: 0 2px 8px var(--shadow);
+    }
+
+    .tab-btn i {
+        font-size: 0.9rem;
+    }
+
+.btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 12px;
+    font-family: 'Kumbh Sans', sans-serif;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+}
+
+.btn-primary {
+    background: var(--primary-blue);
+    color: var(--white);
+}
+
+    .btn-primary:hover {
+        background: var(--dark-blue);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(44, 62, 80, 0.3);
+    }
+
+/* Tables Container */
+.tables-container {
+    position: relative;
+}
+
+.table-section {
+    display: none;
+    animation: fadeIn 0.3s ease;
+}
+
+    .table-section.active {
+        display: block;
+    }
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Card Styles */
+.card {
+    background: var(--white);
+    border-radius: 20px;
+    box-shadow: 0 2px 8px var(--shadow);
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+    transition: all 0.3s ease;
+}
+
+    .card:hover {
+        box-shadow: 0 8px 24px var(--shadow-lg);
+    }
+
+.card-header {
+    padding: 1.5rem 1.8rem;
+    border-bottom: 2px solid var(--light-gray);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(to bottom, var(--white), var(--light-gray));
+}
+
+    .card-header h2 {
+        font-family: 'League Spartan', sans-serif;
+        font-size: 1.4rem;
+        color: var(--text-dark);
+        font-weight: 700;
+    }
+
+.user-count {
+    color: var(--text-light);
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.card-body {
+    padding: 1.5rem 1.8rem;
+}
+
+/* Table Styles */
+.table-responsive {
+    overflow-x: auto;
+}
+
+.users-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+    .users-table th {
+        text-align: left;
+        padding: 1rem 0.75rem;
+        font-weight: 600;
+        color: var(--text-dark);
+        border-bottom: 2px solid var(--light-gray);
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .users-table td {
+        padding: 1rem 0.75rem;
+        border-bottom: 1px solid var(--light-gray);
+        vertical-align: middle;
+    }
+
+    .users-table tr:hover {
+        background: var(--light-gray);
+    }
+
+    .users-table tr:last-child td {
+        border-bottom: none;
+    }
+
+/* User Info Cell */
+.user-info-cell {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, rgba(44, 62, 80, 0.1), rgba(93, 127, 163, 0.15));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary-blue);
+    font-size: 1rem;
+}
+
+    .user-avatar.admin {
+        background: linear-gradient(135deg, rgba(198, 40, 40, 0.1), rgba(232, 93, 93, 0.15));
+        color: var(--primary-red);
+    }
+
+.user-details {
+    display: flex;
+    flex-direction: column;
+}
+
+.user-name {
+    font-weight: 600;
+    color: var(--text-dark);
+    font-size: 0.95rem;
+}
+
+.user-email {
+    font-size: 0.8rem;
+    color: var(--text-light);
+}
+
+/* Status Badge */
+.status-badge {
+    padding: 0.4rem 0.8rem;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+    .status-badge.active {
+        background: rgba(39, 174, 96, 0.1);
+        color: var(--success);
+    }
+
+    .status-badge.inactive {
+        background: rgba(149, 165, 166, 0.1);
+        color: var(--medium-gray);
+    }
+
+/* Action Buttons */
+.action-buttons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.icon-btn.small {
+    width: 35px;
+    height: 35px;
+    background: var(--light-gray);
+    border: none;
+    border-radius: 8px;
+    color: var(--text-dark);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+}
+
+    .icon-btn.small:hover {
+        background: var(--primary-blue);
+        color: var(--white);
+        transform: scale(1.05);
+    }
+
+    .icon-btn.small.danger:hover {
+        background: var(--primary-red);
+        color: var(--white);
+    }
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .user-management-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .tabs-container {
+        order: 2;
+    }
+
+    #addUserBtn {
+        order: 1;
+        margin-bottom: 1rem;
+        justify-content: center;
+    }
+
+    .card-header {
+        flex-direction: column;
+        gap: 0.5rem;
+        align-items: flex-start;
+    }
+
+    .users-table {
+        min-width: 600px;
+    }
+
+    .user-info-cell {
+        min-width: 200px;
+    }
+}
+
+@media (max-width: 480px) {
+    .tab-btn {
+        padding: 0.6rem 1rem;
+        font-size: 0.8rem;
+    }
+
+    .card-body {
+        padding: 1rem;
+    }
+
+    .users-table th,
+    .users-table td {
+        padding: 0.75rem 0.5rem;
+    }
+}

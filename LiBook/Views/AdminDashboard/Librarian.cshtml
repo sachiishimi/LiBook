@@ -1,6 +1,5 @@
-﻿
-@{
-    ViewBag.Title = "Librarian";
+﻿@{
+    ViewBag.Title = "User Management";
 }
 
 <!DOCTYPE html>
@@ -42,17 +41,13 @@
                 <i class="fas fa-calendar-check"></i>
                 <span>Reservations</span>
             </a>
-            <a href="@Url.Action("Librarian", "AdminDashboard")" class="nav-item" data-page="librarian">
+            <a href="@Url.Action("Librarian", "AdminDashboard")" class="nav-item active" data-page="librarian">
                 <i class="fas fa-user-tie"></i>
-                <span>Manage Librarians</span>
+                <span>User Management</span>
             </a>
             <a href="@Url.Action("Rooms", "AdminDashboard")" class="nav-item" data-page="rooms">
                 <i class="fas fa-door-open"></i>
                 <span>Manage Rooms</span>
-            </a>
-            <a href="@Url.Action("AdminManagement", "AdminDashboard")" class="nav-item" data-page="adminmanagement">
-                <i class="fas fa-users-cog"></i>
-                <span>Admin Management</span>
             </a>
             <a href="@Url.Action("Archives", "AdminDashboard")" class="nav-item" data-page="archives">
                 <i class="fas fa-archive"></i>
@@ -73,7 +68,7 @@
 
             <div class="search-bar">
                 <i class="fas fa-search"></i>
-                <input type="text" placeholder="Search...">
+                <input type="text" id="userSearch" placeholder="Search users...">
             </div>
 
             <div class="topbar-actions">
@@ -113,15 +108,301 @@
             </div>
         </header>
 
-        <!-- Your Page Content Goes Here -->
+        <!-- User Management Content -->
         <main class="content">
             <div class="content-header">
-                <h1>Page Title</h1>
-                <p>Page description goes here.</p>
+                <h1>User Management</h1>
+                <p>Manage librarians and administrators in the system.</p>
             </div>
 
-            <!-- Add your page-specific content here -->
+            <!-- Tabs and Action Bar -->
+            <div class="user-management-header">
+                <div class="tabs-container">
+                    <button class="tab-btn active" data-tab="librarians">
+                        <i class="fas fa-user-tie"></i>
+                        Librarians
+                    </button>
+                    <button class="tab-btn" data-tab="admins">
+                        <i class="fas fa-users-cog"></i>
+                        Admins
+                    </button>
+                </div>
+                <button class="btn btn-primary" id="addUserBtn">
+                    <i class="fas fa-plus"></i>
+                    <span>Add Librarian</span>
+                </button>
+            </div>
 
+            <!-- Tables Container -->
+            <div class="tables-container">
+                <!-- Librarians Table -->
+                <div class="table-section active" id="librarians-section">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>Librarians</h2>
+                            <span class="user-count">5 librarians</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="users-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Name</th>
+                                            <th>Username</th>
+                                            <th>Status</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>
+                                                <div class="user-info-cell">
+                                                    <div class="user-avatar">
+                                                        <i class="fas fa-user"></i>
+                                                    </div>
+                                                    <div class="user-details">
+                                                        <span class="user-name">Sarah Johnson</span>
+                                                        <span class="user-email">sarah.j@library.edu</span>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>sarah.johnson</td>
+                                            <td>
+                                                <span class="status-badge active">Active</span>
+                                            </td>
+                                            <td>
+                                                <div class="action-buttons">
+                                                    <button class="icon-btn small" title="Edit">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                    <button class="icon-btn small danger" title="Delete">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <div class="user-info-cell">
+                                                    <div class="user-avatar">
+                                                        <i class="fas fa-user"></i>
+                                                    </div>
+                                                    <div class="user-details">
+                                                        <span class="user-name">Michael Chen</span>
+                                                        <span class="user-email">michael.c@library.edu</span>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>michael.chen</td>
+                                            <td>
+                                                <span class="status-badge active">Active</span>
+                                            </td>
+                                            <td>
+                                                <div class="action-buttons">
+                                                    <button class="icon-btn small" title="Edit">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                    <button class="icon-btn small danger" title="Delete">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <div class="user-info-cell">
+                                                    <div class="user-avatar">
+                                                        <i class="fas fa-user"></i>
+                                                    </div>
+                                                    <div class="user-details">
+                                                        <span class="user-name">Emily Rodriguez</span>
+                                                        <span class="user-email">emily.r@library.edu</span>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>emily.rodriguez</td>
+                                            <td>
+                                                <span class="status-badge inactive">Inactive</span>
+                                            </td>
+                                            <td>
+                                                <div class="action-buttons">
+                                                    <button class="icon-btn small" title="Edit">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                    <button class="icon-btn small danger" title="Delete">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <div class="user-info-cell">
+                                                    <div class="user-avatar">
+                                                        <i class="fas fa-user"></i>
+                                                    </div>
+                                                    <div class="user-details">
+                                                        <span class="user-name">David Kim</span>
+                                                        <span class="user-email">david.k@library.edu</span>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>david.kim</td>
+                                            <td>
+                                                <span class="status-badge active">Active</span>
+                                            </td>
+                                            <td>
+                                                <div class="action-buttons">
+                                                    <button class="icon-btn small" title="Edit">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                    <button class="icon-btn small danger" title="Delete">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <div class="user-info-cell">
+                                                    <div class="user-avatar">
+                                                        <i class="fas fa-user"></i>
+                                                    </div>
+                                                    <div class="user-details">
+                                                        <span class="user-name">Jessica Williams</span>
+                                                        <span class="user-email">jessica.w@library.edu</span>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>jessica.williams</td>
+                                            <td>
+                                                <span class="status-badge active">Active</span>
+                                            </td>
+                                            <td>
+                                                <div class="action-buttons">
+                                                    <button class="icon-btn small" title="Edit">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                    <button class="icon-btn small danger" title="Delete">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Admins Table -->
+                <div class="table-section" id="admins-section">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>Administrators</h2>
+                            <span class="user-count">3 administrators</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="users-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Name</th>
+                                            <th>Username</th>
+                                            <th>Status</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>
+                                                <div class="user-info-cell">
+                                                    <div class="user-avatar admin">
+                                                        <i class="fas fa-user-shield"></i>
+                                                    </div>
+                                                    <div class="user-details">
+                                                        <span class="user-name">Robert Wilson</span>
+                                                        <span class="user-email">robert.w@library.edu</span>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>robert.wilson</td>
+                                            <td>
+                                                <span class="status-badge active">Active</span>
+                                            </td>
+                                            <td>
+                                                <div class="action-buttons">
+                                                    <button class="icon-btn small" title="Edit">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                    <button class="icon-btn small danger" title="Delete">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <div class="user-info-cell">
+                                                    <div class="user-avatar admin">
+                                                        <i class="fas fa-user-shield"></i>
+                                                    </div>
+                                                    <div class="user-details">
+                                                        <span class="user-name">Lisa Thompson</span>
+                                                        <span class="user-email">lisa.t@library.edu</span>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>lisa.thompson</td>
+                                            <td>
+                                                <span class="status-badge active">Active</span>
+                                            </td>
+                                            <td>
+                                                <div class="action-buttons">
+                                                    <button class="icon-btn small" title="Edit">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                    <button class="icon-btn small danger" title="Delete">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <div class="user-info-cell">
+                                                    <div class="user-avatar admin">
+                                                        <i class="fas fa-user-shield"></i>
+                                                    </div>
+                                                    <div class="user-details">
+                                                        <span class="user-name">James Martinez</span>
+                                                        <span class="user-email">james.m@library.edu</span>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>james.martinez</td>
+                                            <td>
+                                                <span class="status-badge inactive">Inactive</span>
+                                            </td>
+                                            <td>
+                                                <div class="action-buttons">
+                                                    <button class="icon-btn small" title="Edit">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                    <button class="icon-btn small danger" title="Delete">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </main>
     </div>
 

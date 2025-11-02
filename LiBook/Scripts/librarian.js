@@ -6,6 +6,15 @@ const sidebarToggleDesktop = document.getElementById('sidebarToggleDesktop');
 const mainContent = document.querySelector('.main-content');
 const userProfile = document.getElementById('userProfile');
 const userDropdown = document.getElementById('userDropdown');
+const userSearch = document.getElementById('userSearch');
+const addUserBtn = document.getElementById('addUserBtn');
+
+// Tab Elements
+const tabBtns = document.querySelectorAll('.tab-btn');
+const tableSections = document.querySelectorAll('.table-section');
+
+// Current active tab
+let activeTab = 'librarians';
 
 // ============================================
 // SIDEBAR FUNCTIONALITY
@@ -28,6 +37,9 @@ window.addEventListener('load', () => {
         sidebar.classList.add('collapsed');
         mainContent.classList.add('expanded');
     }
+
+    // Initialize user management functionality
+    initializeUserManagement();
 });
 
 // Sidebar Toggle for Mobile
@@ -109,17 +121,151 @@ window.addEventListener('load', () => {
 });
 
 // ============================================
-// SEARCH FUNCTIONALITY
+// USER MANAGEMENT FUNCTIONALITY
 // ============================================
 
-// Search functionality
-const searchInput = document.querySelector('.search-bar input');
-if (searchInput) {
-    searchInput.addEventListener('input', (e) => {
-        const searchTerm = e.target.value.toLowerCase();
-        console.log('Searching for:', searchTerm);
-        // Implement actual search functionality here
+function initializeUserManagement() {
+    // Initialize tab functionality
+    initializeTabs();
+
+    // Initialize search functionality
+    initializeSearch();
+
+    // Initialize action buttons
+    initializeActionButtons();
+}
+
+// Tab functionality
+function initializeTabs() {
+    tabBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const tabName = btn.getAttribute('data-tab');
+            switchTab(tabName);
+        });
     });
+}
+
+function switchTab(tabName) {
+    // Update active tab button
+    tabBtns.forEach(btn => {
+        if (btn.getAttribute('data-tab') === tabName) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+
+    // Update active table section
+    tableSections.forEach(section => {
+        if (section.id === `${tabName}-section`) {
+            section.classList.add('active');
+        } else {
+            section.classList.remove('active');
+        }
+    });
+
+    // Update active tab and add button text
+    activeTab = tabName;
+    updateAddButtonText();
+
+    // Clear search when switching tabs
+    if (userSearch) {
+        userSearch.value = '';
+        filterUsers('');
+    }
+}
+
+function updateAddButtonText() {
+    if (!addUserBtn) return;
+
+    const buttonText = addUserBtn.querySelector('span');
+    if (activeTab === 'librarians') {
+        buttonText.textContent = 'Add Librarian';
+    } else {
+        buttonText.textContent = 'Add Admin';
+    }
+}
+
+// Search functionality
+function initializeSearch() {
+    if (userSearch) {
+        userSearch.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase().trim();
+            filterUsers(searchTerm);
+        });
+    }
+}
+
+function filterUsers(searchTerm) {
+    const activeTable = document.querySelector(`#${activeTab}-section .users-table tbody`);
+    if (!activeTable) return;
+
+    const rows = activeTable.querySelectorAll('tr');
+
+    rows.forEach(row => {
+        const name = row.querySelector('.user-name').textContent.toLowerCase();
+        const username = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+        const email = row.querySelector('.user-email').textContent.toLowerCase();
+
+        if (searchTerm === '' ||
+            name.includes(searchTerm) ||
+            username.includes(searchTerm) ||
+            email.includes(searchTerm)) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+}
+
+// Action buttons functionality
+function initializeActionButtons() {
+    // Add user button
+    if (addUserBtn) {
+        addUserBtn.addEventListener('click', () => {
+            addNewUser();
+        });
+    }
+
+    // Edit and delete buttons
+    document.addEventListener('click', (e) => {
+        if (e.target.closest('.icon-btn.small:not(.danger)')) {
+            const btn = e.target.closest('.icon-btn.small:not(.danger)');
+            editUser(btn);
+        } else if (e.target.closest('.icon-btn.small.danger')) {
+            const btn = e.target.closest('.icon-btn.small.danger');
+            deleteUser(btn);
+        }
+    });
+}
+
+function addNewUser() {
+    const userType = activeTab === 'librarians' ? 'Librarian' : 'Admin';
+    showNotification(`Add ${userType} functionality would open here`, 'info');
+    console.log(`Adding new ${userType}`);
+    // In a real application, this would open a modal or form
+}
+
+function editUser(button) {
+    const row = button.closest('tr');
+    const userName = row.querySelector('.user-name').textContent;
+    const userType = activeTab === 'librarians' ? 'Librarian' : 'Admin';
+    showNotification(`Editing ${userType}: ${userName}`, 'info');
+    console.log(`Editing user: ${userName}`);
+    // In a real application, this would open an edit form
+}
+
+function deleteUser(button) {
+    const row = button.closest('tr');
+    const userName = row.querySelector('.user-name').textContent;
+    const userType = activeTab === 'librarians' ? 'Librarian' : 'Admin';
+
+    if (confirm(`Are you sure you want to delete ${userType} ${userName}?`)) {
+        showNotification(`${userType} ${userName} deleted successfully`, 'info');
+        console.log(`Deleting user: ${userName}`);
+        // In a real application, this would make an API call to delete the user
+        // row.remove();
+    }
 }
 
 // ============================================
@@ -203,4 +349,4 @@ window.addEventListener('resize', () => {
     }, 250);
 });
 
-console.log('Sidebar and Topbar initialized successfully!');
+console.log('User Management page initialized successfully!');
