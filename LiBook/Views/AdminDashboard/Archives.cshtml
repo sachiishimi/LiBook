@@ -114,18 +114,156 @@
         </header>
 
         <!-- Your Page Content Goes Here -->
-        <main class="content">
-            <div class="content-header">
-                <h1>Page Title</h1>
-                <p>Page description goes here.</p>
+        <div class="content-header">
+            <h1>Archives</h1>
+            <p>View and manage archived data by category.</p>
+        </div>
+
+        <div class="archives-container">
+            <!-- Tabs -->
+            <div class="tabs">
+                <button class="tab active" data-target="rooms">Rooms</button>
+                <button class="tab" data-target="reservations">Canceled Reservations</button>
+                <button class="tab" data-target="users">Users</button>
             </div>
 
-            <!-- Add your page-specific content here -->
+            <!-- Rooms Tab -->
+            <div class="tab-content active" id="rooms">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Archived Rooms</h2>
+                        <span>3 Records</span>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Room Name</th>
+                                <th>Capacity</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Study Room A</td>
+                                <td>10</td>
+                                <td><span class="status inactive">Archived</span></td>
+                                <td><button class="unarchive-btn">Unarchive</button></td>
+                            </tr>
+                            <tr>
+                                <td>Conference Hall</td>
+                                <td>50</td>
+                                <td><span class="status inactive">Archived</span></td>
+                                <td><button class="unarchive-btn">Unarchive</button></td>
+                            </tr>
+                            <tr>
+                                <td>Mini Theater</td>
+                                <td>30</td>
+                                <td><span class="status inactive">Archived</span></td>
+                                <td><button class="unarchive-btn">Unarchive</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
 
-        </main>
-    </div>
+            <!-- Reservations Tab -->
+            <div class="tab-content" id="reservations">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Canceled Reservations</h2>
+                        <span>4 Records</span>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Reservation ID</th>
+                                <th>Room</th>
+                                <th>User</th>
+                                <th>Reason</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>#R-1001</td>
+                                <td>Study Room A</td>
+                                <td>John Reyes</td>
+                                <td>Not needed anymore</td>
+                                <td><button class="unarchive-btn">Unarchive</button></td>
+                            </tr>
+                            <tr>
+                                <td>#R-1002</td>
+                                <td>Conference Hall</td>
+                                <td>Maria Santos</td>
+                                <td>Rescheduled</td>
+                                <td><button class="unarchive-btn">Unarchive</button></td>
+                            </tr>
+                            <tr>
+                                <td>#R-1003</td>
+                                <td>Mini Theater</td>
+                                <td>Pedro Cruz</td>
+                                <td>Cancelled by admin</td>
+                                <td><button class="unarchive-btn">Unarchive</button></td>
+                            </tr>
+                            <tr>
+                                <td>#R-1004</td>
+                                <td>Study Room B</td>
+                                <td>Ana Garcia</td>
+                                <td>Duplicate booking</td>
+                                <td><button class="unarchive-btn">Unarchive</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
 
-    <script src="~/Scripts/archives.js"></script>
+            <!-- Users Tab -->
+            <div class="tab-content" id="users">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Archived Users</h2>
+                        <span>3 Records</span>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Full Name</th>
+                                <th>Username</th>
+                                <th>Email</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Maria Santos</td>
+                                <td>msantos</td>
+                                <td>maria.santos@libook.com</td>
+                                <td><span class="status inactive">Archived</span></td>
+                                <td><button class="unarchive-btn">Unarchive</button></td>
+                            </tr>
+                            <tr>
+                                <td>John Reyes</td>
+                                <td>jreyes</td>
+                                <td>john.reyes@libook.com</td>
+                                <td><span class="status inactive">Archived</span></td>
+                                <td><button class="unarchive-btn">Unarchive</button></td>
+                            </tr>
+                            <tr>
+                                <td>Ana Garcia</td>
+                                <td>agarcia</td>
+                                <td>ana.garcia@libook.com</td>
+                                <td><span class="status inactive">Archived</span></td>
+                                <td><button class="unarchive-btn">Unarchive</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <script src="~/Scripts/archives.js"></script>
 </body>
 </html>
 

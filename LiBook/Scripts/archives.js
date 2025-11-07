@@ -159,6 +159,33 @@ function showNotification(message, type = 'info') {
     }, 3000);
 }
 
+// ==================== TOAST NOTIFICATION =====================
+function showToast(message, type = 'success') {
+    const toast = document.createElement('div');
+    toast.className = `toast-notification ${type}`;
+
+    const icon = type === 'success' ? 'fa-check-circle' :
+        type === 'error' ? 'fa-exclamation-circle' :
+            type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle';
+
+    toast.innerHTML = `
+        <i class="fas ${icon}"></i>
+        <div class="toast-content">${message}</div>
+    `;
+
+    document.body.appendChild(toast);
+
+    // Remove toast after 3 seconds
+    setTimeout(() => {
+        toast.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.parentNode.removeChild(toast);
+            }
+        }, 300);
+    }, 3000);
+}
+
 // Animation styles for notifications
 const style = document.createElement('style');
 style.textContent = `
@@ -204,3 +231,82 @@ window.addEventListener('resize', () => {
 });
 
 console.log('Sidebar and Topbar initialized successfully!');
+
+// ==================== TAB SWITCHING =====================
+const tabs = document.querySelectorAll(".tab");
+const tabContents = document.querySelectorAll(".tab-content");
+
+tabs.forEach(tab => {
+    tab.addEventListener("click", () => {
+        // remove all active states
+        tabs.forEach(t => t.classList.remove("active"));
+        tabContents.forEach(c => c.classList.remove("active"));
+
+        // activate selected
+        tab.classList.add("active");
+        document.getElementById(tab.dataset.target).classList.add("active");
+    });
+});
+
+// ==================== UNARCHIVE BUTTONS =====================
+document.querySelectorAll(".unarchive-btn").forEach(button => {
+    button.addEventListener("click", function () {
+        const row = this.closest("tr");
+        const table = row.closest('table');
+        const cardHeader = table.previousElementSibling;
+
+        // Get item details based on which table we're in
+        let itemName = '';
+        let itemType = '';
+
+        if (table.querySelector('td:nth-child(1)')) {
+            if (table.closest('#rooms')) {
+                itemName = row.cells[0].textContent; // Room Name
+                itemType = 'room';
+            } else if (table.closest('#reservations')) {
+                itemName = row.cells[1].textContent + ' (' + row.cells[0].textContent + ')'; // Room + Reservation ID
+                itemType = 'reservation';
+            } else if (table.closest('#users')) {
+                itemName = row.cells[0].textContent; // User Name
+                itemType = 'user';
+            }
+        }
+
+        // Update button state immediately
+        this.textContent = "Unarchiving...";
+        this.disabled = true;
+        this.style.opacity = "0.7";
+
+        // Simulate API call delay
+        setTimeout(() => {
+            // Update record count
+            const recordSpan = cardHeader.querySelector('span');
+            if (recordSpan) {
+                const currentCount = parseInt(recordSpan.textContent);
+                if (!isNaN(currentCount)) {
+                    recordSpan.textContent = (currentCount - 1) + ' Records';
+                }
+            }
+
+            // Remove row with animation
+            row.style.opacity = "0.5";
+            row.style.transition = "opacity 0.5s ease";
+
+            setTimeout(() => {
+                row.remove();
+
+                // Show success toast notification
+                const message = `Successfully unarchived ${itemType}: ${itemName}`;
+                showToast(message, 'success');
+
+                // If no records left, show empty state
+                if (table.rows.length <= 1) { // Only header row left
+                    const emptyRow = document.createElement('tr');
+                    emptyRow.innerHTML = `<td colspan="${row.cells.length}" style="text-align: center; padding: 2rem; color: var(--text-light);">No archived records found</td>`;
+                    table.querySelector('tbody').appendChild(emptyRow);
+                }
+            }, 500);
+
+        }, 800);
+    });
+});

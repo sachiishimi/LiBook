@@ -642,7 +642,7 @@ body {
 }
 
 
-    
+
     .rooms-table thead th {
         text-align: left;
         padding: 1.25rem 1.5rem;
@@ -808,111 +808,294 @@ body {
     accent-color: var(--primary-blue);
 }
 
-/* Modal Styles */
-.modal {
-    display: none;
+
+/* ============================================
+   ENHANCED MODAL STYLES - REDESIGNED
+   ============================================ */
+
+/* Modal Overlay */
+.modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    z-index: 2000;
-    align-items: center;
+    background: rgba(0, 0, 0, 0.65);
+    display: flex;
     justify-content: center;
-    backdrop-filter: blur(4px);
+    align-items: center;
+    z-index: 10000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    padding: 20px;
+    backdrop-filter: blur(6px);
 }
 
-    .modal.active {
-        display: flex;
-    }
-
-.modal-content {
-    background: var(--white);
-    border-radius: 20px;
-    padding: 2rem;
-    width: 90%;
-    max-width: 500px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-    animation: modalSlideIn 0.3s ease;
-}
-
-@keyframes modalSlideIn {
-    from {
-        transform: translateY(-50px);
-        opacity: 0;
-    }
-
-    to {
-        transform: translateY(0);
+    .modal-overlay.active {
         opacity: 1;
+        visibility: visible;
     }
+
+/* Modal Container */
+.modal-container {
+    width: 100%;
+    max-width: 650px;
+    background: var(--white);
+    border-radius: 24px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+    overflow: hidden;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    transform: scale(0.9) translateY(20px);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+.modal-overlay.active .modal-container {
+    transform: scale(1) translateY(0);
+}
+
+.modal-container.modal-medium {
+    max-width: 700px;
+}
+
+/* Modal Header - Redesigned */
 .modal-header {
+    background: linear-gradient(135deg, var(--primary-blue) 0%, var(--dark-blue) 100%);
+    padding: 2rem 2.5rem;
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1.5rem;
+    align-items: flex-start;
+    border-bottom: none;
 }
 
-    .modal-header h2 {
-        font-family: 'League Spartan', sans-serif;
-        font-size: 1.8rem;
-        font-weight: 700;
-        color: var(--text-dark);
+.modal-header-content {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    flex: 1;
+}
+
+.modal-icon-wrapper {
+    width: 56px;
+    height: 56px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.75rem;
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+    .modal-icon-wrapper.room {
+        background: linear-gradient(135deg, #3498db, #2980b9);
+        color: var(--white);
     }
 
+.modal-title-wrapper h2 {
+    font-family: 'League Spartan', sans-serif;
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--white);
+    margin: 0;
+    line-height: 1.2;
+}
+
+.modal-subtitle {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.8);
+    margin: 0.35rem 0 0 0;
+    font-weight: 400;
+}
+
 .close-modal {
-    background: none;
+    background: rgba(255, 255, 255, 0.15);
     border: none;
-    font-size: 1.5rem;
-    color: var(--text-light);
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     cursor: pointer;
+    color: var(--white);
+    font-size: 1.25rem;
     transition: all 0.3s ease;
+    flex-shrink: 0;
 }
 
     .close-modal:hover {
-        color: var(--text-dark);
+        background: rgba(255, 255, 255, 0.25);
         transform: rotate(90deg);
     }
 
-.form-group {
+/* Modal Body - Redesigned */
+.modal-body {
+    padding: 2.5rem;
+    overflow-y: auto;
+    flex: 1;
+    background: var(--white);
+}
+
+/* Form Sections */
+.form-section {
+    margin-bottom: 2rem;
+    padding-bottom: 2rem;
+    border-bottom: 2px solid var(--light-gray);
+}
+
+    .form-section:last-of-type {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+    }
+
+.form-section-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
     margin-bottom: 1.5rem;
 }
 
-    .form-group label {
-        display: block;
-        font-weight: 600;
-        margin-bottom: 0.5rem;
+    .form-section-header i {
+        width: 36px;
+        height: 36px;
+        background: linear-gradient(135deg, var(--primary-blue), var(--dark-blue));
+        color: var(--white);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+    }
+
+    .form-section-header h3 {
+        font-family: 'League Spartan', sans-serif;
+        font-size: 1.25rem;
+        font-weight: 700;
         color: var(--text-dark);
-        font-size: 0.95rem;
+        margin: 0;
     }
 
-    .form-group input,
-    .form-group select {
-        width: 100%;
-        padding: 0.875rem 1rem;
-        border: 2px solid var(--border-color);
-        border-radius: 12px;
-        font-family: 'Kumbh Sans', sans-serif;
-        font-size: 0.95rem;
-        transition: all 0.3s ease;
-        background: var(--white);
-    }
+.section-description {
+    margin: -0.75rem 0 1.25rem 0;
+    color: var(--text-light);
+    font-size: 0.9rem;
+}
 
-        .form-group input:focus,
-        .form-group select:focus {
-            outline: none;
-            border-color: var(--accent-yellow);
-            box-shadow: 0 4px 12px rgba(255, 193, 7, 0.15);
-        }
+/* Form Grid */
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.25rem;
+}
 
-.modal-actions {
+.form-group {
     display: flex;
-    gap: 1rem;
+    flex-direction: column;
+}
+
+    .form-group.full-width {
+        grid-column: 1 / -1;
+    }
+
+    .form-group label {
+        font-weight: 600;
+        color: var(--text-dark);
+        margin-bottom: 0.5rem;
+        font-size: 0.95rem;
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+    }
+
+.required {
+    color: var(--danger);
+    font-size: 0.9rem;
+}
+
+/* Form Controls */
+.form-control {
+    width: 100%;
+    padding: 0.875rem 1rem;
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    font-family: 'Kumbh Sans', sans-serif;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    background: var(--light-gray);
+}
+
+    .form-control:focus {
+        border-color: var(--primary-blue);
+        background: var(--white);
+        box-shadow: 0 0 0 4px rgba(44, 62, 80, 0.1);
+        outline: none;
+    }
+
+    .form-control::placeholder {
+        color: var(--medium-gray);
+    }
+
+select.form-control {
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2395a5a6' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    padding-right: 2.5rem;
+}
+
+/* Field Hint */
+.field-hint {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+    font-size: 0.85rem;
+    color: var(--text-light);
+    padding: 0.75rem 1rem;
+    background: linear-gradient(135deg, rgba(52, 152, 219, 0.05), rgba(52, 152, 219, 0.08));
+    border-radius: 8px;
+    border-left: 3px solid #3498db;
+}
+
+    .field-hint i {
+        color: #3498db;
+        font-size: 0.9rem;
+    }
+
+/* Modal Footer - Redesigned */
+.modal-footer {
+    padding: 1.75rem 2.5rem;
+    background: var(--light-gray);
+    display: flex;
     justify-content: flex-end;
-    margin-top: 2rem;
+    gap: 1rem;
+    border-top: 2px solid var(--border-color);
+}
+
+    .modal-footer .btn {
+        min-width: 140px;
+        justify-content: center;
+    }
+
+/* Button Styles */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.875rem 1.75rem;
+    border: none;
+    border-radius: 12px;
+    font-family: 'Kumbh Sans', sans-serif;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
 }
 
 .btn-secondary {
@@ -935,6 +1118,95 @@ body {
         transform: translateY(-2px);
         box-shadow: 0 6px 20px rgba(39, 174, 96, 0.3);
     }
+
+/* ============================================
+   RESPONSIVE MODAL STYLES
+   ============================================ */
+@media (max-width: 768px) {
+    .modal-container {
+        max-width: 95%;
+        max-height: 95vh;
+    }
+
+    .modal-header {
+        padding: 1.5rem 1.75rem;
+    }
+
+    .modal-header-content {
+        gap: 1rem;
+    }
+
+    .modal-icon-wrapper {
+        width: 48px;
+        height: 48px;
+        font-size: 1.5rem;
+    }
+
+    .modal-title-wrapper h2 {
+        font-size: 1.5rem;
+    }
+
+    .modal-subtitle {
+        font-size: 0.85rem;
+    }
+
+    .modal-body {
+        padding: 1.75rem;
+    }
+
+    .form-section {
+        padding-bottom: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .form-section-header h3 {
+        font-size: 1.1rem;
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .modal-footer {
+        padding: 1.25rem 1.75rem;
+        flex-direction: column;
+    }
+
+        .modal-footer .btn {
+            width: 100%;
+        }
+}
+
+@media (max-width: 480px) {
+    .modal-overlay {
+        padding: 10px;
+    }
+
+    .modal-header {
+        padding: 1.25rem 1.5rem;
+    }
+
+    .modal-icon-wrapper {
+        width: 42px;
+        height: 42px;
+        font-size: 1.25rem;
+    }
+
+    .modal-title-wrapper h2 {
+        font-size: 1.25rem;
+    }
+
+    .modal-body {
+        padding: 1.5rem;
+    }
+
+    .form-section-header i {
+        width: 32px;
+        height: 32px;
+        font-size: 0.9rem;
+    }
+}
 
 /* ============================================
    RESPONSIVE STYLES
@@ -1010,11 +1282,6 @@ body {
         display: block;
         overflow-x: auto;
     }
-
-    .modal-content {
-        width: 95%;
-        padding: 1.5rem;
-    }
 }
 
 @media (max-width: 480px) {
@@ -1032,3 +1299,185 @@ body {
         min-width: 160px;
     }
 }
+
+/* ============================================
+   ARCHIVE MODAL STYLES
+   ============================================ */
+
+.modal-container.modal-confirm {
+    max-width: 600px;
+}
+
+.modal-icon-wrapper.archive {
+    background: linear-gradient(135deg, #e67e22, #d35400);
+    color: var(--white);
+}
+
+/* Archive Alert */
+.archive-alert {
+    display: flex;
+    gap: 1rem;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, rgba(230, 126, 34, 0.08), rgba(230, 126, 34, 0.12));
+    border-radius: 12px;
+    border-left: 4px solid #e67e22;
+    margin-bottom: 1.5rem;
+}
+
+.alert-icon {
+    flex-shrink: 0;
+    width: 42px;
+    height: 42px;
+    background: linear-gradient(135deg, #e67e22, #d35400);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--white);
+    font-size: 1.25rem;
+}
+
+.alert-content h4 {
+    font-family: 'League Spartan', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin: 0 0 0.5rem 0;
+}
+
+.alert-content p {
+    font-size: 0.9rem;
+    color: var(--text-light);
+    margin: 0;
+    line-height: 1.5;
+}
+
+/* Archive Preview */
+.archive-preview {
+    background: var(--light-gray);
+    border-radius: 12px;
+    overflow: hidden;
+    border: 2px solid var(--border-color);
+}
+
+.preview-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem 1.25rem;
+    background: var(--white);
+    border-bottom: 2px solid var(--border-color);
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+    .preview-header i {
+        color: #e67e22;
+        font-size: 1.1rem;
+    }
+
+.preview-list {
+    max-height: 300px;
+    overflow-y: auto;
+    padding: 0.5rem;
+}
+
+.preview-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: var(--white);
+    border-radius: 8px;
+    margin-bottom: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+    .preview-item:last-child {
+        margin-bottom: 0;
+    }
+
+    .preview-item:hover {
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        transform: translateX(4px);
+    }
+
+.preview-item-icon {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, rgba(230, 126, 34, 0.1), rgba(230, 126, 34, 0.15));
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #e67e22;
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+.preview-item-info {
+    flex: 1;
+}
+
+.preview-item-name {
+    font-weight: 600;
+    color: var(--text-dark);
+    font-size: 0.95rem;
+    margin-bottom: 0.25rem;
+}
+
+.preview-item-id {
+    font-size: 0.8rem;
+    color: var(--text-light);
+}
+
+.preview-empty {
+    text-align: center;
+    padding: 3rem 2rem;
+    color: var(--text-light);
+}
+
+    .preview-empty i {
+        font-size: 3rem;
+        color: var(--medium-gray);
+        margin-bottom: 1rem;
+        display: block;
+        opacity: 0.5;
+    }
+
+    .preview-empty p {
+        font-size: 0.95rem;
+        margin: 0;
+    }
+
+/* Danger Button */
+.btn-danger {
+    background: var(--danger);
+    color: var(--white);
+}
+
+    .btn-danger:hover {
+        background: #c0392b;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(231, 76, 60, 0.3);
+    }
+
+/* Archive Button Styling */
+.btn-archive {
+    background: linear-gradient(135deg, #e67e22, #d35400);
+    color: var(--white);
+}
+
+    .btn-archive:hover {
+        background: linear-gradient(135deg, #d35400, #c0392b);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(230, 126, 34, 0.3);
+    }
+
+    .btn-archive:disabled {
+        background: var(--medium-gray);
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+        opacity: 0.6;
+    }
