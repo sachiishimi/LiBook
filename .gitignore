@@ -2,3 +2,7 @@
 
 bin/
 obj/
+
+# Ignore build folders
+[Bb]in/
+[Oo]bj/
