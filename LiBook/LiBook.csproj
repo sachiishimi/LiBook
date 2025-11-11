@@ -139,6 +139,7 @@
     <Compile Include="Controllers\AccountController.cs" />
     <Compile Include="Controllers\AdminDashboard.cs" />
     <Compile Include="Controllers\HomeController.cs" />
+    <Compile Include="Controllers\LibrarianController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
@@ -168,8 +169,12 @@
     <Content Include="Content\images\loginbg.png" />
     <Content Include="Content\images\luxurystudio.jpg" />
     <Content Include="Content\librarian.css" />
+    <Content Include="Content\librarianarchives.css" />
+    <Content Include="Content\librariandashboard.css" />
+    <Content Include="Content\librarianreservations.css" />
     <Content Include="Content\reservations.css" />
     <Content Include="Content\login.css" />
+    <Content Include="Content\roommanagement.css" />
     <Content Include="Content\rooms.css" />
     <Content Include="favicon.ico" />
     <Content Include="Global.asax" />
@@ -194,9 +199,13 @@
     <Content Include="Scripts\jquery.validate.unobtrusive.js" />
     <Content Include="Scripts\jquery.validate.unobtrusive.min.js" />
     <Content Include="Scripts\librarian.js" />
+    <Content Include="Scripts\librarianarchives.js" />
+    <Content Include="Scripts\librariandashboard.js" />
+    <Content Include="Scripts\librarianreservations.js" />
     <Content Include="Scripts\login.js" />
     <Content Include="Scripts\modernizr-2.8.3.js" />
     <Content Include="Scripts\reservations.js" />
+    <Content Include="Scripts\roommanagement.js" />
     <Content Include="Scripts\rooms.js" />
     <Content Include="Web.config" />
     <Content Include="Web.Debug.config">
@@ -216,6 +225,10 @@
     <Content Include="Views\AdminDashboard\AdminManagement.cshtml" />
     <Content Include="Views\AdminDashboard\Archives.cshtml" />
     <Content Include="Views\AdminDashboard\Rooms.cshtml" />
+    <Content Include="Views\Librarian\LibrarianDashboard.cshtml" />
+    <Content Include="Views\Librarian\LibrarianReservations.cshtml" />
+    <Content Include="Views\Librarian\RoomManagement.cshtml" />
+    <Content Include="Views\Librarian\LibrarianArchives.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

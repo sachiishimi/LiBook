@@ -4,9 +4,6 @@
     // ======================
     // LOGIN VALIDATION
     // ======================
-    // ======================
-    // LOGIN VALIDATION
-    // ======================
     loginForm.addEventListener("submit", function (e) {
         const email = document.getElementById("email").value.trim();
         const password = document.getElementById("password").value.trim();
@@ -23,7 +20,6 @@
         loginBtn.disabled = true;
 
         // Let the form submit naturally to the server
-        // Remove e.preventDefault() to allow form submission
     });
 
     // ======================
@@ -210,217 +206,173 @@
                 const text = strengthMeter.querySelector(".strength-text strong");
 
                 if (this.value.length === 0) {
-                    strengthMeter.classList.remove("show");
-                    // Remove after animation completes
-                    setTimeout(() => {
-                        if (strengthMeter && !strengthMeter.classList.contains("show")) {
-                            strengthMeter.remove();
-                        }
-                    }, 300);
+                    strengthMeter.remove();
                     return;
                 }
-
-                // Show strength meter
-                setTimeout(() => {
-                    strengthMeter.classList.add("show");
-                }, 10);
 
                 fill.style.width = strength + "%";
 
                 if (strength < 40) {
-                    fill.style.backgroundColor = "#e74c3c";
+                    fill.style.background = "#e74c3c";
                     text.textContent = "Weak";
                     text.style.color = "#e74c3c";
                 } else if (strength < 70) {
-                    fill.style.backgroundColor = "#f39c12";
-                    text.textContent = "Fair";
+                    fill.style.background = "#f39c12";
+                    text.textContent = "Medium";
                     text.style.color = "#f39c12";
-                } else if (strength < 90) {
-                    fill.style.backgroundColor = "#3498db";
-                    text.textContent = "Good";
-                    text.style.color = "#3498db";
                 } else {
-                    fill.style.backgroundColor = "#27ae60";
+                    fill.style.background = "#27ae60";
                     text.textContent = "Strong";
                     text.style.color = "#27ae60";
                 }
-            }
-        });
 
-        // Also remove strength meter when input loses focus if empty
-        newPasswordInput.addEventListener("blur", function () {
-            if (this.value.length === 0) {
-                const strengthMeter = document.querySelector(".strength-meter");
-                if (strengthMeter) {
-                    strengthMeter.classList.remove("show");
-                    setTimeout(() => {
-                        if (strengthMeter && !strengthMeter.classList.contains("show")) {
-                            strengthMeter.remove();
-                        }
-                    }, 300);
-                }
+                setTimeout(() => {
+                    strengthMeter.classList.add("show");
+                }, 10);
             }
         });
     }
 });
 
 // ======================
-// MODAL FUNCTIONS WITH ANIMATIONS
+// FORGOT PASSWORD MODAL SYSTEM
 // ======================
 function openForgot() {
-    const forgotOverlay = document.getElementById('forgotOverlay');
+    const overlay = document.getElementById('forgotOverlay');
     const stepEmail = document.getElementById('stepEmail');
-    if (forgotOverlay && stepEmail) {
-        forgotOverlay.style.display = 'flex';
-        setTimeout(() => {
-            stepEmail.classList.add('active');
-        }, 10);
 
-        // Focus email input
-        setTimeout(() => {
-            document.getElementById('emailInput')?.focus();
-        }, 300);
-    }
+    overlay.style.display = 'flex';
+    setTimeout(() => {
+        overlay.classList.add('active');
+        stepEmail.classList.add('active');
+    }, 10);
+
+    document.getElementById('emailInput')?.focus();
 }
 
 function closeForgot() {
-    const forgotOverlay = document.getElementById('forgotOverlay');
-    const activeModal = document.querySelector('.forgot-modal.active');
+    const overlay = document.getElementById('forgotOverlay');
+    const modals = document.querySelectorAll('.forgot-modal');
 
-    if (activeModal) {
-        activeModal.classList.remove('active');
-        activeModal.classList.add('closing');
+    overlay.classList.remove('active');
 
-        setTimeout(() => {
-            activeModal.classList.remove('closing');
-            if (forgotOverlay) forgotOverlay.style.display = 'none';
-            resetAllModals();
-        }, 500);
-    } else {
-        if (forgotOverlay) forgotOverlay.style.display = 'none';
-        resetAllModals();
-    }
-}
+    setTimeout(() => {
+        overlay.style.display = 'none';
+        modals.forEach(modal => {
+            modal.classList.remove('active', 'closing');
+        });
 
-function resetAllModals() {
-    // Reset email step
-    const emailInput = document.getElementById("emailInput");
-    const emailError = document.getElementById("emailError");
-    if (emailInput) emailInput.value = "";
-    if (emailError) emailError.style.visibility = "hidden";
+        // Reset to first step
+        document.getElementById('stepEmail').classList.add('active');
 
-    // Reset code inputs
-    document.querySelectorAll(".code-boxes input").forEach(input => {
-        input.value = "";
-    });
+        // Clear inputs
+        document.getElementById('emailInput').value = '';
+        document.querySelectorAll('.code-boxes input').forEach(input => {
+            input.value = '';
+            input.style.borderColor = '';
+            input.style.backgroundColor = '';
+        });
+        document.getElementById('newPassword').value = '';
+        document.getElementById('confirmNewPassword').value = '';
 
-    // Reset password fields
-    const newPasswordInput = document.getElementById("newPassword");
-    const confirmPasswordInput = document.getElementById("confirmNewPassword");
-    if (newPasswordInput) newPasswordInput.value = "";
-    if (confirmPasswordInput) confirmPasswordInput.value = "";
-
-    // Reset validation UI
-    const requirementItems = document.querySelectorAll("#stepNewPassword .rules-list li");
-    requirementItems.forEach(item => {
-        item.classList.remove("valid", "invalid");
-    });
-
-    // Remove dynamic indicators
-    document.querySelectorAll(".password-indicator").forEach(e => e.remove());
+        // Remove dynamic indicators
+        document.querySelectorAll('.password-indicator').forEach(el => el.remove());
+    }, 300);
 }
 
 function goToCode() {
-    const emailInput = document.getElementById("emailInput");
-    const emailError = document.getElementById("emailError");
-    const verifyMessage = document.getElementById("verifyMessage");
-    const stepEmail = document.getElementById('stepEmail');
-    const stepCode = document.getElementById('stepCode');
-    const sendBtn = stepEmail.querySelector('.main-btn');
+    const emailInput = document.getElementById('emailInput');
+    const email = emailInput.value.trim();
+    const emailError = document.getElementById('emailError');
 
-    const emailValue = emailInput.value.trim();
+    // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        emailError.style.display = 'block';
+        emailInput.style.borderColor = '#e74c3c';
 
-    if (!emailValue || !emailRegex.test(emailValue)) {
-        emailError.style.visibility = "visible";
-        emailInput.classList.add("error-shake");
-        setTimeout(() => emailInput.classList.remove("error-shake"), 500);
+        // Shake animation
+        emailInput.classList.add('error-shake');
+        setTimeout(() => emailInput.classList.remove('error-shake'), 500);
         return;
-    } else {
-        emailError.style.visibility = "hidden";
     }
 
-    // Show loading state
-    const originalText = sendBtn.textContent;
-    sendBtn.textContent = "SENDING...";
-    sendBtn.disabled = true;
+    emailError.style.display = 'none';
+    emailInput.style.borderColor = '';
 
-    // Simulate API call delay
+    // Show verification message
+    const stepEmail = document.getElementById('stepEmail');
+    const verifyMessage = document.getElementById('verifyMessage');
+    const stepCode = document.getElementById('stepCode');
+
+    stepEmail.classList.remove('active');
+    stepEmail.classList.add('closing');
+
     setTimeout(() => {
-        sendBtn.textContent = originalText;
-        sendBtn.disabled = false;
-
-        stepEmail.classList.remove('active');
-        stepEmail.classList.add('closing');
+        stepEmail.classList.remove('closing');
+        verifyMessage.classList.add('active');
 
         setTimeout(() => {
-            stepEmail.classList.remove('closing');
-            verifyMessage.classList.add('active');
-            verifyMessage.style.display = "block";
+            verifyMessage.classList.remove('active');
+            verifyMessage.classList.add('closing');
 
             setTimeout(() => {
-                verifyMessage.classList.remove('active');
-                verifyMessage.classList.add('closing');
-
-                setTimeout(() => {
-                    verifyMessage.classList.remove('closing');
-                    verifyMessage.style.display = "none";
-                    stepCode.classList.add('active');
-
-                    const firstCodeInput = document.querySelector(".code-boxes input");
-                    if (firstCodeInput) firstCodeInput.focus();
-                    startResendTimer();
-                }, 500);
-            }, 2000);
-        }, 500);
-    }, 1000);
+                verifyMessage.classList.remove('closing');
+                stepCode.classList.add('active');
+                startResendTimer();
+                document.querySelector('.code-boxes input')?.focus();
+            }, 500);
+        }, 2000);
+    }, 500);
 }
 
-document.getElementById("emailInput")?.addEventListener("input", function () {
-    const emailError = document.getElementById("emailError");
-    if (emailError) emailError.style.visibility = "hidden";
-});
-
-// ======================
-// CODE VALIDATION
-// ======================
 function validateCode() {
-    const codeInputs = document.querySelectorAll(".code-boxes input");
-    const code = Array.from(codeInputs).map(input => input.value).join("");
+    const inputs = document.querySelectorAll('.code-boxes input');
+    const code = Array.from(inputs).map(input => input.value).join('');
 
-    if (code.length === 6) {
-        const confirmBtn = document.querySelector("#stepCode .confirm-btn");
-        confirmBtn.textContent = "VERIFYING...";
-        confirmBtn.disabled = true;
+    if (code.length !== 6) {
+        showToast("Please enter the complete 6-digit code.", "error");
+        return;
+    }
 
-        // Simulate verification
+    // Simulate code validation (replace with actual backend call)
+    const isValid = code === "123456"; // Demo: accept 123-456
+
+    inputs.forEach(input => {
+        if (isValid) {
+            input.style.borderColor = "#27ae60";
+            input.style.backgroundColor = "#d5f4e6";
+        } else {
+            input.style.borderColor = "#e74c3c";
+            input.style.backgroundColor = "#fadbd8";
+        }
+    });
+
+    if (isValid) {
         setTimeout(() => {
-            confirmBtn.textContent = "CONFIRM";
-            confirmBtn.disabled = false;
             showToast("Code verified successfully!", "success");
+            goToNewPass();
+        }, 500);
+    } else {
+        showToast("Invalid verification code. Please try again.", "error");
 
-            // Add visual feedback
-            codeInputs.forEach(input => {
-                input.style.borderColor = "#27ae60";
-                input.style.backgroundColor = "#d4edda";
+        // Shake animation
+        const codeBoxes = document.querySelector('.code-boxes');
+        codeBoxes.classList.add('error-shake');
+        setTimeout(() => codeBoxes.classList.remove('error-shake'), 500);
+
+        // Clear inputs after a delay
+        setTimeout(() => {
+            inputs.forEach(input => {
+                input.value = '';
+                input.style.borderColor = '';
+                input.style.backgroundColor = '';
             });
+            inputs[0]?.focus();
         }, 1000);
     }
 }
 
-// ======================
-// PASSWORD STEP WITH IMPROVED UX
-// ======================
 function goToNewPass() {
     const stepCode = document.getElementById('stepCode');
     const stepNewPassword = document.getElementById('stepNewPassword');
@@ -431,24 +383,14 @@ function goToNewPass() {
     setTimeout(() => {
         stepCode.classList.remove('closing');
         stepNewPassword.classList.add('active');
-
-        const confirmBtn = document.querySelector("#stepNewPassword .confirm-btn");
-        confirmBtn.disabled = true;
-        confirmBtn.style.opacity = "0.5";
-        confirmBtn.style.cursor = "not-allowed";
-
-        // Focus first password field
-        setTimeout(() => {
-            document.getElementById("newPassword")?.focus();
-        }, 300);
+        document.getElementById('newPassword')?.focus();
     }, 500);
 }
 
 function finishReset() {
-    const newPass = document.getElementById("newPassword");
-    const confirmPass = document.getElementById("confirmNewPassword");
-    const newPassword = newPass.value.trim();
-    const confirmPassword = confirmPass.value.trim();
+    const newPassword = document.getElementById('newPassword').value;
+    const confirmPassword = document.getElementById('confirmNewPassword').value;
+    const confirmPass = document.getElementById('confirmNewPassword');
     const confirmBtn = document.querySelector("#stepNewPassword .confirm-btn");
 
     document.querySelectorAll(".error-text-container").forEach(e => e.remove());

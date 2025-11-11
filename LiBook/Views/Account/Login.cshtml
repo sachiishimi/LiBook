@@ -29,7 +29,7 @@
             <h1 class="welcome-title">Welcome to <span class="brand-name">Li<span class="brand-accent">Book</span></span></h1>
 
             <form id="loginForm" action="@Url.Action("Login", "Account")" method="post">
-                @Html.AntiForgeryToken() <!-- Add this line -->
+                @Html.AntiForgeryToken()
 
                 @if (TempData["Error"] != null)
                 {
@@ -62,6 +62,8 @@
 
                 <button type="submit" class="login-btn">LOG IN</button>
             </form>
+        </div>
+    </div>
 
     <!-- Forgot Password Modal Overlay -->
     <div class="forgot-overlay" id="forgotOverlay">
