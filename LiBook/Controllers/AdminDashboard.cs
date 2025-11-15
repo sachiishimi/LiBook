@@ -2,7 +2,7 @@
 
 namespace LiBook.Controllers
 {
-    [Authorize] // This protects ALL actions in this controller
+    [Authorize(Roles = "Admin")] // This protects ALL actions in this controller
     public class AdminDashboardController : Controller
     {
         // GET: /AdminDashboard/Index (Dashboard)
