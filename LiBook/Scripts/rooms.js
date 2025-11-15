@@ -8,22 +8,25 @@ const userProfile = document.getElementById('userProfile');
 const userDropdown = document.getElementById('userDropdown');
 
 // Room Management Elements
-const modal = document.getElementById('roomModal');
+const addRoomModal = document.getElementById('addRoomModal');
+const editRoomModal = document.getElementById('editRoomModal');
 const archiveModal = document.getElementById('archiveModal');
 const addRoomBtn = document.getElementById('addRoomBtn');
 const bulkArchiveBtn = document.getElementById('bulkArchiveBtn');
-const closeModalBtn = document.getElementById('closeModal');
+const closeAddModalBtn = document.getElementById('closeAddModal');
+const closeEditModalBtn = document.getElementById('closeEditModal');
 const closeArchiveModalBtn = document.getElementById('closeArchiveModal');
-const cancelBtn = document.getElementById('cancelBtn');
+const cancelAddBtn = document.getElementById('cancelAddBtn');
+const cancelEditBtn = document.getElementById('cancelEditBtn');
 const cancelArchiveBtn = document.getElementById('cancelArchiveBtn');
 const confirmArchiveBtn = document.getElementById('confirmArchiveBtn');
-const roomForm = document.getElementById('roomForm');
+const addRoomForm = document.getElementById('addRoomForm');
+const editRoomForm = document.getElementById('editRoomForm');
 const searchInput = document.getElementById('searchRooms');
 const selectAllCheckbox = document.getElementById('selectAll');
 
 // Track editing state
 let editingRow = null;
-let isEditMode = false;
 let selectedRoomsForArchive = [];
 
 // ============================================
@@ -129,7 +132,7 @@ window.addEventListener('load', () => {
 // Open modal for adding new room
 if (addRoomBtn) {
     addRoomBtn.addEventListener('click', () => {
-        openModal(false);
+        openAddModal();
     });
 }
 
@@ -140,16 +143,28 @@ if (bulkArchiveBtn) {
     });
 }
 
-// Close modal
-if (closeModalBtn) {
-    closeModalBtn.addEventListener('click', () => {
-        closeModal();
+// Close modals
+if (closeAddModalBtn) {
+    closeAddModalBtn.addEventListener('click', () => {
+        closeAddModal();
     });
 }
 
-if (cancelBtn) {
-    cancelBtn.addEventListener('click', () => {
-        closeModal();
+if (closeEditModalBtn) {
+    closeEditModalBtn.addEventListener('click', () => {
+        closeEditModal();
+    });
+}
+
+if (cancelAddBtn) {
+    cancelAddBtn.addEventListener('click', () => {
+        closeAddModal();
+    });
+}
+
+if (cancelEditBtn) {
+    cancelEditBtn.addEventListener('click', () => {
+        closeEditModal();
     });
 }
 
@@ -172,11 +187,19 @@ if (confirmArchiveBtn) {
     });
 }
 
-// Close modal when clicking outside
-if (modal) {
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-            closeModal();
+// Close modals when clicking outside
+if (addRoomModal) {
+    addRoomModal.addEventListener('click', (e) => {
+        if (e.target === addRoomModal) {
+            closeAddModal();
+        }
+    });
+}
+
+if (editRoomModal) {
+    editRoomModal.addEventListener('click', (e) => {
+        if (e.target === editRoomModal) {
+            closeEditModal();
         }
     });
 }
@@ -189,11 +212,14 @@ if (archiveModal) {
     });
 }
 
-// Close modal with Escape key
+// Close modals with Escape key
 document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
-        if (modal && modal.classList.contains('active')) {
-            closeModal();
+        if (addRoomModal && addRoomModal.classList.contains('active')) {
+            closeAddModal();
+        }
+        if (editRoomModal && editRoomModal.classList.contains('active')) {
+            closeEditModal();
         }
         if (archiveModal && archiveModal.classList.contains('active')) {
             closeArchiveModal();
@@ -201,69 +227,136 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
-// Open modal function
-function openModal(isEdit = false) {
-    if (modal) {
-        isEditMode = isEdit;
-        const modalTitle = document.getElementById('modalTitle');
-
-        if (modalTitle) {
-            modalTitle.textContent = isEdit ? 'Edit Room' : 'Add New Room';
-        }
-
-        if (!isEdit) {
-            roomForm.reset();
-            editingRow = null;
-        }
-
-        modal.classList.add('active');
+// Open add modal function
+function openAddModal() {
+    if (addRoomModal) {
+        addRoomModal.classList.add('active');
         document.body.style.overflow = 'hidden';
 
         // Focus first input
         setTimeout(() => {
-            const firstInput = document.getElementById('roomName');
+            const firstInput = document.getElementById('addRoomName');
             if (firstInput) firstInput.focus();
         }, 100);
     }
 }
 
-// Close modal function
-function closeModal() {
-    if (modal) {
-        modal.classList.remove('active');
+// Open edit modal function
+function openEditModal(row) {
+    if (editRoomModal) {
+        editingRow = row;
+
+        const roomName = row.querySelector('.room-details h3')?.textContent || '';
+        const roomUser1 = row.querySelectorAll('.user-type')[0]?.textContent.toLowerCase() || '';
+        const capacity = row.querySelector('.capacity')?.textContent || '';
+        const roomStatusElement = row.querySelector('.status-badge');
+        let roomStatus = '';
+
+        if (roomStatusElement) {
+            if (roomStatusElement.classList.contains('available')) roomStatus = 'available';
+            else if (roomStatusElement.classList.contains('in-use')) roomStatus = 'unavailable';
+            else if (roomStatusElement.classList.contains('under-maintenance')) roomStatus = 'under-maintenance';
+        }
+
+        console.log('Editing room:', { roomName, roomUser1, capacity, roomStatus });
+
+        // Populate form
+        document.getElementById('editRoomName').value = roomName;
+        document.getElementById('editRoomUser1').value = roomUser1;
+        document.getElementById('editCapacity').value = capacity;
+        document.getElementById('editRoomStatus').value = roomStatus;
+
+        editRoomModal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+
+        // Focus first input
+        setTimeout(() => {
+            const firstInput = document.getElementById('editRoomName');
+            if (firstInput) firstInput.focus();
+        }, 100);
+    }
+}
+
+// Close add modal function
+function closeAddModal() {
+    if (addRoomModal) {
+        addRoomModal.classList.remove('active');
         document.body.style.overflow = '';
 
         setTimeout(() => {
-            roomForm.reset();
-            editingRow = null;
-            isEditMode = false;
+            addRoomForm.reset();
         }, 300);
     }
 }
 
-// Form submission
-if (roomForm) {
-    roomForm.addEventListener('submit', (e) => {
+// Close edit modal function
+function closeEditModal() {
+    if (editRoomModal) {
+        editRoomModal.classList.remove('active');
+        document.body.style.overflow = '';
+
+        setTimeout(() => {
+            editRoomForm.reset();
+            editingRow = null;
+        }, 300);
+    }
+}
+
+//// Add Room Form submission
+//if (addRoomForm) {
+//    addRoomForm.addEventListener('submit', (e) => {
+//        e.preventDefault();
+
+//        // Get form values
+//        const roomName = document.getElementById('addRoomName').value;
+//        const roomUser1 = document.getElementById('addRoomUser1').value;
+//        const capacity = document.getElementById('addCapacity').value;
+//        const roomStatus = document.getElementById('addRoomStatus').value;
+
+//        // Validate form
+//        if (!roomName || !roomUser1 || !capacity || !roomStatus) {
+//            showNotification('Please fill in all required fields', 'error');
+//            return;
+//        }
+
+//        // Handle adding new room (in real app, would send to server)
+//        console.log('Adding new room:', { roomName, roomUser1, capacity, roomStatus });
+
+//        // Here you would typically send the data to your server
+//        // For now, we'll just show a success message
+//        showNotification('Room added successfully!', 'success');
+
+//        // Close modal
+//        closeAddModal();
+
+//        // In a real application, you would refresh the table or add the new row dynamically
+//        // For now, we'll just log the action
+//    });
+//}
+
+// Edit Room Form submission
+if (editRoomForm) {
+    editRoomForm.addEventListener('submit', (e) => {
         e.preventDefault();
 
         // Get form values
-        const roomName = document.getElementById('roomName').value;
-        const roomUser1 = document.getElementById('roomUser1').value;
-        const capacity = document.getElementById('capacity').value; // Changed from roomUser2 to capacity
-        const roomStatus = document.getElementById('roomStatus').value;
+        const roomName = document.getElementById('editRoomName').value;
+        const roomUser1 = document.getElementById('editRoomUser1').value;
+        const capacity = document.getElementById('editCapacity').value;
+        const roomStatus = document.getElementById('editRoomStatus').value;
 
         // Validate form
-        if (!roomName || !roomUser1 || !capacity || !roomStatus) { // Updated validation
+        if (!roomName || !roomUser1 || !capacity || !roomStatus) {
             showNotification('Please fill in all required fields', 'error');
             return;
         }
 
         // If editing existing room
-        if (isEditMode && editingRow) {
+        if (editingRow) {
             editingRow.querySelector('.room-details h3').textContent = roomName;
             editingRow.querySelectorAll('.user-type')[0].textContent = capitalize(roomUser1);
 
-            // Update capacity instead of roomUser2
+            // Update capacity
             const capacityCell = editingRow.querySelector('.capacity');
             if (capacityCell) {
                 capacityCell.textContent = capacity;
@@ -274,14 +367,10 @@ if (roomForm) {
             statusBadge.className = 'status-badge ' + getStatusClass(roomStatus);
 
             showNotification('Room updated successfully!', 'success');
-        } else {
-            // Adding new room (in real app, would send to server)
-            console.log('Adding new room:', { roomName, roomUser1, capacity, roomStatus }); // Updated log
-            showNotification('Room added successfully!', 'success');
         }
 
         // Close modal
-        closeModal();
+        closeEditModal();
     });
 }
 
@@ -362,30 +451,7 @@ document.querySelectorAll('.icon-btn.edit').forEach(btn => {
         const row = btn.closest('tr');
         if (!row) return;
 
-        editingRow = row;
-
-        const roomName = row.querySelector('.room-details h3')?.textContent || '';
-        const roomUser1 = row.querySelectorAll('.user-type')[0]?.textContent.toLowerCase() || '';
-        const capacity = row.querySelector('.capacity')?.textContent || ''; // Get capacity from the new class
-        const roomStatusElement = row.querySelector('.status-badge');
-        let roomStatus = '';
-
-        if (roomStatusElement) {
-            if (roomStatusElement.classList.contains('available')) roomStatus = 'available';
-            else if (roomStatusElement.classList.contains('in-use')) roomStatus = 'unavailable';
-            else if (roomStatusElement.classList.contains('under-maintenance')) roomStatus = 'under-maintenance';
-        }
-
-        console.log('Editing room:', { roomName, roomUser1, capacity, roomStatus }); // Debug log
-
-        // Populate form
-        document.getElementById('roomName').value = roomName;
-        document.getElementById('roomUser1').value = roomUser1;
-        document.getElementById('capacity').value = capacity;
-        document.getElementById('roomStatus').value = roomStatus;
-
-        // Open modal in edit mode
-        openModal(true);
+        openEditModal(row);
     });
 });
 
@@ -674,4 +740,4 @@ window.addEventListener('resize', () => {
     }, 250);
 });
 
-console.log('Room Management initialized successfully!');
+console.log('Room Management with separate modals initialized successfully!');

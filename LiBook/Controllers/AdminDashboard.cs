@@ -28,9 +28,25 @@ namespace LiBook.Controllers
             return View();
         }
 
+        // R00MS
+        // GET: /AdminDashboard/Rooms
         public ActionResult Rooms()
         {
             return View(db.Rooms.Where(r => !r.DateArchived.HasValue).ToList());
+        }
+        // POST: AdminDashboard/CreateRoom
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult CreateRoom([Bind(Include = "ID,RoomName,RoomType,Capacity,Availability,DateArchived")] Room room)
+        {
+            if (ModelState.IsValid)
+            {
+                db.Rooms.Add(room);
+                db.SaveChanges();
+                return RedirectToAction("Rooms");
+            }
+
+            return View("Rooms", room);
         }
 
         // GET: /AdminDashboard/Librarian
