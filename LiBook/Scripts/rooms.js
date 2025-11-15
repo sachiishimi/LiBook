@@ -249,11 +249,11 @@ if (roomForm) {
         // Get form values
         const roomName = document.getElementById('roomName').value;
         const roomUser1 = document.getElementById('roomUser1').value;
-        const roomUser2 = document.getElementById('roomUser2').value;
+        const capacity = document.getElementById('capacity').value; // Changed from roomUser2 to capacity
         const roomStatus = document.getElementById('roomStatus').value;
 
         // Validate form
-        if (!roomName || !roomUser1 || !roomUser2 || !roomStatus) {
+        if (!roomName || !roomUser1 || !capacity || !roomStatus) { // Updated validation
             showNotification('Please fill in all required fields', 'error');
             return;
         }
@@ -262,7 +262,12 @@ if (roomForm) {
         if (isEditMode && editingRow) {
             editingRow.querySelector('.room-details h3').textContent = roomName;
             editingRow.querySelectorAll('.user-type')[0].textContent = capitalize(roomUser1);
-            editingRow.querySelectorAll('.user-type')[1].textContent = capitalize(roomUser2);
+
+            // Update capacity instead of roomUser2
+            const capacityCell = editingRow.querySelector('.capacity');
+            if (capacityCell) {
+                capacityCell.textContent = capacity;
+            }
 
             const statusBadge = editingRow.querySelector('.status-badge');
             statusBadge.textContent = formatStatusText(roomStatus);
@@ -271,7 +276,7 @@ if (roomForm) {
             showNotification('Room updated successfully!', 'success');
         } else {
             // Adding new room (in real app, would send to server)
-            console.log('Adding new room:', { roomName, roomUser1, roomUser2, roomStatus });
+            console.log('Adding new room:', { roomName, roomUser1, capacity, roomStatus }); // Updated log
             showNotification('Room added successfully!', 'success');
         }
 
@@ -361,20 +366,22 @@ document.querySelectorAll('.icon-btn.edit').forEach(btn => {
 
         const roomName = row.querySelector('.room-details h3')?.textContent || '';
         const roomUser1 = row.querySelectorAll('.user-type')[0]?.textContent.toLowerCase() || '';
-        const roomUser2 = row.querySelectorAll('.user-type')[1]?.textContent.toLowerCase() || '';
+        const capacity = row.querySelector('.capacity')?.textContent || ''; // Get capacity from the new class
         const roomStatusElement = row.querySelector('.status-badge');
         let roomStatus = '';
 
         if (roomStatusElement) {
             if (roomStatusElement.classList.contains('available')) roomStatus = 'available';
-            else if (roomStatusElement.classList.contains('in-use') || roomStatusElement.classList.contains('unavailable')) roomStatus = 'unavailable';
+            else if (roomStatusElement.classList.contains('in-use')) roomStatus = 'unavailable';
             else if (roomStatusElement.classList.contains('under-maintenance')) roomStatus = 'under-maintenance';
         }
+
+        console.log('Editing room:', { roomName, roomUser1, capacity, roomStatus }); // Debug log
 
         // Populate form
         document.getElementById('roomName').value = roomName;
         document.getElementById('roomUser1').value = roomUser1;
-        document.getElementById('roomUser2').value = roomUser2;
+        document.getElementById('capacity').value = capacity;
         document.getElementById('roomStatus').value = roomStatus;
 
         // Open modal in edit mode

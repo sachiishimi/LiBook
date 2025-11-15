@@ -1,4 +1,6 @@
-﻿@{
+﻿@model IEnumerable<LiBook.Models.Room>
+
+@{
     ViewBag.Title = "Room Management";
 }
 <!DOCTYPE html>
@@ -131,7 +133,7 @@
             <div class="rooms-card">
                 <div class="card-header">
                     <h2>Collaboration Rooms</h2>
-                    <span class="rooms-count"><span id="roomCount">6</span> rooms</span>
+                    <span class="rooms-count"><span id="roomCount">@Model.Count()</span> rooms</span>
                 </div>
 
                 <table class="rooms-table">
@@ -139,175 +141,43 @@
                         <tr>
                             <th width="50"></th>
                             <th>Room Name</th>
-                            <th>Room User 1</th>
-                            <th>Room User 2</th>
+                            <th>Room Type</th>
+                            <th>Capacity</th> <!-- Changed from "Room User 2" to "Capacity" -->
                             <th>Status</th>
                             <th style="text-align: center;">Actions</th>
                         </tr>
                     </thead>
                     <tbody id="roomsTableBody">
-                        <tr>
-                            <td class="checkbox-cell"><input type="checkbox" class="custom-checkbox"></td>
-                            <td>
-                                <div class="room-info">
-                                    <div class="room-icon">
-                                        <i class="fas fa-door-open"></i>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td class="checkbox-cell"><input type="checkbox" class="custom-checkbox"></td>
+                                <td>
+                                    <div class="room-info">
+                                        <div class="room-icon">
+                                            <i class="fas fa-door-open"></i>
+                                        </div>
+                                        <div class="room-details">
+                                            <h3>@Html.DisplayFor(modelItem => item.RoomName)</h3>
+                                            <span class="room-id">Room #@Html.DisplayFor(modelItem => item.ID)</span>
+                                        </div>
                                     </div>
-                                    <div class="room-details">
-                                        <h3>Student Collab Room 1</h3>
-                                        <span class="room-id">Room #001</span>
+                                </td>
+                                <td><span class="user-type student">@Html.DisplayFor(modelItem => item.RoomType)</span></td>
+                                <td><span class="capacity">@Html.DisplayFor(modelItem => item.Capacity)</span></td> <!-- This is the capacity field -->
+                                <td><span class="status-badge available">@Html.DisplayFor(modelItem => item.Availability)</span></td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="icon-btn edit" title="Edit Room">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="icon-btn archive" title="Archive Room">
+                                            <i class="fas fa-archive"></i>
+                                        </button>
                                     </div>
-                                </div>
-                            </td>
-                            <td><span class="user-type student">Student</span></td>
-                            <td><span class="user-type student">Student</span></td>
-                            <td><span class="status-badge available">Available</span></td>
-                            <td>
-                                <div class="action-buttons">
-                                    <button class="icon-btn edit" title="Edit Room">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button class="icon-btn archive" title="Archive Room">
-                                        <i class="fas fa-archive"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="checkbox-cell"><input type="checkbox" class="custom-checkbox"></td>
-                            <td>
-                                <div class="room-info">
-                                    <div class="room-icon">
-                                        <i class="fas fa-door-open"></i>
-                                    </div>
-                                    <div class="room-details">
-                                        <h3>Student Collab Room 2</h3>
-                                        <span class="room-id">Room #002</span>
-                                    </div>
-                                </div>
-                            </td>
-                            <td><span class="user-type student">Student</span></td>
-                            <td><span class="user-type student">Student</span></td>
-                            <td><span class="status-badge in-use">In Use</span></td>
-                            <td>
-                                <div class="action-buttons">
-                                    <button class="icon-btn edit" title="Edit Room">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button class="icon-btn archive" title="Archive Room">
-                                        <i class="fas fa-archive"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="checkbox-cell"><input type="checkbox" class="custom-checkbox"></td>
-                            <td>
-                                <div class="room-info">
-                                    <div class="room-icon">
-                                        <i class="fas fa-door-open"></i>
-                                    </div>
-                                    <div class="room-details">
-                                        <h3>Student Collab Room 3</h3>
-                                        <span class="room-id">Room #003</span>
-                                    </div>
-                                </div>
-                            </td>
-                            <td><span class="user-type student">Student</span></td>
-                            <td><span class="user-type visitor">Visitor</span></td>
-                            <td><span class="status-badge available">Available</span></td>
-                            <td>
-                                <div class="action-buttons">
-                                    <button class="icon-btn edit" title="Edit Room">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button class="icon-btn archive" title="Archive Room">
-                                        <i class="fas fa-archive"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="checkbox-cell"><input type="checkbox" class="custom-checkbox"></td>
-                            <td>
-                                <div class="room-info">
-                                    <div class="room-icon">
-                                        <i class="fas fa-door-open"></i>
-                                    </div>
-                                    <div class="room-details">
-                                        <h3>Student Collab Room 4</h3>
-                                        <span class="room-id">Room #004</span>
-                                    </div>
-                                </div>
-                            </td>
-                            <td><span class="user-type student">Student</span></td>
-                            <td><span class="user-type visitor">Visitor</span></td>
-                            <td><span class="status-badge available">Available</span></td>
-                            <td>
-                                <div class="action-buttons">
-                                    <button class="icon-btn edit" title="Edit Room">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button class="icon-btn archive" title="Archive Room">
-                                        <i class="fas fa-archive"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="checkbox-cell"><input type="checkbox" class="custom-checkbox"></td>
-                            <td>
-                                <div class="room-info">
-                                    <div class="room-icon">
-                                        <i class="fas fa-door-open"></i>
-                                    </div>
-                                    <div class="room-details">
-                                        <h3>Faculty Collab Room 1</h3>
-                                        <span class="room-id">Room #005</span>
-                                    </div>
-                                </div>
-                            </td>
-                            <td><span class="user-type faculty">Faculty</span></td>
-                            <td><span class="user-type faculty">Faculty</span></td>
-                            <td><span class="status-badge in-use">In Use</span></td>
-                            <td>
-                                <div class="action-buttons">
-                                    <button class="icon-btn edit" title="Edit Room">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button class="icon-btn archive" title="Archive Room">
-                                        <i class="fas fa-archive"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="checkbox-cell"><input type="checkbox" class="custom-checkbox"></td>
-                            <td>
-                                <div class="room-info">
-                                    <div class="room-icon">
-                                        <i class="fas fa-door-open"></i>
-                                    </div>
-                                    <div class="room-details">
-                                        <h3>Admin Collab Room 1</h3>
-                                        <span class="room-id">Room #006</span>
-                                    </div>
-                                </div>
-                            </td>
-                            <td><span class="user-type admin">Admin</span></td>
-                            <td><span class="user-type admin">Admin</span></td>
-                            <td><span class="status-badge in-use">In Use</span></td>
-                            <td>
-                                <div class="action-buttons">
-                                    <button class="icon-btn edit" title="Edit Room">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button class="icon-btn archive" title="Archive Room">
-                                        <i class="fas fa-archive"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
+                                </td>
+                            </tr>
+                        }
                     </tbody>
                 </table>
             </div>
@@ -375,14 +245,8 @@
                             </div>
 
                             <div class="form-group">
-                                <label for="roomUser2">Secondary User Type <span class="required">*</span></label>
-                                <select class="form-control" id="roomUser2" required>
-                                    <option value="">Select user type</option>
-                                    <option value="student">Student</option>
-                                    <option value="faculty">Faculty</option>
-                                    <option value="admin">Admin</option>
-                                    <option value="visitor">Visitor</option>
-                                </select>
+                                <label for="capacity">Capacity <span class="required">*</span></label>
+                                <input type="number" class="form-control" id="capacity" placeholder="e.g., 4" min="1" max="50" required>
                             </div>
                         </div>
                     </div>
