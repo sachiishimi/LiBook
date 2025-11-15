@@ -246,21 +246,23 @@ function openEditModal(row) {
     if (editRoomModal) {
         editingRow = row;
 
+        const roomId = row.querySelector('.room-id')?.getAttribute('data-room-id') || '';
         const roomName = row.querySelector('.room-details h3')?.textContent || '';
-        const roomUser1 = row.querySelectorAll('.user-type')[0]?.textContent.toLowerCase() || '';
+        const roomUser1 = row.querySelectorAll('.user-type')[0]?.textContent || '';
         const capacity = row.querySelector('.capacity')?.textContent || '';
         const roomStatusElement = row.querySelector('.status-badge');
         let roomStatus = '';
 
         if (roomStatusElement) {
-            if (roomStatusElement.classList.contains('available')) roomStatus = 'available';
-            else if (roomStatusElement.classList.contains('in-use')) roomStatus = 'unavailable';
-            else if (roomStatusElement.classList.contains('under-maintenance')) roomStatus = 'under-maintenance';
+            if (roomStatusElement.classList.contains('available')) roomStatus = 'Available';
+            else if (roomStatusElement.classList.contains('in-use')) roomStatus = 'Unavailable';
+            else if (roomStatusElement.classList.contains('under-maintenance')) roomStatus = 'Under Maintenance';
         }
 
-        console.log('Editing room:', { roomName, roomUser1, capacity, roomStatus });
+        console.log('Editing room:', { roomId, roomName, roomUser1, capacity, roomStatus });
 
         // Populate form
+        document.getElementById('editRoomId').value = roomId;
         document.getElementById('editRoomName').value = roomName;
         document.getElementById('editRoomUser1').value = roomUser1;
         document.getElementById('editCapacity').value = capacity;
@@ -334,45 +336,45 @@ function closeEditModal() {
 //    });
 //}
 
-// Edit Room Form submission
-if (editRoomForm) {
-    editRoomForm.addEventListener('submit', (e) => {
-        e.preventDefault();
+//// Edit Room Form submission
+//if (editRoomForm) {
+//    editRoomForm.addEventListener('submit', (e) => {
+//        e.preventDefault();
 
-        // Get form values
-        const roomName = document.getElementById('editRoomName').value;
-        const roomUser1 = document.getElementById('editRoomUser1').value;
-        const capacity = document.getElementById('editCapacity').value;
-        const roomStatus = document.getElementById('editRoomStatus').value;
+//        // Get form values
+//        const roomName = document.getElementById('editRoomName').value;
+//        const roomUser1 = document.getElementById('editRoomUser1').value;
+//        const capacity = document.getElementById('editCapacity').value;
+//        const roomStatus = document.getElementById('editRoomStatus').value;
 
-        // Validate form
-        if (!roomName || !roomUser1 || !capacity || !roomStatus) {
-            showNotification('Please fill in all required fields', 'error');
-            return;
-        }
+//        // Validate form
+//        if (!roomName || !roomUser1 || !capacity || !roomStatus) {
+//            showNotification('Please fill in all required fields', 'error');
+//            return;
+//        }
 
-        // If editing existing room
-        if (editingRow) {
-            editingRow.querySelector('.room-details h3').textContent = roomName;
-            editingRow.querySelectorAll('.user-type')[0].textContent = capitalize(roomUser1);
+//        // If editing existing room
+//        if (editingRow) {
+//            editingRow.querySelector('.room-details h3').textContent = roomName;
+//            editingRow.querySelectorAll('.user-type')[0].textContent = capitalize(roomUser1);
 
-            // Update capacity
-            const capacityCell = editingRow.querySelector('.capacity');
-            if (capacityCell) {
-                capacityCell.textContent = capacity;
-            }
+//            // Update capacity
+//            const capacityCell = editingRow.querySelector('.capacity');
+//            if (capacityCell) {
+//                capacityCell.textContent = capacity;
+//            }
 
-            const statusBadge = editingRow.querySelector('.status-badge');
-            statusBadge.textContent = formatStatusText(roomStatus);
-            statusBadge.className = 'status-badge ' + getStatusClass(roomStatus);
+//            const statusBadge = editingRow.querySelector('.status-badge');
+//            statusBadge.textContent = formatStatusText(roomStatus);
+//            statusBadge.className = 'status-badge ' + getStatusClass(roomStatus);
 
-            showNotification('Room updated successfully!', 'success');
-        }
+//            showNotification('Room updated successfully!', 'success');
+//        }
 
-        // Close modal
-        closeEditModal();
-    });
-}
+//        // Close modal
+//        closeEditModal();
+//    });
+//}
 
 // Search rooms
 if (searchInput) {

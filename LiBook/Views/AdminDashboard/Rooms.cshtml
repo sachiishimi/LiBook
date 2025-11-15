@@ -159,7 +159,7 @@
                                         </div>
                                         <div class="room-details">
                                             <h3>@Html.DisplayFor(modelItem => item.RoomName)</h3>
-                                            <span class="room-id">Room #@Html.DisplayFor(modelItem => item.ID)</span>
+                                            <span class="room-id" data-room-id="@item.ID">Room #@Html.DisplayFor(modelItem => item.ID)</span>
                                         </div>
                                     </div>
                                 </td>
@@ -307,7 +307,12 @@
             </div>
 
             <div class="modal-body">
-                <form id="editRoomForm">
+                @using (Html.BeginForm("EditRoom", "AdminDashboard", FormMethod.Post, new { id = "editRoomForm" }))
+                {
+                    @Html.AntiForgeryToken()
+                    <!-- Add hidden field for ID -->
+                    <input type="hidden" name="ID" id="editRoomId" />
+
                     <!-- Room Information Section -->
                     <div class="form-section">
                         <div class="form-section-header">
@@ -318,7 +323,7 @@
                         <div class="form-grid">
                             <div class="form-group full-width">
                                 <label for="editRoomName">Room Name <span class="required">*</span></label>
-                                <input type="text" class="form-control" id="editRoomName" placeholder="e.g., Student Collab Room 1" required>
+                                <input type="text" name="RoomName" class="form-control" id="editRoomName" placeholder="e.g., Student Collab Room 1" required>
                                 <span class="field-hint">
                                     <i class="fas fa-lightbulb"></i>
                                     Choose a descriptive name for easy identification
@@ -338,18 +343,17 @@
                         <div class="form-grid">
                             <div class="form-group">
                                 <label for="editRoomUser1">Primary User Type <span class="required">*</span></label>
-                                <select class="form-control" id="editRoomUser1" required>
+                                <select class="form-control" name="RoomType" id="editRoomUser1" required>
                                     <option value="">Select user type</option>
-                                    <option value="student">Student</option>
-                                    <option value="faculty">Faculty</option>
-                                    <option value="admin">Admin</option>
-                                    <option value="visitor">Visitor</option>
+                                    <option value="Academic">Academic</option>
+                                    <option value="Faculty">Faculty</option>
+                                    <option value="Public">Public</option>
                                 </select>
                             </div>
 
                             <div class="form-group">
                                 <label for="editCapacity">Capacity <span class="required">*</span></label>
-                                <input type="number" class="form-control" id="editCapacity" placeholder="e.g., 4" min="1" max="50" required>
+                                <input type="number" name="Capacity" class="form-control" id="editCapacity" placeholder="e.g., 4" min="1" max="50" required>
                             </div>
                         </div>
                     </div>
@@ -364,16 +368,16 @@
                         <div class="form-grid">
                             <div class="form-group full-width">
                                 <label for="editRoomStatus">Availability Status <span class="required">*</span></label>
-                                <select class="form-control" id="editRoomStatus" required>
+                                <select class="form-control" name="Availability" id="editRoomStatus" required>
                                     <option value="">Select status</option>
-                                    <option value="available">Available - Ready for use</option>
-                                    <option value="unavailable">Unavailable - Currently in use</option>
-                                    <option value="under-maintenance">Under Maintenance - Not accessible</option>
+                                    <option value="Available">Available - Ready for use</option>
+                                    <option value="Unavailable">Unavailable - Currently in use</option>
+                                    <option value="Under Maintenance">Under Maintenance - Not accessible</option>
                                 </select>
                             </div>
                         </div>
                     </div>
-                </form>
+                }
             </div>
 
             <div class="modal-footer">
@@ -381,7 +385,7 @@
                     <i class="fas fa-times"></i>
                     <span>Cancel</span>
                 </button>
-                <button type="submit" form="editRoomForm" class="btn btn-success">
+                <button type="submit" value="Save" form="editRoomForm" class="btn btn-success">
                     <i class="fas fa-check"></i>
                     <span>Update Room</span>
                 </button>

@@ -28,6 +28,8 @@ namespace LiBook.Controllers
             return View();
         }
 
+
+
         // R00MS
         // GET: /AdminDashboard/Rooms
         public ActionResult Rooms()
@@ -48,6 +50,21 @@ namespace LiBook.Controllers
 
             return View("Rooms", room);
         }
+        // POST: AdminDashboard/EditRoom/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult EditRoom([Bind(Include = "ID,RoomName,RoomType,Capacity,Availability,DateArchived")] Room room)
+        {
+            if (ModelState.IsValid)
+            {
+                db.Entry(room).State = EntityState.Modified;
+                db.SaveChanges();
+                return RedirectToAction("Rooms");
+            }
+            return View(room);
+        }
+
+
 
         // GET: /AdminDashboard/Librarian
         public ActionResult Librarian()
