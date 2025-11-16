@@ -27,7 +27,6 @@ namespace LiBook.Models
     
         public DbSet<Booking> Bookings { get; set; }
         public DbSet<Member> Members { get; set; }
-        public DbSet<Reservee> Reservees { get; set; }
         public DbSet<RoleMaster> RoleMasters { get; set; }
         public DbSet<Room> Rooms { get; set; }
         public DbSet<Schedule> Schedules { get; set; }

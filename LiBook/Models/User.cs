@@ -16,8 +16,6 @@ namespace LiBook.Models
     {
         public User()
         {
-            this.Bookings = new HashSet<Booking>();
-            this.Bookings1 = new HashSet<Booking>();
             this.UserRolesMappings = new HashSet<UserRolesMapping>();
         }
     
@@ -31,8 +29,6 @@ namespace LiBook.Models
         public string AccountStatus { get; set; }
         public Nullable<System.DateTime> DateArchived { get; set; }
     
-        public virtual ICollection<Booking> Bookings { get; set; }
-        public virtual ICollection<Booking> Bookings1 { get; set; }
         public virtual ICollection<UserRolesMapping> UserRolesMappings { get; set; }
     }
 }

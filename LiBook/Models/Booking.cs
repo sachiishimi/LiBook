@@ -17,7 +17,6 @@ namespace LiBook.Models
         public Booking()
         {
             this.Members = new HashSet<Member>();
-            this.Reservees = new HashSet<Reservee>();
         }
     
         public int ID { get; set; }
@@ -29,15 +28,15 @@ namespace LiBook.Models
         public System.DateTime BookingDate { get; set; }
         public Nullable<System.DateTime> SubmittedAt { get; set; }
         public Nullable<System.DateTime> ApprovedAt { get; set; }
-        public Nullable<int> ApprovedByUserID { get; set; }
         public Nullable<System.DateTime> CancelledAt { get; set; }
-        public Nullable<int> CancelledByUserID { get; set; }
+        public string ReserveeFirstName { get; set; }
+        public string ReserveeMiddleName { get; set; }
+        public string ReserveeLastName { get; set; }
+        public string ReserveeSuffix { get; set; }
+        public string ReserveeEmail { get; set; }
     
-        public virtual User User { get; set; }
-        public virtual User User1 { get; set; }
         public virtual Room Room { get; set; }
         public virtual Schedule Schedule { get; set; }
         public virtual ICollection<Member> Members { get; set; }
-        public virtual ICollection<Reservee> Reservees { get; set; }
     }
 }

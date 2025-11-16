@@ -136,6 +136,7 @@
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="Controllers\AccountController.cs" />
     <Compile Include="Controllers\AdminDashboard.cs" />
+    <Compile Include="Controllers\BookingsController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\LibrarianController.cs" />
     <Compile Include="Controllers\RoomsController.cs" />
@@ -162,9 +163,6 @@
       <DependentUpon>LiBookContext.edmx</DependentUpon>
     </Compile>
     <Compile Include="Models\Member.cs">
-      <DependentUpon>LiBookContext.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\Reservee.cs">
       <DependentUpon>LiBookContext.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\RoleMaster.cs">
@@ -299,6 +297,11 @@
     <Content Include="Views\Users\Details.cshtml" />
     <Content Include="Views\Users\Edit.cshtml" />
     <Content Include="Views\Users\Index.cshtml" />
+    <Content Include="Views\Bookings\Create.cshtml" />
+    <Content Include="Views\Bookings\Delete.cshtml" />
+    <Content Include="Views\Bookings\Details.cshtml" />
+    <Content Include="Views\Bookings\Edit.cshtml" />
+    <Content Include="Views\Bookings\Index.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
