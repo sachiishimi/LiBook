@@ -66,11 +66,60 @@ namespace LiBook.Controllers
 
 
 
+        // USERS
         // GET: /AdminDashboard/Librarian
         public ActionResult Librarian()
         {
-            return View();
+            var usersWithRoles = GetUsersWithRoles();
+            return View(usersWithRoles);
         }
+        private List<UserWithRolesViewModel> GetUsersWithRoles()
+        {
+            var usersWithRoles = (from user in db.Users
+                                  where user.DateArchived == null // Only active users
+                                  select new UserWithRolesViewModel
+                                  {
+                                      ID = user.ID,
+                                      FirstName = user.FirstName,
+                                      LastName = user.LastName,
+                                      MiddleName = user.MiddleName,
+                                      Suffix = user.Suffix,
+                                      Email = user.Email,
+                                      AccountStatus = user.AccountStatus,
+                                      DateArchived = user.DateArchived,
+                                      Roles = (from roleMapping in db.UserRolesMappings
+                                               join role in db.RoleMasters
+                                               on roleMapping.RoleID equals role.ID
+                                               where roleMapping.UserID == user.ID
+                                               select role.RoleName).ToList()
+                                  }).ToList();
+
+            return usersWithRoles;
+        }
+        // Helper methods to get separated lists
+        public List<UserWithRolesViewModel> GetAdmins(List<UserWithRolesViewModel> allUsers)
+        {
+            return allUsers.Where(u => u.IsAdmin).ToList();
+        }
+        public List<UserWithRolesViewModel> GetLibrarians(List<UserWithRolesViewModel> allUsers)
+        {
+            return allUsers.Where(u => u.IsLibrarian).ToList();
+        }
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                db.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+
+
+
+
+
+
+
 
         // GET: /AdminDashboard/AdminManagement
         public ActionResult AdminManagement()

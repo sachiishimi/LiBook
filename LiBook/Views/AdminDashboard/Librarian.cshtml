@@ -1,5 +1,10 @@
-﻿@{
+﻿@model IEnumerable<LiBook.Models.UserWithRolesViewModel>
+
+@{
     ViewBag.Title = "User Management";
+    // Separate users by role
+    var admins = Model.Where(u => u.IsAdmin).ToList();
+    var librarians = Model.Where(u => u.IsLibrarian).ToList();
 }
 
 <!DOCTYPE html>
@@ -140,7 +145,7 @@
                     <div class="card">
                         <div class="card-header">
                             <h2>Librarians</h2>
-                            <span class="user-count">5 librarians</span>
+                            <span class="user-count">@librarians.Count librarians</span>
                         </div>
                         <div class="card-body">
                             <div class="table-responsive">
@@ -154,132 +159,40 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <tr data-user-id="lib001">
-                                            <td>
-                                                <div class="user-info-cell">
-                                                    <div class="user-avatar">
-                                                        <i class="fas fa-user"></i>
+                                        @foreach (var user in librarians)
+                                        {
+                                            <tr data-user-id="lib001">
+                                                <td>
+                                                    <div class="user-info-cell">
+                                                        <div class="user-avatar">
+                                                            <i class="fas fa-user"></i>
+                                                        </div>
+                                                        <div class="user-details">
+                                                            <span class="user-name">@user.FirstName @user.MiddleName @user.LastName @user.Suffix</span>
+                                                            <span class="user-email">@user.Email</span>
+                                                        </div>
                                                     </div>
-                                                    <div class="user-details">
-                                                        <span class="user-name">Maria Santos</span>
-                                                        <span class="user-email">maria.santos@libook.com</span>
+                                                </td>
+                                                <td>
+                                                    @foreach (var role in user.Roles)
+                                                    {
+                                                        <span>@role</span>
+                                                    }
+                                                </td>
+                                                <td><span class="status-badge active">@user.AccountStatus</span></td>
+                                                <td>
+                                                    <div class="action-buttons">
+                                                        <button class="icon-btn small" title="Edit">
+                                                            <i class="fas fa-pen"></i>
+                                                        </button>
+                                                        <button class="icon-btn small danger" title="Delete">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
                                                     </div>
-                                                </div>
-                                            </td>
-                                            <td>msantos</td>
-                                            <td><span class="status-badge active">Active</span></td>
-                                            <td>
-                                                <div class="action-buttons">
-                                                    <button class="icon-btn small" title="Edit">
-                                                        <i class="fas fa-pen"></i>
-                                                    </button>
-                                                    <button class="icon-btn small danger" title="Delete">
-                                                        <i class="fas fa-trash"></i>
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                        <tr data-user-id="lib002">
-                                            <td>
-                                                <div class="user-info-cell">
-                                                    <div class="user-avatar">
-                                                        <i class="fas fa-user"></i>
-                                                    </div>
-                                                    <div class="user-details">
-                                                        <span class="user-name">John Reyes</span>
-                                                        <span class="user-email">john.reyes@libook.com</span>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td>jreyes</td>
-                                            <td><span class="status-badge active">Active</span></td>
-                                            <td>
-                                                <div class="action-buttons">
-                                                    <button class="icon-btn small" title="Edit">
-                                                        <i class="fas fa-pen"></i>
-                                                    </button>
-                                                    <button class="icon-btn small danger" title="Delete">
-                                                        <i class="fas fa-trash"></i>
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                        <tr data-user-id="lib003">
-                                            <td>
-                                                <div class="user-info-cell">
-                                                    <div class="user-avatar">
-                                                        <i class="fas fa-user"></i>
-                                                    </div>
-                                                    <div class="user-details">
-                                                        <span class="user-name">Ana Garcia</span>
-                                                        <span class="user-email">ana.garcia@libook.com</span>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td>agarcia</td>
-                                            <td><span class="status-badge inactive">Inactive</span></td>
-                                            <td>
-                                                <div class="action-buttons">
-                                                    <button class="icon-btn small" title="Edit">
-                                                        <i class="fas fa-pen"></i>
-                                                    </button>
-                                                    <button class="icon-btn small danger" title="Delete">
-                                                        <i class="fas fa-trash"></i>
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                        <tr data-user-id="lib004">
-                                            <td>
-                                                <div class="user-info-cell">
-                                                    <div class="user-avatar">
-                                                        <i class="fas fa-user"></i>
-                                                    </div>
-                                                    <div class="user-details">
-                                                        <span class="user-name">Pedro Cruz</span>
-                                                        <span class="user-email">pedro.cruz@libook.com</span>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td>pcruz</td>
-                                            <td><span class="status-badge active">Active</span></td>
-                                            <td>
-                                                <div class="action-buttons">
-                                                    <button class="icon-btn small" title="Edit">
-                                                        <i class="fas fa-pen"></i>
-                                                    </button>
-                                                    <button class="icon-btn small danger" title="Delete">
-                                                        <i class="fas fa-trash"></i>
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                        <tr data-user-id="lib005">
-                                            <td>
-                                                <div class="user-info-cell">
-                                                    <div class="user-avatar">
-                                                        <i class="fas fa-user"></i>
-                                                    </div>
-                                                    <div class="user-details">
-                                                        <span class="user-name">Lisa Fernandez</span>
-                                                        <span class="user-email">lisa.fernandez@libook.com</span>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td>lfernandez</td>
-                                            <td><span class="status-badge active">Active</span></td>
-                                            <td>
-                                                <div class="action-buttons">
-                                                    <button class="icon-btn small" title="Edit">
-                                                        <i class="fas fa-pen"></i>
-                                                    </button>
-                                                    <button class="icon-btn small danger" title="Delete">
-                                                        <i class="fas fa-trash"></i>
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    </tbody>
+                                                </td>
+                                            </tr>
+                                        }
+                                        </tbody>
                                 </table>
                             </div>
                         </div>
@@ -291,7 +204,7 @@
                     <div class="card">
                         <div class="card-header">
                             <h2>Administrators</h2>
-                            <span class="user-count">3 administrators</span>
+                            <span class="user-count">@admins.Count administrators</span>
                         </div>
                         <div class="card-body">
                             <div class="table-responsive">
@@ -305,82 +218,40 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <tr data-user-id="admin001">
-                                            <td>
-                                                <div class="user-info-cell">
-                                                    <div class="user-avatar admin">
-                                                        <i class="fas fa-user-shield"></i>
+                                        @foreach (var user in admins)
+                                        {
+                                            <tr data-user-id="admin001">
+                                                <td>
+                                                    <div class="user-info-cell">
+                                                        <div class="user-avatar admin">
+                                                            <i class="fas fa-user-shield"></i>
+                                                        </div>
+                                                        <div class="user-details">
+                                                            <span class="user-name">@user.FirstName @user.MiddleName @user.LastName @user.Suffix</span>
+                                                            <span class="user-email">@user.Email</span>
+                                                        </div>
                                                     </div>
-                                                    <div class="user-details">
-                                                        <span class="user-name">Roberto Admin</span>
-                                                        <span class="user-email">roberto@libook.com</span>
+                                                </td>
+                                                <td>
+                                                    @foreach (var role in user.Roles)
+                                                    {
+                                                        <span>@role</span>
+                                                    }
+                                                </td>
+                                                <td><span class="status-badge active">@user.AccountStatus</span></td>
+                                                <td>
+                                                    <div class="action-buttons">
+                                                        <button class="icon-btn small" title="Edit">
+                                                            <i class="fas fa-pen"></i>
+                                                        </button>
+                                                        <button class="icon-btn small danger" title="Delete">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
                                                     </div>
-                                                </div>
-                                            </td>
-                                            <td>radmin</td>
-                                            <td><span class="status-badge active">Active</span></td>
-                                            <td>
-                                                <div class="action-buttons">
-                                                    <button class="icon-btn small" title="Edit">
-                                                        <i class="fas fa-pen"></i>
-                                                    </button>
-                                                    <button class="icon-btn small danger" title="Delete">
-                                                        <i class="fas fa-trash"></i>
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                        <tr data-user-id="admin002">
-                                            <td>
-                                                <div class="user-info-cell">
-                                                    <div class="user-avatar admin">
-                                                        <i class="fas fa-user-shield"></i>
-                                                    </div>
-                                                    <div class="user-details">
-                                                        <span class="user-name">Carmen Administrator</span>
-                                                        <span class="user-email">carmen@libook.com</span>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td>cadmin</td>
-                                            <td><span class="status-badge active">Active</span></td>
-                                            <td>
-                                                <div class="action-buttons">
-                                                    <button class="icon-btn small" title="Edit">
-                                                        <i class="fas fa-pen"></i>
-                                                    </button>
-                                                    <button class="icon-btn small danger" title="Delete">
-                                                        <i class="fas fa-trash"></i>
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                        <tr data-user-id="admin003">
-                                            <td>
-                                                <div class="user-info-cell">
-                                                    <div class="user-avatar admin">
-                                                        <i class="fas fa-user-shield"></i>
-                                                    </div>
-                                                    <div class="user-details">
-                                                        <span class="user-name">System Admin</span>
-                                                        <span class="user-email">system@libook.com</span>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td>sysadmin</td>
-                                            <td><span class="status-badge active">Active</span></td>
-                                            <td>
-                                                <div class="action-buttons">
-                                                    <button class="icon-btn small" title="Edit">
-                                                        <i class="fas fa-pen"></i>
-                                                    </button>
-                                                    <button class="icon-btn small danger" title="Delete">
-                                                        <i class="fas fa-trash"></i>
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    </tbody>
+                                                </td>
+                                            </tr>
+                                        }
+                                        </tbody>
                                 </table>
                             </div>
                         </div>
