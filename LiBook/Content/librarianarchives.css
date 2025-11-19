@@ -61,6 +61,10 @@ body {
         width: var(--sidebar-collapsed);
     }
 
+    .sidebar.active {
+        transform: translateX(0);
+    }
+
 /* Sidebar Header */
 .sidebar-header {
     padding: 2rem 1.5rem;
@@ -312,39 +316,25 @@ body {
         color: var(--white);
     }
 
-.search-bar {
-    flex: 1;
-    max-width: 500px;
-    position: relative;
+.page-header {
+    margin-bottom: 0;
+    padding: 0;
 }
 
-    .search-bar i {
-        position: absolute;
-        left: 1.2rem;
-        top: 50%;
-        transform: translateY(-50%);
-        color: var(--text-light);
-        font-size: 1rem;
-    }
+.page-title {
+    font-family: 'League Spartan', sans-serif;
+    font-size: 2rem;
+    margin-bottom: 0.25rem;
+    color: var(--text-dark);
+    font-weight: 700;
+}
 
-    .search-bar input {
-        width: 100%;
-        padding: 0.875rem 1.2rem 0.875rem 3.2rem;
-        border: 2px solid var(--border-color);
-        border-radius: 16px;
-        font-family: 'Kumbh Sans', sans-serif;
-        font-size: 0.95rem;
-        transition: all 0.3s ease;
-        background: var(--light-gray);
-        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.04);
-    }
-
-        .search-bar input:focus {
-            outline: none;
-            border-color: var(--accent-yellow);
-            background: var(--white);
-            box-shadow: 0 4px 12px rgba(255, 193, 7, 0.15);
-        }
+.page-header p,
+.page-description {
+    color: var(--text-light);
+    margin-bottom: 0;
+    font-size: 0.95rem;
+}
 
 .topbar-actions {
     display: flex;
@@ -433,14 +423,17 @@ body {
     color: var(--text-light);
 }
 
-.dropdown-arrow {
-    font-size: 0.8rem;
-    color: var(--text-light);
-    transition: transform 0.3s ease;
+.user-name {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--text-dark);
+    line-height: 1.2;
 }
 
-.user-profile.active .dropdown-arrow {
-    transform: rotate(180deg);
+.user-role {
+    font-size: 0.8rem;
+    color: var(--text-light);
+    font-weight: 500;
 }
 
 /* User Dropdown */
@@ -476,6 +469,7 @@ body {
     text-decoration: none;
     transition: all 0.3s ease;
     font-size: 0.9rem;
+    cursor: pointer;
 }
 
     .dropdown-item:hover {
@@ -527,3 +521,190 @@ body {
         margin-bottom: 0;
         font-size: 1rem;
     }
+
+/* ========================================
+   NOTIFICATION STYLES
+   ======================================== */
+.notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 1rem 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    z-index: 10000;
+    font-family: 'Kumbh Sans', sans-serif;
+    animation: slideIn 0.3s ease;
+    color: white;
+    font-weight: 500;
+}
+
+.notification-info {
+    background: var(--primary-blue);
+}
+
+.notification-success {
+    background: var(--success);
+}
+
+.notification-error {
+    background: var(--primary-red);
+}
+
+.notification-exit {
+    animation: slideOut 0.3s ease;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(400px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+
+    to {
+        transform: translateX(400px);
+        opacity: 0;
+    }
+}
+
+/* ========================================
+   USER PROFILE DROPDOWN STATES
+   ======================================== */
+.user-profile.active .user-dropdown {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(5px);
+}
+
+.user-profile.active .dropdown-arrow {
+    transform: rotate(180deg);
+}
+
+/* ========================================
+   RESPONSIVE STYLES
+   ======================================== */
+@media (max-width: 768px) {
+    .mobile-only {
+        display: flex;
+    }
+
+    .desktop-only {
+        display: none;
+    }
+
+    .sidebar {
+        transform: translateX(-100%);
+        width: var(--sidebar-width);
+    }
+
+        .sidebar.active {
+            transform: translateX(0);
+        }
+
+    .close-btn {
+        display: block;
+    }
+
+    .main-content {
+        margin-left: 0;
+    }
+
+        .main-content.expanded {
+            margin-left: 0;
+        }
+
+    .menu-toggle {
+        display: flex;
+    }
+
+    .topbar {
+        padding: 1rem;
+        margin: 0 1rem 1rem;
+        border-radius: 0 0 20px 20px;
+    }
+
+    .content {
+        padding: 0 1rem 1rem;
+    }
+
+    .user-info {
+        display: none;
+    }
+
+    .user-dropdown {
+        right: -50px;
+        min-width: 180px;
+    }
+
+    .notification {
+        right: 10px;
+        left: 10px;
+        top: 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .topbar {
+        padding: 0.75rem;
+        margin: 0 0.5rem 1rem;
+    }
+
+    .user-dropdown {
+        right: -80px;
+        min-width: 160px;
+    }
+
+    .notification {
+        padding: 0.875rem 1.25rem;
+        font-size: 0.9rem;
+    }
+}
+
+/* ========================================
+   ACCESSIBILITY & INTERACTION ENHANCEMENTS
+   ======================================== */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+
+    .notification {
+        animation: none;
+    }
+}
+
+/* Focus styles for better accessibility */
+.nav-item:focus,
+.icon-btn:focus,
+.menu-toggle:focus {
+    outline: 2px solid var(--accent-yellow);
+    outline-offset: 2px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .sidebar {
+        background: var(--dark-blue);
+        border-right: 2px solid var(--white);
+    }
+
+    .notification {
+        border: 2px solid currentColor;
+    }
+}

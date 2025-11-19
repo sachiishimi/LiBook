@@ -32,25 +32,24 @@
             </button>
         </div>
         <nav class="sidebar-nav">
-            <nav class="sidebar-nav">
-                <a href="@Url.Action("LibrarianDashboard", "Librarian")" class="nav-item active" data-page="dashboard">
-                    <i class="fas fa-home"></i>
-                    <span>Dashboard</span>
-                </a>
-                <a href="@Url.Action("LibrarianReservations", "Librarian")" class="nav-item" data-page="reservations">
-                    <i class="fas fa-calendar-check"></i>
-                    <span>Reservations</span>
-                </a>
-                <a href="@Url.Action("RoomManagement", "Librarian")" class="nav-item" data-page="rooms">
-                    <i class="fas fa-door-open"></i>
-                    <span>Room Management</span>
-                </a>
-                <a href="@Url.Action("LibrarianArchives", "Librarian")" class="nav-item" data-page="archives">
-                    <i class="fas fa-archive"></i>
-                    <span>Archives</span>
-                </a>
-            </nav>
-</aside>
+            <a href="@Url.Action("LibrarianDashboard", "Librarian")" class="nav-item" data-page="dashboard">
+                <i class="fas fa-home"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="@Url.Action("LibrarianReservations", "Librarian")" class="nav-item" data-page="reservations">
+                <i class="fas fa-calendar-check"></i>
+                <span>Reservations</span>
+            </a>
+            <a href="@Url.Action("RoomManagement", "Librarian")" class="nav-item" data-page="rooms">
+                <i class="fas fa-door-open"></i>
+                <span>Room Management</span>
+            </a>
+            <a href="@Url.Action("LibrarianArchives", "Librarian")" class="nav-item active" data-page="archives">
+                <i class="fas fa-archive"></i>
+                <span>Archives</span>
+            </a>
+        </nav>
+    </aside>
 
     <!-- Main Content -->
     <div class="main-content">
@@ -62,9 +61,9 @@
                 </button>
             </div>
 
-            <div class="search-bar">
-                <i class="fas fa-search"></i>
-                <input type="text" placeholder="Search...">
+            <div class="page-header">
+                <h1 class="page-title">Archives</h1>
+                <p class="page-description">View and manage archived reservations and historical data</p>
             </div>
 
             <div class="topbar-actions">
@@ -94,7 +93,7 @@
                         @using (Html.BeginForm("Logout", "Account", FormMethod.Post, new { id = "logoutForm" }))
                         {
                             @Html.AntiForgeryToken()
-                            <a href="#" class="dropdown-item logout" onclick="document.getElementById('logoutForm').submit()">
+                            <a href="#" class="dropdown-item logout" id="logoutButton">
                                 <i class="fas fa-sign-out-alt"></i>
                                 <span>Logout</span>
                             </a>

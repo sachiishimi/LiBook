@@ -311,6 +311,11 @@ body {
     transition: all 0.3s ease;
 }
 
+    .menu-toggle:hover {
+        background: var(--primary-blue);
+        color: var(--white);
+    }
+
 .page-header {
     margin-bottom: 0;
     padding: 0;
@@ -324,17 +329,12 @@ body {
     font-weight: 700;
 }
 
-.page-header p {
+.page-header p,
+.page-description {
     color: var(--text-light);
     margin-bottom: 0;
     font-size: 0.95rem;
 }
-
-/* Remove the search-bar styles since we're deleting it */
-.search-bar {
-    display: none;
-}
-
 
 .topbar-actions {
     display: flex;
@@ -423,14 +423,17 @@ body {
     color: var(--text-light);
 }
 
-.dropdown-arrow {
-    font-size: 0.8rem;
-    color: var(--text-light);
-    transition: transform 0.3s ease;
+.user-name {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--text-dark);
+    line-height: 1.2;
 }
 
-.user-profile.active .dropdown-arrow {
-    transform: rotate(180deg);
+.user-role {
+    font-size: 0.8rem;
+    color: var(--text-light);
+    font-weight: 500;
 }
 
 /* User Dropdown */
@@ -466,6 +469,7 @@ body {
     text-decoration: none;
     transition: all 0.3s ease;
     font-size: 0.9rem;
+    cursor: pointer;
 }
 
     .dropdown-item:hover {
@@ -494,6 +498,7 @@ body {
     background: var(--border-color);
     margin: 0.5rem 0;
 }
+
 
 /* Content Area */
 .content {

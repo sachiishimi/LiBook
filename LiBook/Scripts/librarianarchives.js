@@ -13,26 +13,26 @@ const userProfile = document.getElementById('userProfile');
 // ========================================
 
 // Desktop Sidebar Toggle
-if (sidebarToggleDesktop) {
+if (sidebarToggleDesktop && sidebar && mainContent) {
     sidebarToggleDesktop.addEventListener('click', (e) => {
         e.stopPropagation();
         sidebar.classList.toggle('collapsed');
         mainContent.classList.toggle('expanded');
-        localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed'));
+        localStorage.setItem('sidebarCollapsed', String(sidebar.classList.contains('collapsed')));
     });
 }
 
 // Restore sidebar state
 window.addEventListener('DOMContentLoaded', () => {
     const isCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
-    if (isCollapsed) {
+    if (isCollapsed && sidebar && mainContent) {
         sidebar.classList.add('collapsed');
         mainContent.classList.add('expanded');
     }
 });
 
 // Mobile Sidebar Toggle
-if (menuToggle) {
+if (menuToggle && sidebar && mainContent) {
     menuToggle.addEventListener('click', () => {
         sidebar.classList.add('active');
         sidebar.classList.remove('collapsed');
@@ -40,7 +40,7 @@ if (menuToggle) {
     });
 }
 
-if (closeSidebar) {
+if (closeSidebar && sidebar) {
     closeSidebar.addEventListener('click', () => {
         sidebar.classList.remove('active');
     });
@@ -49,7 +49,8 @@ if (closeSidebar) {
 // Close sidebar when clicking outside on mobile
 document.addEventListener('click', (e) => {
     if (window.innerWidth <= 768) {
-        if (sidebar && !sidebar.contains(e.target) && menuToggle && !menuToggle.contains(e.target)) {
+        const target = e.target;
+        if (target instanceof Node && sidebar && !sidebar.contains(target) && menuToggle && !menuToggle.contains(target)) {
             sidebar.classList.remove('active');
         }
     }
@@ -67,7 +68,8 @@ if (userProfile) {
 
 // Close dropdown when clicking outside
 document.addEventListener('click', (e) => {
-    if (userProfile && !userProfile.contains(e.target)) {
+    const target = e.target;
+    if (userProfile && target instanceof Node && !userProfile.contains(target)) {
         userProfile.classList.remove('active');
     }
 });
@@ -91,68 +93,35 @@ navItems.forEach(item => {
     });
 });
 
+// Handle logout button
+const logoutButton = document.getElementById('logoutButton');
+if (logoutButton) {
+    logoutButton.addEventListener('click', (e) => {
+        e.preventDefault();
+        const logoutForm = document.getElementById('logoutForm');
+        if (logoutForm && logoutForm instanceof HTMLFormElement) {
+            logoutForm.submit();
+        }
+    });
+}
+
 // ========================================
 // NOTIFICATION SYSTEM
 // ========================================
-function showNotification(message, type = 'info') {
-    const notification = document.createElement('div');
-    notification.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        padding: 1rem 1.5rem;
-        background: ${type === 'info' ? '#2c3e50' : type === 'success' ? '#27ae60' : '#c62828'};
-        color: white;
-        border-radius: 12px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-        z-index: 10000;
-        font-family: 'Kumbh Sans', sans-serif;
-        animation: slideIn 0.3s ease;
-    `;
+function showNotification(message, type) {
+    type = type || 'info';
+
+    var notification = document.createElement('div');
+    notification.className = 'notification notification-' + type;
     notification.textContent = message;
     document.body.appendChild(notification);
 
-    setTimeout(() => {
-        notification.style.animation = 'slideOut 0.3s ease';
-        setTimeout(() => notification.remove(), 300);
+    setTimeout(function () {
+        notification.classList.add('notification-exit');
+        setTimeout(function () {
+            notification.remove();
+        }, 300);
     }, 3000);
-}
-
-// Add animation styles
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes slideIn {
-        from {
-            transform: translateX(400px);
-            opacity: 0;
-        }
-        to {
-            transform: translateX(0);
-            opacity: 1;
-        }
-    }
-    @keyframes slideOut {
-        from {
-            transform: translateX(0);
-            opacity: 1;
-        }
-        to {
-            transform: translateX(400px);
-            opacity: 0;
-        }
-    }
-`;
-document.head.appendChild(style);
-
-// ========================================
-// SEARCH FUNCTIONALITY
-// ========================================
-const searchInput = document.querySelector('.search-bar input');
-if (searchInput) {
-    searchInput.addEventListener('input', (e) => {
-        const searchTerm = e.target.value.toLowerCase();
-        console.log('Searching for:', searchTerm);
-    });
 }
 
 // ========================================
@@ -182,19 +151,88 @@ window.addEventListener('resize', () => {
 });
 
 // ========================================
+// KEYBOARD NAVIGATION SUPPORT
+// ========================================
+document.addEventListener('keydown', (e) => {
+    // Close sidebar with Escape key
+    if (e.key === 'Escape') {
+        if (window.innerWidth <= 768 && sidebar && sidebar.classList.contains('active')) {
+            sidebar.classList.remove('active');
+        }
+        if (userProfile && userProfile.classList.contains('active')) {
+            userProfile.classList.remove('active');
+        }
+    }
+});
+
+// ========================================
+// PREVENT BODY SCROLL WHEN MOBILE SIDEBAR IS OPEN
+// ========================================
+function toggleBodyScroll(enable) {
+    document.body.style.overflow = enable ? '' : 'hidden';
+}
+
+// Enhanced sidebar toggle with body scroll control
+if (menuToggle && sidebar) {
+    menuToggle.addEventListener('click', () => {
+        const isOpening = !sidebar.classList.contains('active');
+        if (isOpening && window.innerWidth <= 768) {
+            toggleBodyScroll(false);
+        }
+    });
+}
+
+if (closeSidebar && sidebar) {
+    closeSidebar.addEventListener('click', () => {
+        if (window.innerWidth <= 768) {
+            toggleBodyScroll(true);
+        }
+    });
+}
+
+// Close sidebar and restore scroll on resize
+window.addEventListener('resize', () => {
+    if (window.innerWidth > 768) {
+        toggleBodyScroll(true);
+    }
+});
+
+// ========================================
+// ENHANCED NOTIFICATION SYSTEM WITH QUEUE
+// ========================================
+var notificationQueue = [];
+var isShowingNotification = false;
+
+function showQueuedNotification(message, type) {
+    type = type || 'info';
+
+    if (isShowingNotification) {
+        notificationQueue.push({ message: message, type: type });
+        return;
+    }
+
+    isShowingNotification = true;
+    showNotification(message, type);
+
+    setTimeout(function () {
+        isShowingNotification = false;
+        if (notificationQueue.length > 0) {
+            var nextNotification = notificationQueue.shift();
+            if (nextNotification) {
+                showQueuedNotification(nextNotification.message, nextNotification.type);
+            }
+        }
+    }, 3300);
+}
+
+// Update notification button to use queued system
+if (notificationBtn) {
+    notificationBtn.addEventListener('click', () => {
+        showQueuedNotification('You have 3 new notifications', 'info');
+    });
+}
+
+// ========================================
 // INITIALIZATION
 // ========================================
-window.addEventListener('load', () => {
-    console.log('✅ Librarian Dashboard Loading...');
-
-    // Initialize charts with a small delay to ensure Chart.js is loaded
-    setTimeout(() => {
-        initializeCharts();
-        console.log('✅ Librarian Dashboard Initialized Successfully!');
-    }, 100);
-});
-
-// Alternative: Use DOMContentLoaded as backup
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('✅ DOM Content Loaded');
-});
+console.log('✅ Librarian Archives Page Initialized Successfully!');

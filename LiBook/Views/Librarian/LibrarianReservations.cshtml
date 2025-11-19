@@ -89,18 +89,20 @@
                             <span>Help & Support</span>
                         </a>
                         <div class="dropdown-divider"></div>
-                        @using (Html.BeginForm("Logout", "Account", FormMethod.Post, new { id = "logoutForm" }))
-                        {
-                            @Html.AntiForgeryToken()
-                            <a href="#" class="dropdown-item logout" onclick="document.getElementById('logoutForm').submit()">
-                                <i class="fas fa-sign-out-alt"></i>
-                                <span>Logout</span>
-                            </a>
-                        }
+                        <a href="#" class="dropdown-item logout" id="logoutLink">
+                            <i class="fas fa-sign-out-alt"></i>
+                            <span>Logout</span>
+                        </a>
                     </div>
                 </div>
             </div>
         </header>
+
+        <!-- Hidden logout form -->
+        @using (Html.BeginForm("Logout", "Account", FormMethod.Post, new { id = "logoutForm", style = "display:none;" }))
+        {
+            @Html.AntiForgeryToken()
+        }
 
         <!-- Reservations Content -->
         <main class="content">
@@ -122,6 +124,9 @@
 
             <!-- Main Content Area with Table and Side Panel -->
             <div class="content-wrapper">
+                <!-- Panel Backdrop -->
+                <div class="panel-backdrop" id="panelBackdrop"></div>
+
                 <!-- Table Card -->
                 <div class="table-card" id="tableCard">
                     <div class="table-header">
@@ -187,24 +192,27 @@
     </div>
 
     <!-- Archive Confirmation Modal -->
-    <div class="modal-overlay" id="modalOverlay">
+    <div class="modal-overlay" id="archiveModal">
         <div class="modal">
             <div class="modal-header warning">
                 <div class="modal-icon warning">
-                    <i class="fas fa-exclamation"></i>
+                    <i class="fas fa-archive"></i>
                 </div>
-                <h3 class="modal-title">Archive Reservation</h3>
+                <h2 class="modal-title">Archive Reservation</h2>
             </div>
             <div class="modal-body">
-                <p class="modal-message" id="modalMessage">
-                    <!-- Message will be inserted by JavaScript -->
+                <p class="modal-message" id="archiveModalMessage">
+                    Are you sure you want to archive this reservation?
                 </p>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-cancel" id="modalCancel">Cancel</button>
-                <button class="btn btn-confirm" id="modalConfirm">
-                    <i class="fas fa-archive"></i>
-                    Archive Reservation
+                <button class="btn btn-cancel" id="cancelArchiveBtn">
+                    <i class="fas fa-times"></i>
+                    Cancel
+                </button>
+                <button class="btn btn-confirm" id="confirmArchiveBtn">
+                    <i class="fas fa-check"></i>
+                    Archive
                 </button>
             </div>
         </div>
