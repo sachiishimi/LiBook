@@ -7,6 +7,7 @@ const closeSidebar = document.getElementById('closeSidebar');
 const sidebarToggleDesktop = document.getElementById('sidebarToggleDesktop');
 const mainContent = document.querySelector('.main-content');
 const userProfile = document.getElementById('userProfile');
+const walkInForm = document.getElementById('walkInForm');
 
 // ========================================
 // SIDEBAR FUNCTIONALITY
@@ -376,6 +377,9 @@ function openRoomDetails(roomId) {
         // Populate schedule list (in real app, fetch from server)
         loadScheduleList(roomId);
 
+        // Reset to room details view
+        showRoomDetailsView();
+
         openModal('roomDetailsModal');
     }
 }
@@ -488,6 +492,146 @@ function getScheduleData(roomId) {
     };
 
     return schedules[roomId] || [];
+}
+
+// ========================================
+// FULL SCHEDULE TABLE FUNCTIONALITY WITH SLIDE-IN EFFECT
+// ========================================
+
+/**
+ * View full schedule for the current room with slide-in effect
+ */
+function viewFullSchedule() {
+    if (!currentRoomId) return;
+
+    const roomData = getRoomData(currentRoomId);
+    if (!roomData) return;
+
+    // Set room title in the schedule
+    document.getElementById('scheduleRoomTitle').textContent = roomData.name;
+
+    // Load schedule data
+    loadFullScheduleTable(currentRoomId);
+
+    // Show full schedule with slide-in animation
+    showFullScheduleView();
+}
+
+/**
+ * Load full schedule table data
+ */
+function loadFullScheduleTable(roomId) {
+    const schedules = getFullScheduleData(roomId);
+    const tableBody = document.getElementById('scheduleTableBody');
+    const noDataContainer = document.getElementById('noScheduleData');
+
+    if (schedules && schedules.length > 0) {
+        tableBody.innerHTML = schedules.map(schedule => `
+            <tr>
+                <td>${schedule.roomName}</td>
+                <td>${schedule.userName}</td>
+                <td>${schedule.date}</td>
+                <td>${schedule.time}</td>
+                <td>${schedule.members}</td>
+            </tr>
+        `).join('');
+
+        tableBody.style.display = '';
+        noDataContainer.style.display = 'none';
+    } else {
+        tableBody.style.display = 'none';
+        noDataContainer.style.display = 'block';
+    }
+}
+
+/**
+ * Mock function to get full schedule data for table view
+ */
+function getFullScheduleData(roomId) {
+    const fullSchedules = {
+        1: [
+            { roomName: 'Study Room A', userName: 'John Doe', date: '2025-11-19', time: '2:00 PM - 4:00 PM', members: 4 },
+            { roomName: 'Study Room A', userName: 'Jane Smith', date: '2025-11-19', time: '4:30 PM - 6:00 PM', members: 3 },
+            { roomName: 'Study Room A', userName: 'Mike Johnson', date: '2025-11-19', time: '6:30 PM - 8:00 PM', members: 2 },
+            { roomName: 'Study Room A', userName: 'Sarah Wilson', date: '2025-11-20', time: '9:00 AM - 11:00 AM', members: 5 },
+            { roomName: 'Study Room A', userName: 'David Brown', date: '2025-11-20', time: '1:00 PM - 3:00 PM', members: 3 }
+        ],
+        2: [
+            { roomName: 'Collaboration Room B', userName: 'Dr. Sarah Lee', date: '2025-11-19', time: '10:00 AM - 12:00 PM', members: 8 },
+            { roomName: 'Collaboration Room B', userName: 'Tom Brown', date: '2025-11-19', time: '1:00 PM - 3:00 PM', members: 6 },
+            { roomName: 'Collaboration Room B', userName: 'Prof. James Wilson', date: '2025-11-20', time: '9:00 AM - 11:00 AM', members: 10 }
+        ],
+        3: [
+            { roomName: 'Study Room C', userName: 'Emily Davis', date: '2025-11-19', time: '3:00 PM - 5:00 PM', members: 2 },
+            { roomName: 'Study Room C', userName: 'Robert Taylor', date: '2025-11-20', time: '10:00 AM - 12:00 PM', members: 4 }
+        ],
+        4: [] // No schedules for maintenance room
+    };
+
+    return fullSchedules[roomId] || [];
+}
+
+/**
+ * Show full schedule view with slide-in animation
+ */
+function showFullScheduleView() {
+    const roomDetailsContent = document.getElementById('roomDetailsContent');
+    const fullScheduleContent = document.getElementById('fullScheduleContent');
+
+    // Add slide-out animation to room details
+    roomDetailsContent.classList.add('slide-out-left');
+
+    setTimeout(() => {
+        roomDetailsContent.style.display = 'none';
+        roomDetailsContent.classList.remove('slide-out-left');
+
+        // Show and slide in full schedule
+        fullScheduleContent.style.display = 'block';
+        fullScheduleContent.classList.add('slide-in-right');
+
+        setTimeout(() => {
+            fullScheduleContent.classList.remove('slide-in-right');
+        }, 300);
+    }, 300);
+}
+
+/**
+ * Close full schedule and return to room details with slide animation
+ */
+function closeFullSchedule() {
+    const roomDetailsContent = document.getElementById('roomDetailsContent');
+    const fullScheduleContent = document.getElementById('fullScheduleContent');
+
+    // Add slide-out animation to full schedule
+    fullScheduleContent.classList.add('slide-out-right');
+
+    setTimeout(() => {
+        fullScheduleContent.style.display = 'none';
+        fullScheduleContent.classList.remove('slide-out-right');
+
+        // Show and slide in room details
+        roomDetailsContent.style.display = 'block';
+        roomDetailsContent.classList.add('slide-in-left');
+
+        setTimeout(() => {
+            roomDetailsContent.classList.remove('slide-in-left');
+        }, 300);
+    }, 300);
+}
+
+/**
+ * Reset to room details view (used when opening modal)
+ */
+function showRoomDetailsView() {
+    const roomDetailsContent = document.getElementById('roomDetailsContent');
+    const fullScheduleContent = document.getElementById('fullScheduleContent');
+
+    roomDetailsContent.style.display = 'block';
+    fullScheduleContent.style.display = 'none';
+
+    // Remove any animation classes
+    roomDetailsContent.classList.remove('slide-in-left', 'slide-out-left');
+    fullScheduleContent.classList.remove('slide-in-right', 'slide-out-right');
 }
 
 // ========================================
@@ -713,11 +857,11 @@ if (reportIssueForm) {
 /**
  * View reservation details
  */
-function viewReservation() {
-    console.log('Viewing reservation for room:', currentRoomId);
-    showQueuedNotification('Opening reservation details...', 'info');
-    // In a real application, navigate to reservation details page
-}
+//function viewReservation() {
+//    console.log('Viewing reservation for room:', currentRoomId);
+//    showQueuedNotification('Opening reservation details...', 'info');
+//    // In a real application, navigate to reservation details page
+//}
 
 /**
  * Create walk-in from modal

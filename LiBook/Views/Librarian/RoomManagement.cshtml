@@ -359,7 +359,7 @@
                 </div>
 
                 <!-- Main Content -->
-                <div class="modal-main-content">
+                <div class="modal-main-content" id="roomDetailsContent">
                     <div class="room-details-grid">
                         <div class="detail-item">
                             <label>Current Status:</label>
@@ -389,7 +389,7 @@
                         </div>
                     </div>
                     <div class="modal-actions-list">
-                        <button class="modal-action-item" onclick="viewReservation()">
+                        <button class="modal-action-item" onclick="viewFullSchedule()">
                             <div class="action-icon action-icon-info">
                                 <i class="fas fa-calendar-alt"></i>
                             </div>
@@ -416,6 +416,40 @@
                                 <p>Report maintenance or other issues</p>
                             </div>
                         </button>
+                    </div>
+                </div>
+
+                <!-- Full Schedule Content (Hidden by default) -->
+                <div class="full-schedule-content" id="fullScheduleContent" style="display: none;">
+                    <div class="full-schedule-header">
+                        <button class="back-btn" onclick="closeFullSchedule()">
+                            <i class="fas fa-arrow-left"></i>
+                            <span>Back to Details</span>
+                        </button>
+                        <h3 class="full-schedule-title">
+                            <i class="fas fa-calendar-alt"></i>
+                            Full Schedule - <span id="scheduleRoomTitle">Room Name</span>
+                        </h3>
+                    </div>
+                    <div class="schedule-table-container">
+                        <table class="schedule-table">
+                            <thead>
+                                <tr>
+                                    <th>Room Name</th>
+                                    <th>User Name</th>
+                                    <th>Date</th>
+                                    <th>Time</th>
+                                    <th>Number of Members</th>
+                                </tr>
+                            </thead>
+                            <tbody id="scheduleTableBody">
+                                <!-- Schedule data will be inserted here by JavaScript -->
+                            </tbody>
+                        </table>
+                        <div class="no-schedule-data" id="noScheduleData" style="display: none;">
+                            <i class="fas fa-calendar-times"></i>
+                            <p>No schedule data available</p>
+                        </div>
                     </div>
                 </div>
             </div>

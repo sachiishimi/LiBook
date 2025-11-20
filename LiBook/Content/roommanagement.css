@@ -2975,34 +2975,97 @@ body {
     font-size: 1rem;
 }
 
-/* Responsive for confirmation modal */
-@media (max-width: 768px) {
-    .modal-confirmation {
-        max-width: 95%;
-        margin: 1rem;
-    }
+/* ========================================
+   FULL SCHEDULE TABLE STYLES
+   ======================================== */
 
-    .confirmation-actions {
-        flex-direction: column-reverse;
-    }
-
-    .btn-confirm-cancel {
-        width: 100%;
-    }
-
-    .confirmation-header h2 {
-        font-size: 1.25rem;
-    }
-
-    .confirmation-icon {
-        width: 50px;
-        height: 50px;
-    }
-
-        .confirmation-icon i {
-            font-size: 1.5rem;
-        }
+.modal-full-schedule {
+    max-width: 1000px;
 }
+
+.back-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--light-gray);
+    border: none;
+    padding: 0.75rem 1rem;
+    border-radius: 10px;
+    font-family: 'Kumbh Sans', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-dark);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+    .back-btn:hover {
+        background: var(--primary-blue);
+        color: var(--white);
+        transform: translateX(-3px);
+    }
+
+.schedule-table-container {
+    width: 100%;
+    overflow-x: auto;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+}
+
+.schedule-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: 'Kumbh Sans', sans-serif;
+}
+
+    .schedule-table th {
+        background: var(--primary-blue);
+        color: var(--white);
+        padding: 1rem;
+        text-align: left;
+        font-weight: 600;
+        font-size: 0.95rem;
+        border-bottom: 2px solid var(--dark-blue);
+    }
+
+    .schedule-table td {
+        padding: 1rem;
+        border-bottom: 1px solid var(--border-color);
+        font-size: 0.9rem;
+        color: var(--text-dark);
+    }
+
+    .schedule-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .schedule-table tr:hover {
+        background: #f8fafc;
+    }
+
+    .schedule-table tr:nth-child(even) {
+        background: #fafbfc;
+    }
+
+        .schedule-table tr:nth-child(even):hover {
+            background: #f1f5f9;
+        }
+
+.no-schedule-data {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--text-light);
+}
+
+    .no-schedule-data i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+
+    .no-schedule-data p {
+        font-size: 1rem;
+    }
 
 /* ========================================
    RESPONSIVE STYLES FOR NEW COMPONENTS
@@ -3036,6 +3099,11 @@ body {
         margin: 1rem;
     }
 
+    .modal-full-schedule {
+        max-width: 95%;
+        margin: 1rem;
+    }
+
     .reservee-header {
         flex-direction: column;
         text-align: center;
@@ -3055,5 +3123,295 @@ body {
         width: 100%;
         justify-content: center;
         padding: 1rem 1.5rem;
+    }
+
+    .schedule-table th,
+    .schedule-table td {
+        padding: 0.75rem 0.5rem;
+        font-size: 0.85rem;
+    }
+
+    .back-btn {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.85rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .schedule-table {
+        font-size: 0.8rem;
+    }
+
+        .schedule-table th,
+        .schedule-table td {
+            padding: 0.5rem 0.25rem;
+            font-size: 0.75rem;
+        }
+
+    .modal-title {
+        font-size: 1.2rem;
+    }
+}
+
+/* ========================================
+   SLIDE ANIMATIONS FOR FULL SCHEDULE
+   ======================================== */
+
+.slide-out-left {
+    animation: slideOutLeft 0.3s ease forwards;
+}
+
+.slide-in-right {
+    animation: slideInRight 0.3s ease forwards;
+}
+
+.slide-out-right {
+    animation: slideOutRight 0.3s ease forwards;
+}
+
+.slide-in-left {
+    animation: slideInLeft 0.3s ease forwards;
+}
+
+@keyframes slideOutLeft {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+
+    to {
+        transform: translateX(-100%);
+        opacity: 0;
+    }
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOutRight {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+@keyframes slideInLeft {
+    from {
+        transform: translateX(-100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* ========================================
+   FULL SCHEDULE CONTENT STYLES
+   ======================================== */
+
+.full-schedule-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.full-schedule-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.full-schedule-title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin: 0;
+    font-family: 'League Spartan', sans-serif;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.back-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--light-gray);
+    border: none;
+    padding: 0.75rem 1rem;
+    border-radius: 10px;
+    font-family: 'Kumbh Sans', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-dark);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+    .back-btn:hover {
+        background: var(--primary-blue);
+        color: var(--white);
+        transform: translateX(-3px);
+    }
+
+.schedule-table-container {
+    width: 100%;
+    overflow-x: auto;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    flex: 1;
+}
+
+.schedule-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: 'Kumbh Sans', sans-serif;
+}
+
+    .schedule-table th {
+        background: var(--primary-blue);
+        color: var(--white);
+        padding: 1rem;
+        text-align: left;
+        font-weight: 600;
+        font-size: 0.95rem;
+        border-bottom: 2px solid var(--dark-blue);
+        position: sticky;
+        top: 0;
+    }
+
+    .schedule-table td {
+        padding: 1rem;
+        border-bottom: 1px solid var(--border-color);
+        font-size: 0.9rem;
+        color: var(--text-dark);
+    }
+
+    .schedule-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .schedule-table tr:hover {
+        background: #f8fafc;
+    }
+
+    .schedule-table tr:nth-child(even) {
+        background: #fafbfc;
+    }
+
+        .schedule-table tr:nth-child(even):hover {
+            background: #f1f5f9;
+        }
+
+.no-schedule-data {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--text-light);
+}
+
+    .no-schedule-data i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+
+    .no-schedule-data p {
+        font-size: 1rem;
+    }
+
+/* ========================================
+   RESPONSIVE STYLES FOR SLIDE CONTENT
+   ======================================== */
+
+@media (max-width: 1024px) {
+    .modal-body-with-sidebar {
+        flex-direction: column;
+    }
+
+    .schedule-sidebar {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid var(--border-color);
+        padding-right: 0;
+        padding-bottom: 2rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .full-schedule-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .back-btn {
+        align-self: flex-start;
+    }
+
+    .schedule-table th,
+    .schedule-table td {
+        padding: 0.75rem 0.5rem;
+        font-size: 0.85rem;
+    }
+
+    .back-btn {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.85rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .schedule-table {
+        font-size: 0.8rem;
+    }
+
+        .schedule-table th,
+        .schedule-table td {
+            padding: 0.5rem 0.25rem;
+            font-size: 0.75rem;
+        }
+
+    .full-schedule-title {
+        font-size: 1.1rem;
+    }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    .slide-out-left,
+    .slide-in-right,
+    .slide-out-right,
+    .slide-in-left {
+        animation: none;
+        transition: opacity 0.3s ease;
+    }
+
+    .slide-out-left,
+    .slide-out-right {
+        opacity: 0;
+    }
+
+    .slide-in-right,
+    .slide-in-left {
+        opacity: 1;
     }
 }
