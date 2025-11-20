@@ -111,15 +111,14 @@ class NavigationManager {
 // ========================================
 
 class ReservationsManager {
-    // Declare all properties at class level (TypeScript requirement)
     data;
     currentTab;
     currentFilter;
     selectedReservation;
     reservationToArchive;
+    reservationToCancel;
 
     constructor() {
-        // Initialize properties
         this.data = {
             accepted: [
                 { id: 1, name: "Sarah Wilson", email: "sarah.w@example.com", userType: "Student", room: "Study Room C", date: "2025-11-14", time: "1:00 PM - 3:00 PM", status: "accepted" },
@@ -134,12 +133,13 @@ class ReservationsManager {
                 { id: 11, name: "Maria Rodriguez", email: "maria.r@example.com", userType: "Faculty", room: "Study Room C", date: "2025-11-07", time: "11:00 AM - 1:00 PM", status: "cancelled" },
             ]
         };
-        
+
         this.currentTab = 'accepted';
         this.currentFilter = 'all';
         this.selectedReservation = null;
         this.reservationToArchive = null;
-        
+        this.reservationToCancel = null;
+
         this.init();
     }
 
@@ -149,6 +149,7 @@ class ReservationsManager {
         this.setupFilter();
         this.setupPanel();
         this.setupArchiveModal();
+        this.setupCancelModal();
         this.renderTable();
         this.updateTabBadges();
     }
@@ -159,7 +160,7 @@ class ReservationsManager {
             tab.addEventListener('click', () => {
                 tabs.forEach(t => t.classList.remove('active'));
                 tab.classList.add('active');
-                
+
                 if (tab instanceof HTMLElement && tab.dataset.tab) {
                     this.currentTab = tab.dataset.tab;
                 }
@@ -195,18 +196,17 @@ class ReservationsManager {
     }
 
     setupArchiveModal() {
+        const overlay = document.getElementById('archiveModalOverlay');
         const modal = document.getElementById('archiveModal');
         const cancelBtn = document.getElementById('cancelArchiveBtn');
         const confirmBtn = document.getElementById('confirmArchiveBtn');
 
-        // Close modal when clicking cancel
         if (cancelBtn) {
             cancelBtn.addEventListener('click', () => {
                 this.closeArchiveModal();
             });
         }
 
-        // Archive when clicking confirm
         if (confirmBtn) {
             confirmBtn.addEventListener('click', () => {
                 if (this.reservationToArchive) {
@@ -215,43 +215,103 @@ class ReservationsManager {
             });
         }
 
-        // Close modal when clicking outside
-        if (modal) {
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) {
-                    this.closeArchiveModal();
+        if (overlay) {
+            overlay.addEventListener('click', () => {
+                this.closeArchiveModal();
+            });
+        }
+    }
+
+    setupCancelModal() {
+        const overlay = document.getElementById('cancelModalOverlay');
+        const modal = document.getElementById('cancelModal');
+        const cancelBtn = document.getElementById('cancelCancelBtn');
+        const confirmBtn = document.getElementById('confirmCancelBtn');
+
+        if (cancelBtn) {
+            cancelBtn.addEventListener('click', () => {
+                this.closeCancelModal();
+            });
+        }
+
+        if (confirmBtn) {
+            confirmBtn.addEventListener('click', () => {
+                if (this.reservationToCancel) {
+                    this.cancelReservation(this.reservationToCancel);
                 }
+            });
+        }
+
+        if (overlay) {
+            overlay.addEventListener('click', () => {
+                this.closeCancelModal();
             });
         }
     }
 
     openArchiveModal(reservation) {
         this.reservationToArchive = reservation;
+
+        const overlay = document.getElementById('archiveModalOverlay');
         const modal = document.getElementById('archiveModal');
         const message = document.getElementById('archiveModalMessage');
-        
+
         if (message) {
-            message.textContent = `Are you sure you want to archive the reservation for ${reservation.name}? This action will move the reservation to the archives.`;
+            message.textContent = `Are you sure you want to archive the reservation for ${reservation.name}? This action will archive the reservation.`;
         }
-        
+
+        if (overlay) {
+            overlay.classList.add('active');
+        }
         if (modal) {
-            // Force display and active class
-            modal.style.display = 'flex';
-            setTimeout(() => {
-                modal.classList.add('active');
-            }, 10);
+            modal.classList.add('active');
         }
     }
 
     closeArchiveModal() {
+        const overlay = document.getElementById('archiveModalOverlay');
         const modal = document.getElementById('archiveModal');
+
+        if (overlay) {
+            overlay.classList.remove('active');
+        }
         if (modal) {
             modal.classList.remove('active');
-            setTimeout(() => {
-                modal.style.display = 'none';
-            }, 300); // Wait for transition to complete
         }
         this.reservationToArchive = null;
+    }
+
+    openCancelModal(reservation) {
+        console.log('Opening cancel modal for:', reservation.name);
+        this.reservationToCancel = reservation;
+
+        const overlay = document.getElementById('cancelModalOverlay');
+        const modal = document.getElementById('cancelModal');
+        const message = document.getElementById('cancelModalMessage');
+
+        if (message) {
+            message.textContent = `Are you sure you want to cancel the reservation for ${reservation.name}? This action cannot be undone.`;
+        }
+
+        if (overlay) {
+            overlay.classList.add('active');
+        }
+        if (modal) {
+            modal.classList.add('active');
+        }
+    }
+
+    closeCancelModal() {
+        const overlay = document.getElementById('cancelModalOverlay');
+        const modal = document.getElementById('cancelModal');
+
+        if (overlay) {
+            overlay.classList.remove('active');
+        }
+        if (modal) {
+            modal.classList.remove('active');
+        }
+        this.reservationToCancel = null;
     }
 
     setupPanel() {
@@ -260,9 +320,10 @@ class ReservationsManager {
 
         if (closePanelBtn) {
             closePanelBtn.addEventListener('click', () => {
-                // Don't close panel if archive modal is open
                 const archiveModal = document.getElementById('archiveModal');
-                if (archiveModal && archiveModal.classList.contains('active')) {
+                const cancelModal = document.getElementById('cancelModal');
+                if ((archiveModal && archiveModal.classList.contains('active')) ||
+                    (cancelModal && cancelModal.classList.contains('active'))) {
                     return;
                 }
                 this.closePanel();
@@ -271,9 +332,10 @@ class ReservationsManager {
 
         if (panelBackdrop) {
             panelBackdrop.addEventListener('click', () => {
-                // Don't close panel if archive modal is open
                 const archiveModal = document.getElementById('archiveModal');
-                if (archiveModal && archiveModal.classList.contains('active')) {
+                const cancelModal = document.getElementById('cancelModal');
+                if ((archiveModal && archiveModal.classList.contains('active')) ||
+                    (cancelModal && cancelModal.classList.contains('active'))) {
                     return;
                 }
                 this.closePanel();
@@ -343,10 +405,16 @@ class ReservationsManager {
                 </div>
 
                 <div class="panel-actions">
-                    <button class="btn btn-archive" id="archiveBtn">
-                        <i class="fas fa-archive"></i>
-                        Archive Reservation
-                    </button>
+                    ${this.currentTab === 'accepted' ?
+                    `<button class="btn btn-cancel" id="cancelBtn">
+                            <i class="fas fa-ban"></i>
+                            Cancel Reservation
+                        </button>` :
+                    `<button class="btn btn-archive" id="archiveBtn">
+                            <i class="fas fa-archive"></i>
+                            Archive Reservation
+                        </button>`
+                }
                 </div>
             `;
 
@@ -398,9 +466,31 @@ class ReservationsManager {
         this.showNotification(`Reservation for ${reservation.name} archived successfully!`, "success");
     }
 
+    cancelReservation(reservation) {
+        // Find and remove from accepted tab
+        const acceptedData = this.data['accepted'];
+        if (!acceptedData) return;
+
+        const index = acceptedData.findIndex(r => r.id === reservation.id);
+        if (index !== -1) {
+            // Move to cancelled tab
+            const cancelledReservation = { ...acceptedData[index], status: 'cancelled' };
+            this.data['cancelled'].push(cancelledReservation);
+            acceptedData.splice(index, 1);
+        }
+
+        // Close both the modal and the panel after cancelling
+        this.closeCancelModal();
+        this.closePanel();
+        this.renderTable();
+        this.updateTabBadges();
+        this.showNotification(`Reservation for ${reservation.name} cancelled successfully!`, "success");
+    }
+
     setupPanelActions() {
         setTimeout(() => {
             const archiveBtn = document.getElementById("archiveBtn");
+            const cancelBtn = document.getElementById("cancelBtn");
 
             if (archiveBtn) {
                 archiveBtn.addEventListener("click", (e) => {
@@ -411,14 +501,23 @@ class ReservationsManager {
                     }
                 });
             }
+
+            if (cancelBtn) {
+                cancelBtn.addEventListener("click", (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (this.selectedReservation) {
+                        this.openCancelModal(this.selectedReservation);
+                    }
+                });
+            }
         }, 100);
     }
-
 
     getFilteredData() {
         const currentData = this.data[this.currentTab];
         if (!currentData) return [];
-        
+
         let data = [...currentData];
 
         if (this.currentFilter !== 'all') {
@@ -491,19 +590,19 @@ class ReservationsManager {
 
     createTableRow(reservation) {
         const row = document.createElement('tr');
-        
+
         if (row instanceof HTMLElement) {
             row.dataset.reservationId = String(reservation.id);
         }
 
         row.appendChild(this.createUserCell(reservation));
-        
+
         ['room', 'date', 'time'].forEach(field => {
             const cell = document.createElement('td');
             cell.textContent = reservation[field];
             row.appendChild(cell);
         });
-        
+
         row.appendChild(this.createStatusCell(reservation));
 
         row.addEventListener('click', () => {
@@ -589,15 +688,15 @@ class ReservationsManager {
         type = type || 'success';
         const notification = document.createElement('div');
         notification.className = `notification notification-${type}`;
-        
-        const icon = type === 'success' ? 'fa-check-circle' : 
-            type === 'error' ? 'fa-times-circle' : 
-                type === 'warning' ? 'fa-exclamation-triangle' : 
+
+        const icon = type === 'success' ? 'fa-check-circle' :
+            type === 'error' ? 'fa-times-circle' :
+                type === 'warning' ? 'fa-exclamation-triangle' :
                     'fa-info-circle';
-        
+
         notification.innerHTML = `<i class="fas ${icon}"></i><span>${message}</span>`;
         document.body.appendChild(notification);
-        
+
         setTimeout(() => {
             notification.classList.add('notification-exit');
             setTimeout(() => notification.remove(), 300);

@@ -1,4 +1,4 @@
-﻿@{
+﻿﻿@{
     ViewBag.Title = "Reservations Management";
 }
 
@@ -192,29 +192,54 @@
     </div>
 
     <!-- Archive Confirmation Modal -->
-    <div class="modal-overlay" id="archiveModal">
-        <div class="modal">
-            <div class="modal-header warning">
-                <div class="modal-icon warning">
-                    <i class="fas fa-archive"></i>
-                </div>
-                <h2 class="modal-title">Archive Reservation</h2>
+    <div class="modal-overlay" id="archiveModalOverlay"></div>
+    <div class="modal" id="archiveModal">
+        <div class="modal-header warning">
+            <div class="modal-icon warning">
+                <i class="fas fa-archive"></i>
             </div>
-            <div class="modal-body">
-                <p class="modal-message" id="archiveModalMessage">
-                    Are you sure you want to archive this reservation?
-                </p>
+            <h2 class="modal-title">Archive Reservation</h2>
+        </div>
+        <div class="modal-body">
+            <p class="modal-message" id="archiveModalMessage">
+                Are you sure you want to archive this reservation?
+            </p>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-cancel" id="cancelArchiveBtn">
+                <i class="fas fa-times"></i>
+                Cancel
+            </button>
+            <button class="btn btn-confirm" id="confirmArchiveBtn">
+                <i class="fas fa-check"></i>
+                Archive
+            </button>
+        </div>
+    </div>
+
+    <!-- Cancel Confirmation Modal -->
+    <div class="modal-overlay" id="cancelModalOverlay"></div>
+    <div class="modal" id="cancelModal">
+        <div class="modal-header danger">
+            <div class="modal-icon danger">
+                <i class="fas fa-ban"></i>
             </div>
-            <div class="modal-footer">
-                <button class="btn btn-cancel" id="cancelArchiveBtn">
-                    <i class="fas fa-times"></i>
-                    Cancel
-                </button>
-                <button class="btn btn-confirm" id="confirmArchiveBtn">
-                    <i class="fas fa-check"></i>
-                    Archive
-                </button>
-            </div>
+            <h2 class="modal-title">Cancel Reservation</h2>
+        </div>
+        <div class="modal-body">
+            <p class="modal-message" id="cancelModalMessage">
+                Are you sure you want to cancel this reservation?
+            </p>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-cancel" id="cancelCancelBtn">
+                <i class="fas fa-times"></i>
+                Cancel
+            </button>
+            <button class="btn btn-confirm danger" id="confirmCancelBtn">
+                <i class="fas fa-check"></i>
+                Cancel Reservation
+            </button>
         </div>
     </div>
 
