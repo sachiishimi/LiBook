@@ -1,4 +1,6 @@
-﻿@{
+﻿@model IEnumerable<LiBook.Models.Room>
+
+@{
     ViewBag.Title = "Reservations";
 }
 <!DOCTYPE html>
@@ -116,8 +118,39 @@
 
             <!-- Rooms Grid -->
             <div class="rooms-grid" id="roomsGrid">
-                <!-- Room cards will be dynamically generated here -->
-            </div>
+                @foreach (var item in Model)
+                {
+                    <!-- Room cards will be dynamically generated here -->
+                    <div class="room-card visible"
+                         data-room-name="study room a"
+                         data-room-type="study"
+                         data-status="available"
+                         data-room-id="1"
+                         data-room-capacity="8"
+                         data-allowed-users='["Student"]'
+                         onclick="showEmbeddedRoomModal(this)">
+                        <div class="room-header">
+                            <h3 class="room-name">@Html.DisplayFor(modelItem => item.RoomName)</h3>
+                            <p class="room-type">@Html.DisplayFor(modelItem => item.RoomType)</p>
+                        </div>
+                        <span class="room-status available">@Html.DisplayFor(modelItem => item.Availability)</span>
+                        <div class="room-allowed-users">
+                            <i class="fas fa-users"></i>
+                            <span>For: Student</span>
+                        </div>
+                        <div class="room-details">
+                            <div class="room-capacity">
+                                <i class="fas fa-user-friends"></i>
+                                <span>@Html.DisplayFor(modelItem => item.Capacity) people</span>
+                            </div>
+                            <div class="room-price">
+                                <i class="fas fa-door-open"></i>
+                                <span>Study Room</span>
+                            </div>
+                        </div>
+                    </div>
+                }
+                </div>
         </main>
     </div>
 

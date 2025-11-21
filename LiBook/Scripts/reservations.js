@@ -9,57 +9,57 @@ const userDropdown = document.getElementById('userDropdown');
 const roomSearch = document.getElementById('roomSearch');
 const roomsGrid = document.getElementById('roomsGrid');
 
-// Sample room data - 6 rooms total
-const roomsData = [
-    {
-        id: 1,
-        name: "Study Room A",
-        type: "Study",
-        capacity: 8,
-        status: "available",
-        allowedUsers: ["Student"]
-    },
-    {
-        id: 2,
-        name: "Collaboration Room B",
-        type: "Collaboration",
-        capacity: 10,
-        status: "occupied",
-        allowedUsers: ["Student"]
-    },
-    {
-        id: 3,
-        name: "Study Room C",
-        type: "Study",
-        capacity: 6,
-        status: "available",
-        allowedUsers: ["Student"]
-    },
-    {
-        id: 4,
-        name: "Meeting Room D",
-        type: "Meeting",
-        capacity: 12,
-        status: "reserved",
-        allowedUsers: ["Student"]
-    },
-    {
-        id: 5,
-        name: "Conference Room E",
-        type: "Conference",
-        capacity: 20,
-        status: "available",
-        allowedUsers: ["Faculty", "Admin", "Visitor"]
-    },
-    {
-        id: 6,
-        name: "Executive Room F",
-        type: "Executive",
-        capacity: 15,
-        status: "available",
-        allowedUsers: ["Faculty", "Admin", "Visitor"]
-    }
-];
+//// Sample room data - 6 rooms total
+//const roomsData = [
+//    {
+//        id: 1,
+//        name: "Study Room A",
+//        type: "Study",
+//        capacity: 8,
+//        status: "available",
+//        allowedUsers: ["Student"]
+//    },
+//    {
+//        id: 2,
+//        name: "Collaboration Room B",
+//        type: "Collaboration",
+//        capacity: 10,
+//        status: "occupied",
+//        allowedUsers: ["Student"]
+//    },
+//    {
+//        id: 3,
+//        name: "Study Room C",
+//        type: "Study",
+//        capacity: 6,
+//        status: "available",
+//        allowedUsers: ["Student"]
+//    },
+//    {
+//        id: 4,
+//        name: "Meeting Room D",
+//        type: "Meeting",
+//        capacity: 12,
+//        status: "reserved",
+//        allowedUsers: ["Student"]
+//    },
+//    {
+//        id: 5,
+//        name: "Conference Room E",
+//        type: "Conference",
+//        capacity: 20,
+//        status: "available",
+//        allowedUsers: ["Faculty", "Admin", "Visitor"]
+//    },
+//    {
+//        id: 6,
+//        name: "Executive Room F",
+//        type: "Executive",
+//        capacity: 15,
+//        status: "available",
+//        allowedUsers: ["Faculty", "Admin", "Visitor"]
+//    }
+//];
 
 // Expanded user database with unique names
 const userDatabase = {
@@ -318,64 +318,79 @@ window.addEventListener('load', () => {
 // ROOMS FUNCTIONALITY
 // ============================================
 
-// Initialize rooms grid
-function initializeRooms() {
-    if (!roomsGrid) return;
+// Function to handle embedded room modal
+function showEmbeddedRoomModal(roomElement) {
+    // Get room data from HTML attributes
+    const roomData = {
+        id: parseInt(roomElement.getAttribute('data-room-id')),
+        name: roomElement.querySelector('.room-name').textContent,
+        type: roomElement.querySelector('.room-type').textContent,
+        capacity: parseInt(roomElement.getAttribute('data-room-capacity')),
+        status: roomElement.getAttribute('data-status'),
+        allowedUsers: JSON.parse(roomElement.getAttribute('data-allowed-users'))
+    };
 
-    roomsGrid.innerHTML = '';
-
-    roomsData.forEach(room => {
-        const roomCard = createRoomCard(room);
-        roomsGrid.appendChild(roomCard);
-    });
+    showRoomModal(roomData);
 }
+
+// Initialize rooms grid
+//function initializeRooms() {
+//    if (!roomsGrid) return;
+
+//    roomsGrid.innerHTML = '';
+
+//    roomsData.forEach(room => {
+//        const roomCard = createRoomCard(room);
+//        roomsGrid.appendChild(roomCard);
+//    });
+//}
 
 // Create room card element
-function createRoomCard(room) {
-    const card = document.createElement('div');
-    card.className = 'room-card visible';
-    card.setAttribute('data-room-name', room.name.toLowerCase());
-    card.setAttribute('data-room-type', room.type.toLowerCase());
-    card.setAttribute('data-status', room.status);
+//function createRoomCard(room) {
+//    const card = document.createElement('div');
+//    card.className = 'room-card visible';
+//    card.setAttribute('data-room-name', room.name.toLowerCase());
+//    card.setAttribute('data-room-type', room.type.toLowerCase());
+//    card.setAttribute('data-status', room.status);
 
-    // Status badge text
-    let statusText = room.status.charAt(0).toUpperCase() + room.status.slice(1);
+//    // Status badge text
+//    let statusText = room.status.charAt(0).toUpperCase() + room.status.slice(1);
 
-    // Create allowed users text
-    const allowedUsersText = room.allowedUsers.length > 1
-        ? room.allowedUsers.join(', ')
-        : room.allowedUsers[0];
+//    // Create allowed users text
+//    const allowedUsersText = room.allowedUsers.length > 1
+//        ? room.allowedUsers.join(', ')
+//        : room.allowedUsers[0];
 
-    card.innerHTML = `
-        <div class="room-header">
-            <h3 class="room-name">${room.name}</h3>
-            <p class="room-type">${room.type}</p>
-        </div>
-        <span class="room-status ${room.status}">${statusText}</span>
-        <div class="room-allowed-users">
-            <i class="fas fa-users"></i>
-            <span>For: ${allowedUsersText}</span>
-        </div>
-        <div class="room-details">
-            <div class="room-capacity">
-                <i class="fas fa-user-friends"></i>
-                <span>${room.capacity} people</span>
-            </div>
-            <div class="room-price">
-                <i class="fas fa-door-open"></i>
-                <span>${room.type} Room</span>
-            </div>
-        </div>
-    `;
+//    card.innerHTML = `
+//        <div class="room-header">
+//            <h3 class="room-name">${room.name}</h3>
+//            <p class="room-type">${room.type}</p>
+//        </div>
+//        <span class="room-status ${room.status}">${statusText}</span>
+//        <div class="room-allowed-users">
+//            <i class="fas fa-users"></i>
+//            <span>For: ${allowedUsersText}</span>
+//        </div>
+//        <div class="room-details">
+//            <div class="room-capacity">
+//                <i class="fas fa-user-friends"></i>
+//                <span>${room.capacity} people</span>
+//            </div>
+//            <div class="room-price">
+//                <i class="fas fa-door-open"></i>
+//                <span>${room.type} Room</span>
+//            </div>
+//        </div>
+//    `;
 
-    // Add click event to the entire card
-    card.addEventListener('click', () => {
-        showRoomModal(room);
-    });
-    card.style.cursor = 'pointer';
+//    // Add click event to the entire card
+//    card.addEventListener('click', () => {
+//        showRoomModal(room);
+//    });
+//    card.style.cursor = 'pointer';
 
-    return card;
-}
+//    return card;
+//}
 
 // ============================================
 // SEARCH FUNCTIONALITY

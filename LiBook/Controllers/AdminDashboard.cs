@@ -25,7 +25,7 @@ namespace LiBook.Controllers
         // GET: /AdminDashboard/Reservations
         public ActionResult Reservations()
         {
-            return View();
+            return View(db.Rooms.Where(r => !r.DateArchived.HasValue).ToList());
         }
 
 
