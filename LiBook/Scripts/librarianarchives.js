@@ -233,6 +233,218 @@ if (notificationBtn) {
 }
 
 // ========================================
+// TAB FUNCTIONALITY
+// ========================================
+const tabButtons = document.querySelectorAll('.tab-btn');
+const tabContents = document.querySelectorAll('.tab-content');
+
+if (tabButtons.length > 0 && tabContents.length > 0) {
+    tabButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const targetTab = button.getAttribute('data-tab');
+
+            // Remove active class from all buttons and contents
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            tabContents.forEach(content => content.classList.remove('active'));
+
+            // Add active class to clicked button
+            button.classList.add('active');
+
+            // Add active class to corresponding content
+            const targetContent = document.getElementById(`${targetTab}-tab`);
+            if (targetContent) {
+                targetContent.classList.add('active');
+            }
+
+            // Save active tab to localStorage
+            localStorage.setItem('activeArchiveTab', targetTab);
+
+            // Show notification
+            const tabName = targetTab === 'successful' ? 'Successful Reservations' : 'Cancelled Reservations';
+            showQueuedNotification(`Switched to ${tabName}`, 'info');
+        });
+    });
+
+    // Restore active tab from localStorage
+    const savedTab = localStorage.getItem('activeArchiveTab');
+    if (savedTab) {
+        const savedButton = document.querySelector(`.tab-btn[data-tab="${savedTab}"]`);
+        const savedContent = document.getElementById(`${savedTab}-tab`);
+
+        if (savedButton && savedContent) {
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            tabContents.forEach(content => content.classList.remove('active'));
+
+            savedButton.classList.add('active');
+            savedContent.classList.add('active');
+        }
+    }
+}
+
+// ========================================
+// SEARCH FUNCTIONALITY
+// ========================================
+const successfulSearch = document.getElementById('successfulSearch');
+const cancelledSearch = document.getElementById('cancelledSearch');
+
+function setupSearchFunctionality(searchInput, tableId) {
+    if (!searchInput) return;
+
+    searchInput.addEventListener('input', (e) => {
+        const searchTerm = e.target.value.toLowerCase();
+        const table = document.querySelector(`#${tableId} .data-table tbody`);
+
+        if (!table) return;
+
+        const rows = table.querySelectorAll('tr');
+        let visibleCount = 0;
+
+        rows.forEach(row => {
+            const text = row.textContent.toLowerCase();
+            if (text.includes(searchTerm)) {
+                row.style.display = '';
+                visibleCount++;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+
+        // Show notification if no results found
+        if (visibleCount === 0 && searchTerm !== '') {
+            showQueuedNotification('No results found', 'info');
+        }
+    });
+}
+
+setupSearchFunctionality(successfulSearch, 'successful-tab');
+setupSearchFunctionality(cancelledSearch, 'cancelled-tab');
+
+// ========================================
+// DATE PARSING AND FILTERING FUNCTIONALITY
+// ========================================
+function parseDate(dateString) {
+    // Parse dates in format "Nov 15, 2024"
+    const months = {
+        'Jan': 0, 'Feb': 1, 'Mar': 2, 'Apr': 3, 'May': 4, 'Jun': 5,
+        'Jul': 6, 'Aug': 7, 'Sep': 8, 'Oct': 9, 'Nov': 10, 'Dec': 11
+    };
+
+    const parts = dateString.trim().split(' ');
+    if (parts.length !== 3) return null;
+
+    const month = months[parts[0]];
+    const day = parseInt(parts[1].replace(',', ''));
+    const year = parseInt(parts[2]);
+
+    if (month === undefined || isNaN(day) || isNaN(year)) return null;
+
+    return new Date(year, month, day);
+}
+
+function isDateInRange(dateString, filterValue) {
+    const date = parseDate(dateString);
+    if (!date) return true; // Show if we can't parse
+
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    switch (filterValue) {
+        case 'today':
+            const itemDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+            return itemDate.getTime() === today.getTime();
+
+        case 'week':
+            const weekAgo = new Date(today);
+            weekAgo.setDate(weekAgo.getDate() - 7);
+            return date >= weekAgo && date <= now;
+
+        case 'month':
+            const monthAgo = new Date(today);
+            monthAgo.setMonth(monthAgo.getMonth() - 1);
+            return date >= monthAgo && date <= now;
+
+        case 'all':
+        default:
+            return true;
+    }
+}
+
+function setupFilterFunctionality(filterSelect, tableId) {
+    if (!filterSelect) return;
+
+    filterSelect.addEventListener('change', (e) => {
+        const filterValue = e.target.value;
+        const table = document.querySelector(`#${tableId} .data-table tbody`);
+
+        if (!table) return;
+
+        const rows = table.querySelectorAll('tr');
+        let visibleCount = 0;
+
+        rows.forEach(row => {
+            // Get the date column (4th column for both tables - index 3)
+            const cells = row.querySelectorAll('td');
+            if (cells.length > 3) {
+                const dateString = cells[3].textContent; // Reserved Date or Reserved Date column
+
+                if (isDateInRange(dateString, filterValue)) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            }
+        });
+
+        // Show notification
+        const filterNames = {
+            'all': 'All Time',
+            'today': 'Today',
+            'week': 'This Week',
+            'month': 'This Month'
+        };
+
+        showQueuedNotification(`Filter applied: ${filterNames[filterValue]} (${visibleCount} results)`, 'success');
+    });
+}
+
+// ========================================
+// FILTER FUNCTIONALITY
+// ========================================
+const successfulFilter = document.getElementById('successfulFilter');
+const cancelledFilter = document.getElementById('cancelledFilter');
+
+setupFilterFunctionality(successfulFilter, 'successful-tab');
+setupFilterFunctionality(cancelledFilter, 'cancelled-tab');
+
+// ========================================
+// PAGINATION FUNCTIONALITY
+// ========================================
+const paginationButtons = document.querySelectorAll('.pagination-btn');
+
+paginationButtons.forEach(button => {
+    button.addEventListener('click', () => {
+        if (button.disabled) return;
+
+        // Remove active class from all pagination buttons in the same container
+        const container = button.closest('.pagination');
+        if (container) {
+            container.querySelectorAll('.pagination-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+        }
+
+        // Add active class to clicked button if it's a number
+        if (!button.querySelector('i')) {
+            button.classList.add('active');
+            showQueuedNotification(`Page ${button.textContent} loaded`, 'info');
+        }
+    });
+});
+
+// ========================================
 // INITIALIZATION
 // ========================================
 console.log('✅ Librarian Archives Page Initialized Successfully!');
+console.log('📊 Tab System Ready');
+console.log('🔍 Search & Filter Systems Active');
