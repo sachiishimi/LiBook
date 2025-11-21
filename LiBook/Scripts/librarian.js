@@ -411,50 +411,50 @@ function resetAddForm() {
     resetPasswordToggles(['password', 'confirmPassword']);
 }
 
-function submitAddForm(e) {
-    e.preventDefault();
+//function submitAddForm(e) {
+//    e.preventDefault();
 
-    // Validate all fields
-    const isValid = validateAddForm();
+//    // Validate all fields
+//    const isValid = validateAddForm();
 
-    if (!isValid) {
-        showNotification('Please fill in all required fields correctly', 'error');
-        // Focus first error field
-        const firstError = document.querySelector('#addUserModal .form-control.error');
-        if (firstError) firstError.focus();
-        return;
-    }
+//    if (!isValid) {
+//        showNotification('Please fill in all required fields correctly', 'error');
+//        // Focus first error field
+//        const firstError = document.querySelector('#addUserModal .form-control.error');
+//        if (firstError) firstError.focus();
+//        return;
+//    }
 
-    // Collect form data
-    const formData = {
-        lastName: document.getElementById('lastName')?.value.trim(),
-        firstName: document.getElementById('firstName')?.value.trim(),
-        middleName: document.getElementById('middleName')?.value.trim(),
-        suffix: document.getElementById('suffix')?.value.trim(),
-        idNumber: document.getElementById('idNumber')?.value.trim(),
-        email: document.getElementById('email')?.value.trim(),
-        username: document.getElementById('username')?.value.trim(),
-        password: document.getElementById('password')?.value,
-        userType: currentUserType
-    };
+//    // Collect form data
+//    const formData = {
+//        lastName: document.getElementById('lastName')?.value.trim(),
+//        firstName: document.getElementById('firstName')?.value.trim(),
+//        middleName: document.getElementById('middleName')?.value.trim(),
+//        suffix: document.getElementById('suffix')?.value.trim(),
+//        idNumber: document.getElementById('idNumber')?.value.trim(),
+//        email: document.getElementById('email')?.value.trim(),
+//        username: document.getElementById('username')?.value.trim(),
+//        password: document.getElementById('password')?.value,
+//        userType: currentUserType
+//    };
 
-    console.log('Adding new user:', formData);
+//    console.log('Adding new user:', formData);
 
-    // Show loading state
-    const submitBtn = document.getElementById('submitAddBtn');
-    const originalText = submitBtn.innerHTML;
-    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Adding...';
-    submitBtn.disabled = true;
+//    // Show loading state
+//    const submitBtn = document.getElementById('submitAddBtn');
+//    const originalText = submitBtn.innerHTML;
+//    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Adding...';
+//    submitBtn.disabled = true;
 
-    // Simulate API call
-    setTimeout(() => {
-        submitBtn.innerHTML = originalText;
-        submitBtn.disabled = false;
+//    // Simulate API call
+//    setTimeout(() => {
+//        submitBtn.innerHTML = originalText;
+//        submitBtn.disabled = false;
 
-        showNotification(`${currentUserType === 'admin' ? 'Administrator' : 'Librarian'} added successfully!`, 'success');
-        setTimeout(() => closeModal('addUserModal'), 1500);
-    }, 1000);
-}
+//        showNotification(`${currentUserType === 'admin' ? 'Administrator' : 'Librarian'} added successfully!`, 'success');
+//        setTimeout(() => closeModal('addUserModal'), 1500);
+//    }, 1000);
+//}
 
 function validateAddForm() {
     const fields = [

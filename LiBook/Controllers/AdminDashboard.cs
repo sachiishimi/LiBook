@@ -67,7 +67,7 @@ namespace LiBook.Controllers
 
 
         // USERS
-        // GET: /AdminDashboard/Librarian
+        // GET: /AdminDashboard/Librarian (User actually)
         public ActionResult Librarian()
         {
             var usersWithRoles = GetUsersWithRoles();
@@ -112,6 +112,55 @@ namespace LiBook.Controllers
                 db.Dispose();
             }
             base.Dispose(disposing);
+        }
+        // POST: AdminDashboard/CreateUser
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult CreateUser([Bind(Include = "ID,FirstName,LastName,MiddleName,Suffix,Email,UserPassword,AccountStatus,DateArchived")] User user, int roleId)
+        {
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    // Set default values
+                    user.AccountStatus = "Active"; // Set status to Active by default
+                    user.DateArchived = null; // Ensure DateArchived is null for active accounts
+
+                    // Generate simple random password
+                    user.UserPassword = GeneratePassword();
+
+                    // Add user to database
+                    db.Users.Add(user);
+                    db.SaveChanges(); // This will generate the User ID
+
+                    // Create user role mapping
+                    var userRoleMapping = new UserRolesMapping
+                    {
+                        UserID = user.ID, // The generated User ID
+                        RoleID = roleId   // The role ID passed from the view
+                    };
+
+                    // Add the mapping to database
+                    db.UserRolesMappings.Add(userRoleMapping);
+                    db.SaveChanges();
+
+                    return RedirectToAction("Librarian");
+                }
+                catch (Exception ex)
+                {
+                    // Handle any exceptions (log them, show error message, etc.)
+                    ModelState.AddModelError("", "An error occurred while creating the user: " + ex.Message);
+                }
+            }
+
+            return View(user);
+        }
+        private string GeneratePassword()
+        {
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+            var random = new Random();
+            return new string(Enumerable.Repeat(chars, 8)
+                .Select(s => s[random.Next(s.Length)]).ToArray());
         }
 
 
