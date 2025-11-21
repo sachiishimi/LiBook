@@ -248,28 +248,155 @@ tabs.forEach(tab => {
     });
 });
 
+// ==================== FILTER SEARCH FUNCTIONALITY =====================
+const filterSearchInputs = document.querySelectorAll('.filter-search');
+
+filterSearchInputs.forEach(input => {
+    input.addEventListener('input', (e) => {
+        const searchTerm = e.target.value.toLowerCase();
+        const tabContent = e.target.closest('.tab-content');
+        const table = tabContent.querySelector('table tbody');
+        const rows = table.querySelectorAll('tr');
+
+        rows.forEach(row => {
+            const text = row.textContent.toLowerCase();
+            if (text.includes(searchTerm)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    });
+});
+
+// ==================== TIME FILTER FUNCTIONALITY =====================
+const timeFilters = document.querySelectorAll('.time-filter');
+
+timeFilters.forEach(filter => {
+    filter.addEventListener('change', (e) => {
+        const filterValue = e.target.value;
+        console.log('Filter by:', filterValue);
+        // Implement time-based filtering here
+        // This would typically filter the table rows based on date columns
+    });
+});
+
+// ==================== TABLE SEARCH FUNCTIONALITY =====================
+const tableSearchInputs = document.querySelectorAll('.table-search');
+
+tableSearchInputs.forEach(input => {
+    input.addEventListener('input', (e) => {
+        const searchTerm = e.target.value.toLowerCase().trim();
+        const tableId = e.target.getAttribute('data-table');
+        const table = document.getElementById(tableId);
+        const rows = table.querySelectorAll('tbody tr');
+        let visibleCount = 0;
+
+        rows.forEach(row => {
+            const text = row.textContent.toLowerCase();
+            if (text.includes(searchTerm)) {
+                row.style.display = '';
+                visibleCount++;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+
+        // Update record count in card header
+        const cardHeader = table.closest('.card').querySelector('.card-header-content span');
+        if (cardHeader) {
+            if (searchTerm === '') {
+                // Reset to original count when search is cleared
+                const originalCount = getOriginalRecordCount(tableId);
+                cardHeader.textContent = originalCount + ' Records';
+            } else {
+                cardHeader.textContent = visibleCount + ' of ' + rows.length + ' Records';
+            }
+        }
+
+        // Show empty state if no results
+        showEmptyState(table, visibleCount);
+    });
+});
+
+// Helper function to get original record count for each table
+function getOriginalRecordCount(tableId) {
+    const counts = {
+        'rooms-table': 3,
+        'reservations-table': 4,
+        'users-table': 3
+    };
+    return counts[tableId] || 0;
+}
+
+// Helper function to show empty state message
+function showEmptyState(table, visibleCount) {
+    const tbody = table.querySelector('tbody');
+    const existingEmptyRow = tbody.querySelector('.no-results-row');
+
+    if (visibleCount === 0 && !existingEmptyRow) {
+        const emptyRow = document.createElement('tr');
+        emptyRow.className = 'no-results-row';
+        const colCount = table.querySelectorAll('thead th').length;
+        emptyRow.innerHTML = `<td colspan="${colCount}" style="text-align: center; padding: 2rem; color: var(--text-light); font-style: italic;">No matching records found</td>`;
+        tbody.appendChild(emptyRow);
+    } else if (visibleCount > 0 && existingEmptyRow) {
+        existingEmptyRow.remove();
+    }
+}
+
+// Clear search when switching tabs
+tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+        // Clear all search inputs
+        tableSearchInputs.forEach(input => {
+            input.value = '';
+            const tableId = input.getAttribute('data-table');
+            const table = document.getElementById(tableId);
+            const rows = table.querySelectorAll('tbody tr');
+
+            // Show all rows
+            rows.forEach(row => {
+                row.style.display = '';
+            });
+
+            // Reset record count
+            const cardHeader = table.closest('.card').querySelector('.card-header-content span');
+            if (cardHeader) {
+                const originalCount = getOriginalRecordCount(tableId);
+                cardHeader.textContent = originalCount + ' Records';
+            }
+
+            // Remove empty state if exists
+            const existingEmptyRow = table.querySelector('.no-results-row');
+            if (existingEmptyRow) {
+                existingEmptyRow.remove();
+            }
+        });
+    });
+});
+
 // ==================== UNARCHIVE BUTTONS =====================
 document.querySelectorAll(".unarchive-btn").forEach(button => {
     button.addEventListener("click", function () {
         const row = this.closest("tr");
         const table = row.closest('table');
-        const cardHeader = table.previousElementSibling;
+        const card = table.closest('.card');
+        const cardHeader = card.querySelector('.card-header-content');
 
         // Get item details based on which table we're in
         let itemName = '';
         let itemType = '';
 
-        if (table.querySelector('td:nth-child(1)')) {
-            if (table.closest('#rooms')) {
-                itemName = row.cells[0].textContent; // Room Name
-                itemType = 'room';
-            } else if (table.closest('#reservations')) {
-                itemName = row.cells[1].textContent + ' (' + row.cells[0].textContent + ')'; // Room + Reservation ID
-                itemType = 'reservation';
-            } else if (table.closest('#users')) {
-                itemName = row.cells[0].textContent; // User Name
-                itemType = 'user';
-            }
+        if (table.closest('#rooms')) {
+            itemName = row.cells[0].textContent; // Room Name
+            itemType = 'room';
+        } else if (table.closest('#reservations')) {
+            itemName = row.cells[2].textContent + ' (' + row.cells[0].textContent + ')'; // User + ID
+            itemType = 'reservation';
+        } else if (table.closest('#users')) {
+            itemName = row.cells[0].textContent; // User Name
+            itemType = 'user';
         }
 
         // Update button state immediately
@@ -288,6 +415,9 @@ document.querySelectorAll(".unarchive-btn").forEach(button => {
                 }
             }
 
+            // Update metrics if they exist
+            updateMetrics(table.closest('.tab-content'), -1);
+
             // Remove row with animation
             row.style.opacity = "0.5";
             row.style.transition = "opacity 0.5s ease";
@@ -300,13 +430,64 @@ document.querySelectorAll(".unarchive-btn").forEach(button => {
                 showToast(message, 'success');
 
                 // If no records left, show empty state
-                if (table.rows.length <= 1) { // Only header row left
+                const tbody = table.querySelector('tbody');
+                if (tbody.querySelectorAll('tr').length === 0) {
                     const emptyRow = document.createElement('tr');
-                    emptyRow.innerHTML = `<td colspan="${row.cells.length}" style="text-align: center; padding: 2rem; color: var(--text-light);">No archived records found</td>`;
-                    table.querySelector('tbody').appendChild(emptyRow);
+                    const colSpan = table.querySelector('thead tr').children.length;
+                    emptyRow.innerHTML = `<td colspan="${colSpan}" style="text-align: center; padding: 2rem; color: var(--text-light);">No archived records found</td>`;
+                    tbody.appendChild(emptyRow);
                 }
             }, 500);
 
         }, 800);
     });
 });
+
+// ==================== UPDATE METRICS HELPER =====================
+function updateMetrics(tabContent, change) {
+    const metricCards = tabContent.querySelectorAll('.metric-card');
+    if (metricCards.length > 0) {
+        // Update first metric card (Total Archived)
+        const totalMetric = metricCards[0].querySelector('h3');
+        if (totalMetric) {
+            const currentValue = parseInt(totalMetric.textContent);
+            if (!isNaN(currentValue)) {
+                totalMetric.textContent = currentValue + change;
+            }
+        }
+
+        // Update second metric card (This Month) - assuming unarchive affects current month
+        const monthMetric = metricCards[1].querySelector('h3');
+        if (monthMetric) {
+            const currentValue = parseInt(monthMetric.textContent);
+            if (!isNaN(currentValue) && currentValue > 0) {
+                monthMetric.textContent = currentValue + change;
+            }
+        }
+    }
+}
+
+// ==================== PAGINATION =====================
+const paginationButtons = document.querySelectorAll('.page-btn');
+
+paginationButtons.forEach(button => {
+    button.addEventListener('click', function () {
+        if (this.disabled) return;
+
+        const pagination = this.closest('.pagination');
+        const pageButtons = pagination.querySelectorAll('.page-btn:not(:first-child):not(:last-child)');
+
+        // Remove active class from all page buttons
+        pageButtons.forEach(btn => btn.classList.remove('active'));
+
+        // Add active class to clicked button if it's a number
+        if (!this.querySelector('i')) {
+            this.classList.add('active');
+        }
+
+        console.log('Page changed to:', this.textContent.trim());
+        // Implement pagination logic here
+    });
+});
+
+console.log('Archives page initialized successfully!');
