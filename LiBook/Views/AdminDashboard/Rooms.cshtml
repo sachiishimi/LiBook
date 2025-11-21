@@ -68,9 +68,14 @@
                 </button>
             </div>
 
-            <div class="search-bar">
-                <i class="fas fa-search"></i>
-                <input type="text" placeholder="Search...">
+            @*<div class="search-bar">
+            <i class="fas fa-search"></i>
+            <input type="text" placeholder="Search...">
+        </div>*@
+
+            <div class="content-header">
+                <h1>Room Management</h1>
+                <p>Manage collaboration rooms and their availability.</p>
             </div>
 
             <div class="topbar-actions">
@@ -112,10 +117,6 @@
 
         <!-- Room Management Content -->
         <main class="content">
-            <div class="content-header">
-                <h1>Room Management</h1>
-                <p>Manage collaboration rooms and their availability.</p>
-            </div>
 
             <div class="header-actions">
                 <div class="search-container">
@@ -139,47 +140,79 @@
                 <table class="rooms-table">
                     <thead>
                         <tr>
-                            <th width="50"></th>
                             <th>Room Name</th>
                             <th>Room Type</th>
-                            <th>Capacity</th> <!-- Changed from "Room User 2" to "Capacity" -->
+                            <th>Capacity</th>
                             <th>Status</th>
                             <th style="text-align: center;">Actions</th>
                         </tr>
                     </thead>
                     <tbody id="roomsTableBody">
-                        @foreach (var item in Model)
+                        @if (Model.Any())
                         {
-                            <tr>
-                                <td class="checkbox-cell"><input type="checkbox" class="custom-checkbox"></td>
-                                <td>
-                                    <div class="room-info">
-                                        <div class="room-icon">
-                                            <i class="fas fa-door-open"></i>
+                            foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="room-info">
+                                            <div class="room-icon">
+                                                <i class="fas fa-door-open"></i>
+                                            </div>
+                                            <div class="room-details">
+                                                <h3>@Html.DisplayFor(modelItem => item.RoomName)</h3>
+                                                <span class="room-id" data-room-id="@item.ID">Room #@Html.DisplayFor(modelItem => item.ID)</span>
+                                            </div>
                                         </div>
-                                        <div class="room-details">
-                                            <h3>@Html.DisplayFor(modelItem => item.RoomName)</h3>
-                                            <span class="room-id" data-room-id="@item.ID">Room #@Html.DisplayFor(modelItem => item.ID)</span>
+                                    </td>
+                                    <td><span class="user-type student">@Html.DisplayFor(modelItem => item.RoomType)</span></td>
+                                    <td><span class="capacity">@Html.DisplayFor(modelItem => item.Capacity)</span></td>
+                                    <td><span class="status-badge available">@Html.DisplayFor(modelItem => item.Availability)</span></td>
+                                    <td>
+                                        <div class="action-buttons">
+                                            <button class="icon-btn edit" title="Edit Room" data-tooltip="Edit Room">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="icon-btn archive" title="Archive Room" data-tooltip="Archive Room">
+                                                <i class="fas fa-archive"></i>
+                                            </button>
                                         </div>
-                                    </div>
-                                </td>
-                                <td><span class="user-type student">@Html.DisplayFor(modelItem => item.RoomType)</span></td>
-                                <td><span class="capacity">@Html.DisplayFor(modelItem => item.Capacity)</span></td> <!-- This is the capacity field -->
-                                <td><span class="status-badge available">@Html.DisplayFor(modelItem => item.Availability)</span></td>
-                                <td>
-                                    <div class="action-buttons">
-                                        <button class="icon-btn edit" title="Edit Room">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <button class="icon-btn archive" title="Archive Room">
-                                            <i class="fas fa-archive"></i>
-                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr id="noRoomsRow">
+                                <td colspan="5" style="text-align: center; padding: 3rem;">
+                                    <div style="text-align: center; color: var(--text-light);">
+                                        <i class="fas fa-door-closed" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+                                        <h3 style="font-family: 'League Spartan', sans-serif; margin-bottom: 0.5rem; color: var(--text-dark);">No Rooms Available</h3>
+                                        <p style="margin-bottom: 1.5rem;">There are no rooms available at this moment.</p>
+
                                     </div>
                                 </td>
                             </tr>
                         }
                     </tbody>
                 </table>
+                @if (Model.Any() && Model.Count() >= 5)
+                {
+                    <div class="table-pagination" id="roomsPagination">
+                        <div class="pagination-info">
+                            Showing <span id="paginationStart">1</span>-<span id="paginationEnd">5</span> of <span id="paginationTotal">@Model.Count()</span> rooms
+                        </div>
+                        <div class="pagination-controls">
+                            <button class="pagination-btn" id="prevPage" disabled>
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+                            <div class="pagination-pages" id="paginationPages">
+                            </div>
+                            <button class="pagination-btn" id="nextPage">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                }
             </div>
         </main>
     </div>
