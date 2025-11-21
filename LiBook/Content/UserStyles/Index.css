@@ -1,0 +1,153 @@
+﻿/* =========================================================
+   GLOBAL & LAYOUT STYLES
+   ========================================================= */
+
+/* ----------- RESET / GENERAL ----------- */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    height: 100vh;
+    overflow: hidden;
+    position: relative; /* required for the blurred layer */
+    background: none; /* remove background image here */
+}
+
+/* Blurred background image layer */
+    body::before {
+        padding: 0 105px;
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: url('images/landingpage.png');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        filter: blur(2px) brightness(0.7) saturate(1.5); /* 👈 adjust blur strength */
+        z-index: -1; /* keeps it behind all content */
+    }
+
+/* ----------- MAIN CONTAINER ----------- */
+.container {
+    display: flex;
+    height: 100vh;
+    width: 100%;
+    margin: 0 50px;
+}
+
+/* =========================================================
+   LEFT SIDE: LOGIN FORM AREA
+   ========================================================= */
+.left-side {
+    width: 50%;
+    background: transparent;
+    color: white;
+    padding: 60px 80px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+/* ----------- LOGO & SUBTITLE ----------- */
+.logo-section {
+    margin-bottom: 40px;
+}
+
+.logo {
+    font-size: 100px;
+    font-weight: 800;
+    line-height: 1;
+}
+
+    .logo span {
+        display: block;
+        font-weight: 700;
+        color: #ffcc33; /* accent color */
+        font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+    }
+
+.subtitle {
+    font-size: 20px;
+    margin-top: 8px;
+    font-weight: 500;
+
+}
+
+/* =========================================================
+   HEADINGS & TITLES
+   ========================================================= */
+h2 {
+    font-size: 24px; /* readable size */
+    font-weight: 700; /* bold and clear */
+    color: #0b1437; /* dark navy for contrast */
+    margin-bottom: 20px; /* space below heading */
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+/* ----------- LOGIN BUTTON ----------- */
+.book-btn {
+    margin-top: 15px;
+    background-color: #0b1437;
+    color: white;
+    border: none;
+    padding: 12px 0;
+    font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    border-radius: 25px;
+    cursor: pointer;
+    transition: 0.3s ease;
+    width: 200px;
+    height: 45px;
+}
+
+    .book-btn:hover {
+        background-color: floralwhite;
+        color: #0b1437;
+        transform: scale(1.05);
+        border-color: #ffcc33;
+    }
+
+/* ----------- INFO LIST BELOW FORM ----------- */
+.info-list {
+    margin-top: 40px;
+    font-size: 14px;
+    font-weight: 500;
+    list-style-type: disc;
+    padding-left: 20px;
+    line-height: 1.8;
+}
+
+/* =========================================================
+   RIGHT SIDE: IMAGE PANEL
+   ========================================================= */
+.right-side {
+    width: 50%;
+}
+
+/* =========================================================
+   RESPONSIVE DESIGN (MOBILE / TABLET)
+   ========================================================= */
+@media (max-width: 900px) {
+    .login-container {
+        flex-direction: column;
+    }
+
+    .left-side, .right-side {
+        width: 100%;
+        height: 50%;
+    }
+
+    .left-side {
+        padding: 40px;
+    }
+}
+
