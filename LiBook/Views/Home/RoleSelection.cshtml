@@ -1,0 +1,55 @@
+﻿@{
+    ViewBag.Title = "RoleSelection";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewBag.Title</title>
+    <link rel="icon" type="image/png" href="~/Content/images/qculogo.png">
+    <link href="~/Content/UserStyles/Index.css" rel="stylesheet" />
+</head>
+<body class="roleselection">
+    <div class="container">
+        <div class="left-side">
+            <div class="logo-section">
+                <h1 class="logo">QCU <span>LiBook</span></h1>
+            </div>
+
+            <form action="@Url.Action("RoleSelection", "Home")" method="get">
+
+                <!--Selection-->
+                <fieldset>
+                    <legend>Who's reserving today?</legend>
+
+                    <div>
+                        <input type="radio" id="student" name="role" value="Student" />
+                        <label for="student">Student</label>
+                    </div>
+                    <div>
+                        <input type="radio" id="faculty" name="role" value="Faculty" />
+                        <label for="faculty">Faculty</label>
+                    </div>
+                    <div>
+                        <input type="radio" id="admin" name="role" value="Admin" />
+                        <label for="admin">Admin</label>
+                    </div>
+                    <div>
+                        <input type="radio" id="visitor" name="role" value="Visitor" />
+                        <label for="visitor">Visitor</label>
+                    </div>
+
+                    <button type="submit" class="book-btn">Next</button>
+                </fieldset>
+            </form>
+
+        </div>
+        <div class="right-side"></div>
+    </div>
+
+    @*<script src="~/Scripts/login.js"></script>*@
+</body>
+</html>

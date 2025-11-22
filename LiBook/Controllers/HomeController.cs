@@ -9,9 +9,24 @@ namespace LiBook.Controllers
             return View();
         }
 
-        public ActionResult Login()
+        public ActionResult RoleSelection(string role)
         {
-            return View();
+            if (string.IsNullOrEmpty(role))
+            {
+                ViewBag.Error = "Please select a role.";
+                return View();
+            }
+
+            switch (role)
+            {
+                case "Student": return RedirectToAction("StudentView", "Form");
+                case "Faculty": return RedirectToAction("FacultyView", "Form");
+                case "Admin": return RedirectToAction("AdminView", "Form");
+                case "Visitor": return RedirectToAction("VisitorView", "Form");
+                default: return View();
+            }
         }
+
+
     }
 }

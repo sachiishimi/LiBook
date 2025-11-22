@@ -26,7 +26,7 @@ body {
         left: 0;
         width: 100%;
         height: 100%;
-        background-image: url('images/landingpage.png');
+        background-image: url('../images/libphoto.jpg');
         background-size: cover;
         background-position: center;
         background-repeat: no-repeat;
@@ -94,11 +94,14 @@ h2 {
 
 /* ----------- LOGIN BUTTON ----------- */
 .book-btn {
+    display: inline-flex; /* use flexbox */
+    justify-content: center; /* horizontal center */
+    align-items: center; /* vertical center */
+    text-decoration: none; /* remove underline for <a> */
     margin-top: 15px;
     background-color: #0b1437;
     color: white;
     border: none;
-    padding: 12px 0;
     font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
     font-size: 16px;
     font-weight: 600;
@@ -149,5 +152,50 @@ h2 {
     .left-side {
         padding: 40px;
     }
+}
+
+/* ==========================
+   Reservation Role Form
+   ========================== */
+
+/* Fieldset container */
+fieldset {
+    border: none; /* remove default border */
+    margin-top: 2px;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Legend / question title */
+legend {
+    font-size: 30px;
+    font-weight: 600;
+    color: white;
+    margin-bottom: 15px;
+}
+
+/* Container for each radio button + label */
+fieldset div {
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px; /* space between radio and label */
+}
+
+/* Radio button styling */
+input[type="radio"] {
+    accent-color: #ffcc33; /* gold/yellow accent color */
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    margin-left: 20px;
+}
+
+/* Labels for radio buttons */
+label {
+    font-size: 24px;
+    font-weight: 500;
+    color: white;
+    cursor: pointer;
 }
 

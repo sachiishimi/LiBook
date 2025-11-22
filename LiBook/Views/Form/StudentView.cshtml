@@ -1,0 +1,381 @@
+﻿@*@model StudentFormViewModel*@
+
+@{
+    ViewBag.Title = "Student Form";
+    Layout = null;
+}
+
+<style>
+
+    body, html {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+    }
+
+    .student-form-container {
+        /*        background: linear-gradient(130deg, #F89104 0.05%, #F9FAF5 40%, #F9FAF5 70%, #8b4545 70%, #6b2c2c 100%);*/
+        background-image: linear-gradient(130deg, #F89104 0.05%, rgba(249, 250, 245, 0.85) 40%, rgba(249, 250, 245, 0.85) 70%, #8b4545 70%, #6b2c2c 100%), url('/Content/Images/libphoto.jpg');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .form-card {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 30px 40px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        position: relative;
+    }
+
+    .form-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 30px;
+        padding-bottom: 15px;
+        border-bottom: 3px solid #000;
+    }
+
+    .back-arrow {
+        font-size: 24px;
+        margin-right: 15px;
+        cursor: pointer;
+        text-decoration: none;
+        color: #000;
+    }
+
+    .form-header h2 {
+        margin: 0;
+        font-size: 28px;
+        font-weight: bold;
+        font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+    }
+
+    .form-content {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 30px;
+    }
+
+    .form-fields {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+        align-items: end;
+    }
+
+        .form-row.two-col {
+            grid-template-columns: 1fr 2fr;
+        }
+
+        .form-row.full {
+            grid-template-columns: 1fr;
+        }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+    }
+
+        .form-group label {
+            font-weight: bold;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group option{
+            padding: 8px 10px;
+            border: 2px solid #000;
+            font-size: 14px;
+            width: 100%;
+            box-sizing: border-box;
+            border-radius: 10px;
+            border-color: #1a1a1a;
+            background: rgba(255, 255, 255, 0.8); /* 0 = transparent, 1 = solid */
+        }
+
+            .form-group input:focus, .form-group select:focus {
+                outline: none; /* Removes the default browser outline */
+                border: 2px solid #007BFF; /* Changes border color */
+                box-shadow: 0 0 5px rgba(0, 123, 255, 0.5); /* Optional glow effect */
+            }
+
+    .student-number-group {
+        display: flex;
+        gap: 5px;
+        align-items: end;
+    }
+
+        .student-number-group input:first-child {
+            width: 60px;
+        }
+
+        .student-number-group span {
+            padding: 0 5px;
+            font-weight: bold;
+        }
+
+    .members-section {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .members-columns {
+        display: flex;
+        gap: 20px; /* space between columns */
+    }
+
+    .members-column {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+        .members-column input {
+            width: 100%;
+            height: 25px;
+            box-sizing: border-box;
+            border-radius: 5px;
+        }
+
+        .photo-section {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+    .photo-placeholder {
+        width: 250px;
+        height: 400px;
+        background-image: url('/Content/Images/qculogo.png');
+        background-repeat: no-repeat;
+        /*        border: 2px dashed #ccc;*/
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #999;
+        font-size: 14px;
+    }
+
+        .photo-placeholder img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* or contain depending on your need */
+            display: block; /* removes extra space below images */
+        }
+
+    .btn-next {
+        background: #2c3e50;
+        color: white;
+        padding: 12px 40px;
+        border: none;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        float: right;
+        margin-top: 20px;
+    }
+
+        .btn-next:hover {
+            background: #1a252f;
+        }
+
+    .time-fields {
+        display: flex;
+        gap: 5px;
+    }
+
+        .time-fields input {
+            flex: 1;
+        }
+</style>
+
+<title>@ViewBag.Title</title>
+<div class="student-form-container">
+    <div class="form-card">
+        <div class="form-header">
+            <a href="@Url.Action("RoleSelection", "Home")" class="back-arrow">←</a>
+            <h2>Student Form</h2>
+        </div>
+
+        @using (Html.BeginForm("Submit", "Student", FormMethod.Post, new { enctype = "multipart/form-data" }))
+        {
+            @Html.AntiForgeryToken()
+
+            <div class="form-content">
+                <div class="form-fields">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Last Name:</label>
+                            <input type="text" name="LastName" class="form-control" required/>
+                        </div>
+                        <div class="form-group">
+                            <label>First Name:</label>
+                            <input type="text" name="FirstName" class="form-control" required/>
+                        </div>
+                        <div class="form-group">
+                            <label>M.I.:</label>
+                            <input type="text" name="MiddleInitial" class="form-control" maxlength="2" />
+                        </div>
+                        <div class="form-group">
+                            <label>Suffix:</label>
+                            <input type="text" name="Suffix" class="form-control" />
+                        </div>
+                    </div>
+
+                    <div class="form-row two-col">
+                        <div class="form-group">
+                            <label>Student Number:</label>
+                            <div class="student-number-group">
+                                <input type="text" name="StudentNumberPrefix" class="form-control" />
+                                <span>-</span>
+                                <input type="text" name="StudentNumberSuffix" class="form-control" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Email:</label>
+                            <input type="email" name="Email" class="form-control" placeholder="pacifiqa.sarah.surve@gmail.com" />
+                        </div>
+                    </div>
+
+                    <div class="form-row two-col">
+                        <div class="form-group">
+                            <label>Purpose:</label>
+                            <select name="Purpose" class="form-control">
+                                <option value="" disabled selected>Select Purpose</option>
+                                <option value="Meeting">Meeting</option>
+                                <option value="Group Study">Group Study</option>
+                                <option value="Discussion">Discussion</option>
+                                <option value="Presentation">Presentation / Workshop</option>
+                                <option value="Brainstorming">Brainstorming Session</option>
+                                <option value="Interview">Interview</option>
+                                <option value="Exam Preparation">Exam / Test Preparation</option>
+                                <option value="Team Collaboration">Team Collaboration</option>
+                                <option value="Project Planning">Project Planning</option>
+                                <option value="Training">Training / Seminar</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Program:</label>
+                            <select name="Program" class="form-control">
+                                <option value="" disabled selected>Select Program</option>
+
+                                <option value="BSA">Bachelor of Science in Accountancy (BSA)</option>
+                                <option value="BSEntrep">Bachelor of Science in Entrepreneurship (BSEntrep)</option>
+                                <option value="BSMA">Bachelor of Science in Management Accounting (BSMA)</option>
+
+                                <option value="BSECE">Bachelor of Science in Electronics Engineering (BSECE)</option>
+                                <option value="BSIE">Bachelor of Science in Industrial Engineering (BSIE)</option>
+                                <option value="BSCpE">Bachelor of Science in Computer Engineering (BSCpE)</option>
+
+                                <option value="BECEd">Bachelor of Early Childhood Education (BECEd)</option>
+
+                                <option value="BSIT">Bachelor of Science in Information Technology (BSIT)</option>
+                                <option value="BSIS">Bachelor of Science in Information System (BSIS)</option>
+                                <option value="BSCS">Bachelor of Science in Computer Science (BSCS)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Date:</label>
+                            <input type="date" name="Date" class="form-control" />
+                        </div>
+                        <div class="form-group" style="grid-column: span 2;">
+                            <label>Time:</label>
+                            <div class="time-fields">
+                                <input type="time" name="TimeStart" class="form-control" />
+                                <span style="align-self: center;">-</span>
+                                <input type="time" name="TimeEnd" class="form-control" />
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>No. of Members:</label>
+                            <input type="number" id="memberCount" name="NumberOfMembers" class="form-control" />
+                        </div>
+
+                    </div>
+
+                    <div class="form-row full">
+
+                        <div class="form-group members-section">
+                            <label>Name of members:</label>
+                            <div id="membersContainer" class="members-columns">
+                                <div class="members-column" id="column-1">
+                                    <input type="text" name="Member1" class="form-control" placeholder="Member 1" />
+                                    <input type="text" name="Member2" class="form-control" placeholder="Member 2" />
+                                    <input type="text" name="Member3" class="form-control" placeholder="Member 3" />
+                                    <input type="text" name="Member4" class="form-control" placeholder="Member 4" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="button" id="addMemberBtn" class="form-group two-col">Add Member</button>
+
+
+                </div>
+
+                <div class="photo-section">
+                    <div class="photo-placeholder">
+                        <img src="~/Content/images/students.png" />
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-next">NEXT</button>
+            <div style="clear: both;"></div>
+        }
+    </div>
+</div>
+
+<script>
+    const container = document.getElementById("membersContainer");
+    const addBtn = document.getElementById("addMemberBtn");
+    const memberCountInput = document.getElementById("memberCount");
+
+    let memberIndex = 4; // already have 4 inputs
+    let currentColumn = 1;
+
+    addBtn.addEventListener("click", () => {
+        memberIndex++;
+
+        // Determine if we need a new column
+        if ((memberIndex - 1) % 4 === 0) {
+            currentColumn++;
+            const newColumn = document.createElement("div");
+            newColumn.className = "members-column";
+            newColumn.id = "column-" + currentColumn;
+            container.appendChild(newColumn);
+        }
+
+        const input = document.createElement("input");
+        input.type = "text";
+        input.name = "Member" + memberIndex;
+        input.className = "form-control";
+        input.placeholder = "Member " + memberIndex;
+
+        // Append to the current column
+        document.getElementById("column-" + currentColumn).appendChild(input);
+
+        // Update number-of-members input
+        memberCountInput.value = memberIndex;
+    });
+</script>
