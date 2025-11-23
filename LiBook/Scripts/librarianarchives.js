@@ -238,47 +238,222 @@ if (notificationBtn) {
 const tabButtons = document.querySelectorAll('.tab-btn');
 const tabContents = document.querySelectorAll('.tab-content');
 
-if (tabButtons.length > 0 && tabContents.length > 0) {
-    tabButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            const targetTab = button.getAttribute('data-tab');
+tabButtons.forEach(button => {
+    button.addEventListener('click', () => {
+        const targetTab = button.getAttribute('data-tab');
 
-            // Remove active class from all buttons and contents
-            tabButtons.forEach(btn => btn.classList.remove('active'));
-            tabContents.forEach(content => content.classList.remove('active'));
+        // Remove active class from all buttons and contents
+        tabButtons.forEach(btn => btn.classList.remove('active'));
+        tabContents.forEach(content => content.classList.remove('active'));
 
-            // Add active class to clicked button
-            button.classList.add('active');
+        // Add active class to clicked button and corresponding content
+        button.classList.add('active');
+        const activeContent = document.getElementById(`${targetTab}-tab`);
+        if (activeContent) {
+            activeContent.classList.add('active');
+        }
 
-            // Add active class to corresponding content
-            const targetContent = document.getElementById(`${targetTab}-tab`);
-            if (targetContent) {
-                targetContent.classList.add('active');
+        // Reset filters when switching tabs
+        const dateFilterSelect = document.getElementById(`${targetTab}DateFilter`);
+        const userTypeFilterSelect = document.getElementById(`${targetTab}UserTypeFilter`);
+
+        if (dateFilterSelect) dateFilterSelect.value = 'all';
+        if (userTypeFilterSelect) userTypeFilterSelect.value = 'all';
+
+        applyFilters(targetTab, 'all', 'all');
+
+        showQueuedNotification(`Switched to ${targetTab} reservations`, 'info');
+    });
+});
+
+// ========================================
+// DATE PARSING AND RANGE CHECKING
+// ========================================
+function parseDate(dateString) {
+    return new Date(dateString);
+}
+
+function isDateInRange(dateString, filterType) {
+    const date = parseDate(dateString);
+    if (isNaN(date.getTime())) return false;
+
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    switch (filterType) {
+        case 'today':
+            const checkDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+            return checkDate.getTime() === today.getTime();
+
+        case 'week':
+            const weekAgo = new Date(today);
+            weekAgo.setDate(weekAgo.getDate() - 7);
+            return date >= weekAgo && date <= now;
+
+        case 'month':
+            const monthAgo = new Date(today);
+            monthAgo.setMonth(monthAgo.getMonth() - 1);
+            return date >= monthAgo && date <= now;
+
+        case 'all':
+        default:
+            return true;
+    }
+}
+
+// ========================================
+// USER TYPE FILTERING
+// ========================================
+function matchesUserType(userType, filterType) {
+    if (filterType === 'all') return true;
+
+    // Handle "Admin/Faculty" option - matches both Admin and Faculty
+    if (filterType === 'Faculty') {
+        return userType === 'Faculty' || userType === 'Admin';
+    }
+
+    return userType === filterType;
+}
+
+// ========================================
+// CORE FILTER FUNCTION - DUAL FILTERING
+// ========================================
+function applyFilters(tabType, dateFilter, userTypeFilter) {
+    const tableId = `${tabType}-tab`;
+    const table = document.querySelector(`#${tableId} .data-table tbody`);
+
+    if (!table) return;
+
+    // Filter the table with BOTH filters
+    const rows = table.querySelectorAll('tr');
+    let visibleCount = 0;
+    let todayCount = 0;
+
+    rows.forEach(row => {
+        const cells = row.querySelectorAll('td');
+        const rowUserType = row.getAttribute('data-user-type');
+
+        if (cells.length > 3 && rowUserType) {
+            const dateString = cells[3].textContent; // Date column
+
+            // Check both date and user type filters
+            const dateMatch = isDateInRange(dateString, dateFilter);
+            const userTypeMatch = matchesUserType(rowUserType, userTypeFilter);
+
+            // Show row only if BOTH filters match
+            if (dateMatch && userTypeMatch) {
+                row.style.display = '';
+                visibleCount++;
+            } else {
+                row.style.display = 'none';
             }
 
-            // Save active tab to localStorage
-            localStorage.setItem('activeArchiveTab', targetTab);
-
-            // Show notification
-            const tabName = targetTab === 'successful' ? 'Successful Reservations' : 'Cancelled Reservations';
-            showQueuedNotification(`Switched to ${tabName}`, 'info');
-        });
+            // Always count today's entries for the static right card
+            if (isDateInRange(dateString, 'today')) {
+                todayCount++;
+            }
+        }
     });
 
-    // Restore active tab from localStorage
-    const savedTab = localStorage.getItem('activeArchiveTab');
-    if (savedTab) {
-        const savedButton = document.querySelector(`.tab-btn[data-tab="${savedTab}"]`);
-        const savedContent = document.getElementById(`${savedTab}-tab`);
+    // Update stat cards with new logic
+    updateStatCards(tabType, dateFilter, visibleCount, rows.length, todayCount);
 
-        if (savedButton && savedContent) {
-            tabButtons.forEach(btn => btn.classList.remove('active'));
-            tabContents.forEach(content => content.classList.remove('active'));
+    // Update active stat card highlighting
+    highlightActiveStatCard(tabType, dateFilter);
 
-            savedButton.classList.add('active');
-            savedContent.classList.add('active');
+    // Update filter dropdowns
+    const dateFilterSelect = document.getElementById(`${tabType}DateFilter`);
+    const userTypeFilterSelect = document.getElementById(`${tabType}UserTypeFilter`);
+
+    if (dateFilterSelect) dateFilterSelect.value = dateFilter;
+    if (userTypeFilterSelect) userTypeFilterSelect.value = userTypeFilter;
+
+    // Show notification
+    const dateFilterNames = {
+        'all': 'All Time',
+        'today': 'Today',
+        'week': 'This Week',
+        'month': 'This Month'
+    };
+
+    const userTypeNames = {
+        'all': 'All Users',
+        'Student': 'Students',
+        'Faculty': 'Admin/Faculty',
+        'Admin': 'Admin/Faculty',
+        'Visitor': 'Visitors'
+    };
+
+    showQueuedNotification(
+        `Filters: ${dateFilterNames[dateFilter]} | ${userTypeNames[userTypeFilter]} (${visibleCount} results)`,
+        'success'
+    );
+}
+
+// ========================================
+// UPDATE STAT CARDS WITH 3-CARD LAYOUT
+// Left: Total (Static)
+// Middle: Dynamic (changes based on DATE filter only)
+// Right: Today Count (Static)
+// ========================================
+function updateStatCards(tabType, dateFilter, filteredCount, totalCount, todayCount) {
+    // Get stat card elements
+    const totalCountElement = document.getElementById(`${tabType}-total-count`);
+    const filteredCountElement = document.getElementById(`${tabType}-filtered-count`);
+    const filteredLabelElement = document.getElementById(`${tabType}-filtered-label`);
+    const todayCountElement = document.getElementById(`${tabType}-today-count`);
+
+    // LEFT CARD: Always show total count (Static)
+    if (totalCountElement) {
+        totalCountElement.textContent = totalCount;
+    }
+
+    // MIDDLE CARD: Dynamic - updates based on DATE filter
+    if (filteredCountElement && filteredLabelElement) {
+        filteredCountElement.textContent = filteredCount;
+
+        switch (dateFilter) {
+            case 'today':
+                filteredLabelElement.textContent = 'Today';
+                break;
+            case 'week':
+                filteredLabelElement.textContent = 'This Week';
+                break;
+            case 'month':
+                filteredLabelElement.textContent = 'This Month';
+                break;
+            case 'all':
+            default:
+                filteredLabelElement.textContent = 'All Time';
+                break;
         }
     }
+
+    // RIGHT CARD: Always show today's count (Static)
+    if (todayCountElement) {
+        todayCountElement.textContent = todayCount;
+    }
+}
+
+// ========================================
+// HIGHLIGHT ACTIVE STAT CARD
+// ========================================
+function highlightActiveStatCard(tabType, dateFilter) {
+    // Get all stat cards for this tab
+    const tabContent = document.getElementById(`${tabType}-tab`);
+    if (!tabContent) return;
+
+    const statCards = tabContent.querySelectorAll('.clickable-stat');
+
+    // Remove active class from all cards
+    statCards.forEach(card => card.classList.remove('active-filter'));
+
+    // Add active class to the matching card (middle card only)
+    statCards.forEach(card => {
+        if (card.getAttribute('data-filter') === dateFilter) {
+            card.classList.add('active-filter');
+        }
+    });
 }
 
 // ========================================
@@ -287,7 +462,7 @@ if (tabButtons.length > 0 && tabContents.length > 0) {
 const successfulSearch = document.getElementById('successfulSearch');
 const cancelledSearch = document.getElementById('cancelledSearch');
 
-function setupSearchFunctionality(searchInput, tableId) {
+function setupSearchFunctionality(searchInput, tableId, tabType) {
     if (!searchInput) return;
 
     searchInput.addEventListener('input', (e) => {
@@ -309,113 +484,81 @@ function setupSearchFunctionality(searchInput, tableId) {
             }
         });
 
-        // Show notification if no results found
         if (visibleCount === 0 && searchTerm !== '') {
             showQueuedNotification('No results found', 'info');
         }
-    });
-}
 
-setupSearchFunctionality(successfulSearch, 'successful-tab');
-setupSearchFunctionality(cancelledSearch, 'cancelled-tab');
+        // Update stats after search with current filters
+        const dateFilterSelect = document.getElementById(`${tabType}DateFilter`);
+        const currentDateFilter = dateFilterSelect ? dateFilterSelect.value : 'all';
 
-// ========================================
-// DATE PARSING AND FILTERING FUNCTIONALITY
-// ========================================
-function parseDate(dateString) {
-    // Parse dates in format "Nov 15, 2024"
-    const months = {
-        'Jan': 0, 'Feb': 1, 'Mar': 2, 'Apr': 3, 'May': 4, 'Jun': 5,
-        'Jul': 6, 'Aug': 7, 'Sep': 8, 'Oct': 9, 'Nov': 10, 'Dec': 11
-    };
-
-    const parts = dateString.trim().split(' ');
-    if (parts.length !== 3) return null;
-
-    const month = months[parts[0]];
-    const day = parseInt(parts[1].replace(',', ''));
-    const year = parseInt(parts[2]);
-
-    if (month === undefined || isNaN(day) || isNaN(year)) return null;
-
-    return new Date(year, month, day);
-}
-
-function isDateInRange(dateString, filterValue) {
-    const date = parseDate(dateString);
-    if (!date) return true; // Show if we can't parse
-
-    const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-
-    switch (filterValue) {
-        case 'today':
-            const itemDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-            return itemDate.getTime() === today.getTime();
-
-        case 'week':
-            const weekAgo = new Date(today);
-            weekAgo.setDate(weekAgo.getDate() - 7);
-            return date >= weekAgo && date <= now;
-
-        case 'month':
-            const monthAgo = new Date(today);
-            monthAgo.setMonth(monthAgo.getMonth() - 1);
-            return date >= monthAgo && date <= now;
-
-        case 'all':
-        default:
-            return true;
-    }
-}
-
-function setupFilterFunctionality(filterSelect, tableId) {
-    if (!filterSelect) return;
-
-    filterSelect.addEventListener('change', (e) => {
-        const filterValue = e.target.value;
-        const table = document.querySelector(`#${tableId} .data-table tbody`);
-
-        if (!table) return;
-
-        const rows = table.querySelectorAll('tr');
-        let visibleCount = 0;
-
+        // Recalculate counts for stat cards
+        let todayCount = 0;
         rows.forEach(row => {
-            // Get the date column (4th column for both tables - index 3)
             const cells = row.querySelectorAll('td');
             if (cells.length > 3) {
-                const dateString = cells[3].textContent; // Reserved Date or Reserved Date column
-
-                if (isDateInRange(dateString, filterValue)) {
-                    row.style.display = '';
-                    visibleCount++;
-                } else {
-                    row.style.display = 'none';
+                const dateString = cells[3].textContent;
+                if (isDateInRange(dateString, 'today')) {
+                    todayCount++;
                 }
             }
         });
 
-        // Show notification
-        const filterNames = {
-            'all': 'All Time',
-            'today': 'Today',
-            'week': 'This Week',
-            'month': 'This Month'
-        };
-
-        showQueuedNotification(`Filter applied: ${filterNames[filterValue]} (${visibleCount} results)`, 'success');
+        updateStatCards(tabType, currentDateFilter, visibleCount, rows.length, todayCount);
     });
 }
 
-// ========================================
-// FILTER FUNCTIONALITY
-// ========================================
-const successfulFilter = document.getElementById('successfulFilter');
-const cancelledFilter = document.getElementById('cancelledFilter');
+setupSearchFunctionality(successfulSearch, 'successful-tab', 'successful');
+setupSearchFunctionality(cancelledSearch, 'cancelled-tab', 'cancelled');
 
-setupFilterFunctionality(successfulFilter, 'successful-tab');
-setupFilterFunctionality(cancelledFilter, 'cancelled-tab');
+// ========================================
+// FILTER DROPDOWN FUNCTIONALITY - DUAL FILTERS
+// ========================================
+function setupFilterFunctionality(tabType) {
+    const dateFilterSelect = document.getElementById(`${tabType}DateFilter`);
+    const userTypeFilterSelect = document.getElementById(`${tabType}UserTypeFilter`);
+
+    // Date filter change
+    if (dateFilterSelect) {
+        dateFilterSelect.addEventListener('change', (e) => {
+            const dateFilter = e.target.value;
+            const userTypeFilter = userTypeFilterSelect ? userTypeFilterSelect.value : 'all';
+            applyFilters(tabType, dateFilter, userTypeFilter);
+        });
+    }
+
+    // User type filter change
+    if (userTypeFilterSelect) {
+        userTypeFilterSelect.addEventListener('change', (e) => {
+            const userTypeFilter = e.target.value;
+            const dateFilter = dateFilterSelect ? dateFilterSelect.value : 'all';
+            applyFilters(tabType, dateFilter, userTypeFilter);
+        });
+    }
+}
+
+setupFilterFunctionality('successful');
+setupFilterFunctionality('cancelled');
+
+// ========================================
+// STAT CARD CLICK FUNCTIONALITY
+// Note: Only the middle card is clickable and updates the DATE filter
+// ========================================
+const clickableStats = document.querySelectorAll('.clickable-stat');
+
+clickableStats.forEach(statCard => {
+    statCard.addEventListener('click', () => {
+        const dateFilter = statCard.getAttribute('data-filter');
+        const tabType = statCard.getAttribute('data-tab');
+
+        // Get current user type filter
+        const userTypeFilterSelect = document.getElementById(`${tabType}UserTypeFilter`);
+        const userTypeFilter = userTypeFilterSelect ? userTypeFilterSelect.value : 'all';
+
+        // Apply both filters
+        applyFilters(tabType, dateFilter, userTypeFilter);
+    });
+});
 
 // ========================================
 // PAGINATION FUNCTIONALITY
@@ -426,7 +569,6 @@ paginationButtons.forEach(button => {
     button.addEventListener('click', () => {
         if (button.disabled) return;
 
-        // Remove active class from all pagination buttons in the same container
         const container = button.closest('.pagination');
         if (container) {
             container.querySelectorAll('.pagination-btn').forEach(btn => {
@@ -434,7 +576,6 @@ paginationButtons.forEach(button => {
             });
         }
 
-        // Add active class to clicked button if it's a number
         if (!button.querySelector('i')) {
             button.classList.add('active');
             showQueuedNotification(`Page ${button.textContent} loaded`, 'info');
@@ -446,5 +587,12 @@ paginationButtons.forEach(button => {
 // INITIALIZATION
 // ========================================
 console.log('✅ Librarian Archives Page Initialized Successfully!');
-console.log('📊 Tab System Ready');
-console.log('🔍 Search & Filter Systems Active');
+console.log('📊 3-Card Stat System Active (Left: Total, Middle: Dynamic, Right: Today)');
+console.log('🔍 Dual Filter System Active (Date + User Type)');
+console.log('🎯 Dynamic Label Updates Enabled');
+
+// Initialize with "all" filters on page load
+window.addEventListener('load', () => {
+    applyFilters('successful', 'all', 'all');
+    applyFilters('cancelled', 'all', 'all');
+});
