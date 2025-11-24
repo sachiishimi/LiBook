@@ -123,32 +123,56 @@ namespace LiBook.Controllers
                 try
                 {
                     // Set default values
-                    user.AccountStatus = "Active"; // Set status to Active by default
-                    user.DateArchived = null; // Ensure DateArchived is null for active accounts
+                    user.AccountStatus = "Active";
+                    user.DateArchived = null;
 
                     // Generate simple random password
-                    user.UserPassword = GeneratePassword();
+                    user.UserPassword = GeneratePassword(); 
 
-                    // Add user to database
+                    // Add user
                     db.Users.Add(user);
-                    db.SaveChanges(); // This will generate the User ID
+                    db.SaveChanges(); // user.ID is generated here
 
                     // Create user role mapping
                     var userRoleMapping = new UserRolesMapping
                     {
-                        UserID = user.ID, // The generated User ID
-                        RoleID = roleId   // The role ID passed from the view
+                        UserID = user.ID,
+                        RoleID = roleId
                     };
 
-                    // Add the mapping to database
                     db.UserRolesMappings.Add(userRoleMapping);
                     db.SaveChanges();
+
+                    // ---- EMAIL: notify user of their account ----
+                    try
+                    {
+                        string subject = "Your LiBook account has been created";
+                        string body = $@"
+                    <p>Hi {System.Web.HttpUtility.HtmlEncode(user.FirstName)},</p>
+                    <p>Your account was created. Here are your login details:</p>
+                    <ul>
+                      <li><strong>Email:</strong> {System.Web.HttpUtility.HtmlEncode(user.Email)}</li>
+                      <li><strong>Password:</strong> {System.Web.HttpUtility.HtmlEncode(user.UserPassword)}</li>
+                    </ul>
+                    <p>Thanks,<br/>Your Team</p>";
+
+                        // Synchronous send:
+                        LiBook.Helpers.EmailHelper.SendEmail(user.Email, subject, body);
+
+                        // OR asynchronous (fire-and-forget pattern — be careful)
+                        // var _ = YourNamespace.Helpers.EmailHelper.SendEmailAsync(user.Email, subject, body);
+                    }
+                    catch (Exception mailEx)
+                    {
+                        // handle email errors (log them); do NOT necessarily fail the entire user creation
+                        // Example: log to file/DB or add a ModelState warning
+                        ModelState.AddModelError("", "User created but failed to send email: " + mailEx.Message);
+                    }
 
                     return RedirectToAction("Librarian");
                 }
                 catch (Exception ex)
                 {
-                    // Handle any exceptions (log them, show error message, etc.)
                     ModelState.AddModelError("", "An error occurred while creating the user: " + ex.Message);
                 }
             }
