@@ -166,8 +166,6 @@
     <Content Include="Content\bootstrap.min.css" />
     <Content Include="Content\bootstrap.rtl.css" />
     <Content Include="Content\bootstrap.rtl.min.css" />
-    <Content Include="Content\images\loginbg.png" />
-    <Content Include="Content\images\luxurystudio.jpg" />
     <Content Include="Content\librarian.css" />
     <Content Include="Content\librarianarchives.css" />
     <Content Include="Content\librariandashboard.css" />
