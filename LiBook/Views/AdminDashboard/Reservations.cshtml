@@ -67,9 +67,9 @@
                 </button>
             </div>
 
-            <div class="search-bar">
-                <i class="fas fa-search"></i>
-                <input type="text" id="roomSearch" placeholder="Search rooms...">
+            <div class="content-header">
+                <h1>Reservations</h1>
+                <p>Checkout the reservations on the rooms inside the library.</p>
             </div>
 
             <div class="topbar-actions">
@@ -111,9 +111,10 @@
 
         <!-- Reservations Content -->
         <main class="content">
-            <div class="content-header">
-                <h1>Reservations</h1>
-                <p>Checkout the reservations on the rooms inside the library.</p>
+
+            <div class="search-bar">
+                <i class="fas fa-search"></i>
+                <input type="text" id="roomSearch" placeholder="Search rooms...">
             </div>
 
             <!-- Rooms Grid -->
@@ -122,18 +123,17 @@
                 {
                     <!-- Room cards will be dynamically generated here -->
                     <div class="room-card visible"
-                         data-room-name="study room a"
-                         data-room-type="study"
-                         data-status="available"
-                         data-room-id="1"
-                         data-room-capacity="8"
+                         data-room-name="@item.RoomName.ToLower()"
+                         data-room-type="@item.RoomType.ToLower()"
+                         data-status="@item.Availability.ToLower()"
+                         data-room-capacity="@item.Capacity"
                          data-allowed-users='["Student"]'
                          onclick="showEmbeddedRoomModal(this)">
                         <div class="room-header">
                             <h3 class="room-name">@Html.DisplayFor(modelItem => item.RoomName)</h3>
                             <p class="room-type">@Html.DisplayFor(modelItem => item.RoomType)</p>
                         </div>
-                        <span class="room-status available">@Html.DisplayFor(modelItem => item.Availability)</span>
+                        <span class="room-status @item.Availability.ToLower()">@Html.DisplayFor(modelItem => item.Availability)</span>
                         <div class="room-allowed-users">
                             <i class="fas fa-users"></i>
                             <span>For: Student</span>
@@ -145,12 +145,12 @@
                             </div>
                             <div class="room-price">
                                 <i class="fas fa-door-open"></i>
-                                <span>Study Room</span>
+                                <span>@Html.DisplayFor(modelItem => item.RoomType) Room</span>
                             </div>
                         </div>
                     </div>
                 }
-                </div>
+            </div>
         </main>
     </div>
 

@@ -316,6 +316,7 @@ body {
     flex: 1;
     max-width: 500px;
     position: relative;
+    margin-bottom: 1em;
 }
 
     .search-bar i {
@@ -511,7 +512,7 @@ body {
 }
 
 .content-header {
-    margin-bottom: 1.5rem;
+    margin-bottom: 0;
 }
 
     .content-header h1 {

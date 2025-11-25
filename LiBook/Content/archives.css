@@ -778,6 +778,7 @@ body {
         border-radius: 20px;
         font-size: 0.85rem;
         font-weight: 600;
+        margin-bottom: 1em;
     }
 
 .table-responsive {
@@ -1186,7 +1187,7 @@ tbody tr {
 
 .card-header {
     background: linear-gradient(135deg, #f9fbfd 0%, #f5f7fa 100%);
-    padding: 1.5rem;
+    padding: 1em;
     display: flex;
     justify-content: space-between;
     align-items: center;
