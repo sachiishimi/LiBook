@@ -262,3 +262,7 @@ C:\Users\sachiishimi\source\repos\LiBook\LiBook\obj\Debug\LiBook.csproj.CoreComp
 C:\Users\sachiishimi\source\repos\LiBook\LiBook\obj\Debug\LiBook.csproj.Up2Date
 C:\Users\sachiishimi\source\repos\LiBook\LiBook\obj\Debug\LiBook.dll
 C:\Users\sachiishimi\source\repos\LiBook\LiBook\obj\Debug\LiBook.pdb
+C:\Users\Brian A. Dijamco\source\repos\LiBook\LiBook\bin\EntityFramework.dll
+C:\Users\Brian A. Dijamco\source\repos\LiBook\LiBook\bin\EntityFramework.SqlServer.dll
+C:\Users\Brian A. Dijamco\source\repos\LiBook\LiBook\bin\EntityFramework.xml
+C:\Users\Brian A. Dijamco\source\repos\LiBook\LiBook\bin\EntityFramework.SqlServer.xml

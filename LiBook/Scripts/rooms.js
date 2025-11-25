@@ -8,22 +8,25 @@ const userProfile = document.getElementById('userProfile');
 const userDropdown = document.getElementById('userDropdown');
 
 // Room Management Elements
-const modal = document.getElementById('roomModal');
+const addRoomModal = document.getElementById('addRoomModal');
+const editRoomModal = document.getElementById('editRoomModal');
 const archiveModal = document.getElementById('archiveModal');
 const addRoomBtn = document.getElementById('addRoomBtn');
 const bulkArchiveBtn = document.getElementById('bulkArchiveBtn');
-const closeModalBtn = document.getElementById('closeModal');
+const closeAddModalBtn = document.getElementById('closeAddModal');
+const closeEditModalBtn = document.getElementById('closeEditModal');
 const closeArchiveModalBtn = document.getElementById('closeArchiveModal');
-const cancelBtn = document.getElementById('cancelBtn');
+const cancelAddBtn = document.getElementById('cancelAddBtn');
+const cancelEditBtn = document.getElementById('cancelEditBtn');
 const cancelArchiveBtn = document.getElementById('cancelArchiveBtn');
 const confirmArchiveBtn = document.getElementById('confirmArchiveBtn');
-const roomForm = document.getElementById('roomForm');
+const addRoomForm = document.getElementById('addRoomForm');
+const editRoomForm = document.getElementById('editRoomForm');
 const searchInput = document.getElementById('searchRooms');
 const selectAllCheckbox = document.getElementById('selectAll');
 
 // Track editing state
 let editingRow = null;
-let isEditMode = false;
 let selectedRoomsForArchive = [];
 
 // ============================================
@@ -129,7 +132,7 @@ window.addEventListener('load', () => {
 // Open modal for adding new room
 if (addRoomBtn) {
     addRoomBtn.addEventListener('click', () => {
-        openModal(false);
+        openAddModal();
     });
 }
 
@@ -140,16 +143,28 @@ if (bulkArchiveBtn) {
     });
 }
 
-// Close modal
-if (closeModalBtn) {
-    closeModalBtn.addEventListener('click', () => {
-        closeModal();
+// Close modals
+if (closeAddModalBtn) {
+    closeAddModalBtn.addEventListener('click', () => {
+        closeAddModal();
     });
 }
 
-if (cancelBtn) {
-    cancelBtn.addEventListener('click', () => {
-        closeModal();
+if (closeEditModalBtn) {
+    closeEditModalBtn.addEventListener('click', () => {
+        closeEditModal();
+    });
+}
+
+if (cancelAddBtn) {
+    cancelAddBtn.addEventListener('click', () => {
+        closeAddModal();
+    });
+}
+
+if (cancelEditBtn) {
+    cancelEditBtn.addEventListener('click', () => {
+        closeEditModal();
     });
 }
 
@@ -172,11 +187,19 @@ if (confirmArchiveBtn) {
     });
 }
 
-// Close modal when clicking outside
-if (modal) {
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-            closeModal();
+// Close modals when clicking outside
+if (addRoomModal) {
+    addRoomModal.addEventListener('click', (e) => {
+        if (e.target === addRoomModal) {
+            closeAddModal();
+        }
+    });
+}
+
+if (editRoomModal) {
+    editRoomModal.addEventListener('click', (e) => {
+        if (e.target === editRoomModal) {
+            closeEditModal();
         }
     });
 }
@@ -189,11 +212,14 @@ if (archiveModal) {
     });
 }
 
-// Close modal with Escape key
+// Close modals with Escape key
 document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
-        if (modal && modal.classList.contains('active')) {
-            closeModal();
+        if (addRoomModal && addRoomModal.classList.contains('active')) {
+            closeAddModal();
+        }
+        if (editRoomModal && editRoomModal.classList.contains('active')) {
+            closeEditModal();
         }
         if (archiveModal && archiveModal.classList.contains('active')) {
             closeArchiveModal();
@@ -201,84 +227,154 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
-// Open modal function
-function openModal(isEdit = false) {
-    if (modal) {
-        isEditMode = isEdit;
-        const modalTitle = document.getElementById('modalTitle');
-
-        if (modalTitle) {
-            modalTitle.textContent = isEdit ? 'Edit Room' : 'Add New Room';
-        }
-
-        if (!isEdit) {
-            roomForm.reset();
-            editingRow = null;
-        }
-
-        modal.classList.add('active');
+// Open add modal function
+function openAddModal() {
+    if (addRoomModal) {
+        addRoomModal.classList.add('active');
         document.body.style.overflow = 'hidden';
 
         // Focus first input
         setTimeout(() => {
-            const firstInput = document.getElementById('roomName');
+            const firstInput = document.getElementById('addRoomName');
             if (firstInput) firstInput.focus();
         }, 100);
     }
 }
 
-// Close modal function
-function closeModal() {
-    if (modal) {
-        modal.classList.remove('active');
+// Open edit modal function
+function openEditModal(row) {
+    if (editRoomModal) {
+        editingRow = row;
+
+        const roomId = row.querySelector('.room-id')?.getAttribute('data-room-id') || '';
+        const roomName = row.querySelector('.room-details h3')?.textContent || '';
+        const roomUser1 = row.querySelectorAll('.user-type')[0]?.textContent || '';
+        const capacity = row.querySelector('.capacity')?.textContent || '';
+        const roomStatusElement = row.querySelector('.status-badge');
+        let roomStatus = '';
+
+        if (roomStatusElement) {
+            if (roomStatusElement.classList.contains('available')) roomStatus = 'Available';
+            else if (roomStatusElement.classList.contains('in-use')) roomStatus = 'Unavailable';
+            else if (roomStatusElement.classList.contains('under-maintenance')) roomStatus = 'Under Maintenance';
+        }
+
+        console.log('Editing room:', { roomId, roomName, roomUser1, capacity, roomStatus });
+
+        // Populate form
+        document.getElementById('editRoomId').value = roomId;
+        document.getElementById('editRoomName').value = roomName;
+        document.getElementById('editRoomUser1').value = roomUser1;
+        document.getElementById('editCapacity').value = capacity;
+        document.getElementById('editRoomStatus').value = roomStatus;
+
+        editRoomModal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+
+        // Focus first input
+        setTimeout(() => {
+            const firstInput = document.getElementById('editRoomName');
+            if (firstInput) firstInput.focus();
+        }, 100);
+    }
+}
+
+// Close add modal function
+function closeAddModal() {
+    if (addRoomModal) {
+        addRoomModal.classList.remove('active');
         document.body.style.overflow = '';
 
         setTimeout(() => {
-            roomForm.reset();
-            editingRow = null;
-            isEditMode = false;
+            addRoomForm.reset();
         }, 300);
     }
 }
 
-// Form submission
-if (roomForm) {
-    roomForm.addEventListener('submit', (e) => {
-        e.preventDefault();
+// Close edit modal function
+function closeEditModal() {
+    if (editRoomModal) {
+        editRoomModal.classList.remove('active');
+        document.body.style.overflow = '';
 
-        // Get form values
-        const roomName = document.getElementById('roomName').value;
-        const roomUser1 = document.getElementById('roomUser1').value;
-        const roomUser2 = document.getElementById('roomUser2').value;
-        const roomStatus = document.getElementById('roomStatus').value;
-
-        // Validate form
-        if (!roomName || !roomUser1 || !roomUser2 || !roomStatus) {
-            showNotification('Please fill in all required fields', 'error');
-            return;
-        }
-
-        // If editing existing room
-        if (isEditMode && editingRow) {
-            editingRow.querySelector('.room-details h3').textContent = roomName;
-            editingRow.querySelectorAll('.user-type')[0].textContent = capitalize(roomUser1);
-            editingRow.querySelectorAll('.user-type')[1].textContent = capitalize(roomUser2);
-
-            const statusBadge = editingRow.querySelector('.status-badge');
-            statusBadge.textContent = formatStatusText(roomStatus);
-            statusBadge.className = 'status-badge ' + getStatusClass(roomStatus);
-
-            showNotification('Room updated successfully!', 'success');
-        } else {
-            // Adding new room (in real app, would send to server)
-            console.log('Adding new room:', { roomName, roomUser1, roomUser2, roomStatus });
-            showNotification('Room added successfully!', 'success');
-        }
-
-        // Close modal
-        closeModal();
-    });
+        setTimeout(() => {
+            editRoomForm.reset();
+            editingRow = null;
+        }, 300);
+    }
 }
+
+//// Add Room Form submission
+//if (addRoomForm) {
+//    addRoomForm.addEventListener('submit', (e) => {
+//        e.preventDefault();
+
+//        // Get form values
+//        const roomName = document.getElementById('addRoomName').value;
+//        const roomUser1 = document.getElementById('addRoomUser1').value;
+//        const capacity = document.getElementById('addCapacity').value;
+//        const roomStatus = document.getElementById('addRoomStatus').value;
+
+//        // Validate form
+//        if (!roomName || !roomUser1 || !capacity || !roomStatus) {
+//            showNotification('Please fill in all required fields', 'error');
+//            return;
+//        }
+
+//        // Handle adding new room (in real app, would send to server)
+//        console.log('Adding new room:', { roomName, roomUser1, capacity, roomStatus });
+
+//        // Here you would typically send the data to your server
+//        // For now, we'll just show a success message
+//        showNotification('Room added successfully!', 'success');
+
+//        // Close modal
+//        closeAddModal();
+
+//        // In a real application, you would refresh the table or add the new row dynamically
+//        // For now, we'll just log the action
+//    });
+//}
+
+//// Edit Room Form submission
+//if (editRoomForm) {
+//    editRoomForm.addEventListener('submit', (e) => {
+//        e.preventDefault();
+
+//        // Get form values
+//        const roomName = document.getElementById('editRoomName').value;
+//        const roomUser1 = document.getElementById('editRoomUser1').value;
+//        const capacity = document.getElementById('editCapacity').value;
+//        const roomStatus = document.getElementById('editRoomStatus').value;
+
+//        // Validate form
+//        if (!roomName || !roomUser1 || !capacity || !roomStatus) {
+//            showNotification('Please fill in all required fields', 'error');
+//            return;
+//        }
+
+//        // If editing existing room
+//        if (editingRow) {
+//            editingRow.querySelector('.room-details h3').textContent = roomName;
+//            editingRow.querySelectorAll('.user-type')[0].textContent = capitalize(roomUser1);
+
+//            // Update capacity
+//            const capacityCell = editingRow.querySelector('.capacity');
+//            if (capacityCell) {
+//                capacityCell.textContent = capacity;
+//            }
+
+//            const statusBadge = editingRow.querySelector('.status-badge');
+//            statusBadge.textContent = formatStatusText(roomStatus);
+//            statusBadge.className = 'status-badge ' + getStatusClass(roomStatus);
+
+//            showNotification('Room updated successfully!', 'success');
+//        }
+
+//        // Close modal
+//        closeEditModal();
+//    });
+//}
 
 // Search rooms
 if (searchInput) {
@@ -357,28 +453,7 @@ document.querySelectorAll('.icon-btn.edit').forEach(btn => {
         const row = btn.closest('tr');
         if (!row) return;
 
-        editingRow = row;
-
-        const roomName = row.querySelector('.room-details h3')?.textContent || '';
-        const roomUser1 = row.querySelectorAll('.user-type')[0]?.textContent.toLowerCase() || '';
-        const roomUser2 = row.querySelectorAll('.user-type')[1]?.textContent.toLowerCase() || '';
-        const roomStatusElement = row.querySelector('.status-badge');
-        let roomStatus = '';
-
-        if (roomStatusElement) {
-            if (roomStatusElement.classList.contains('available')) roomStatus = 'available';
-            else if (roomStatusElement.classList.contains('in-use') || roomStatusElement.classList.contains('unavailable')) roomStatus = 'unavailable';
-            else if (roomStatusElement.classList.contains('under-maintenance')) roomStatus = 'under-maintenance';
-        }
-
-        // Populate form
-        document.getElementById('roomName').value = roomName;
-        document.getElementById('roomUser1').value = roomUser1;
-        document.getElementById('roomUser2').value = roomUser2;
-        document.getElementById('roomStatus').value = roomStatus;
-
-        // Open modal in edit mode
-        openModal(true);
+        openEditModal(row);
     });
 });
 
@@ -437,13 +512,293 @@ function getStatusClass(value) {
     }
 }
 
-// Update room count
+// Update room count and handle empty state
 function updateRoomCount() {
-    const count = document.querySelectorAll('#roomsTableBody tr').length;
+    const rows = document.querySelectorAll('#roomsTableBody tr:not(#noRoomsRow)');
+    const count = rows.length;
     const roomCountElement = document.getElementById('roomCount');
+
     if (roomCountElement) {
         roomCountElement.textContent = count;
     }
+
+    // Handle empty state
+    const noRoomsRow = document.getElementById('noRoomsRow');
+    const tableBody = document.getElementById('roomsTableBody');
+
+    if (count === 0 && !noRoomsRow) {
+        // Add empty state row
+        const emptyRow = document.createElement('tr');
+        emptyRow.id = 'noRoomsRow';
+        emptyRow.innerHTML = `
+            <td colspan="5" style="text-align: center; padding: 3rem;">
+                <div style="text-align: center; color: var(--text-light);">
+                    <i class="fas fa-door-closed" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+                    <h3 style="font-family: 'Kumbh Sans', sans-serif; margin-bottom: 0.5rem; color: var(--text-dark);">No Rooms Available</h3>
+                    <p style="margin-bottom: 1.5rem;">There are no rooms available at this moment.</p>
+                </div>
+            </td>
+        `;
+        tableBody.appendChild(emptyRow);
+
+        // Set up the button event listener
+        setupEmptyStateButton();
+    } else if (count > 0 && noRoomsRow) {
+        // Remove empty state row when rooms are added
+        noRoomsRow.remove();
+    }
+}
+
+// Add this function to handle the empty state "Add New Room" button
+function setupEmptyStateButton() {
+    const addRoomFromEmptyBtn = document.getElementById('addRoomFromEmpty');
+    if (addRoomFromEmptyBtn) {
+        addRoomFromEmptyBtn.addEventListener('click', () => {
+            openAddModal();
+        });
+    }
+}
+
+// ============================================
+// PAGINATION FUNCTIONALITY
+// ============================================
+
+let currentPage = 1;
+const rowsPerPage = 4;
+
+// Initialize pagination
+function initializePagination() {
+    const roomsTableBody = document.getElementById('roomsTableBody');
+    const rows = roomsTableBody.querySelectorAll('tr:not(#noRoomsRow)');
+
+    if (rows.length < 4) {
+        // Hide pagination if less than 5 rooms
+        const pagination = document.getElementById('roomsPagination');
+        if (pagination) {
+            pagination.style.display = 'none';
+        }
+        return;
+    }
+
+    updatePagination();
+    showPage(1);
+}
+
+// Update pagination controls
+function updatePagination() {
+    const roomsTableBody = document.getElementById('roomsTableBody');
+    const rows = roomsTableBody.querySelectorAll('tr:not(#noRoomsRow)');
+    const totalRows = rows.length;
+    const totalPages = Math.ceil(totalRows / rowsPerPage);
+
+    // Update pagination info
+    const paginationStart = document.getElementById('paginationStart');
+    const paginationEnd = document.getElementById('paginationEnd');
+    const paginationTotal = document.getElementById('paginationTotal');
+
+    if (paginationStart && paginationEnd && paginationTotal) {
+        const start = (currentPage - 1) * rowsPerPage + 1;
+        const end = Math.min(currentPage * rowsPerPage, totalRows);
+
+        paginationStart.textContent = start;
+        paginationEnd.textContent = end;
+        paginationTotal.textContent = totalRows;
+    }
+
+    // Update pagination buttons
+    const prevPage = document.getElementById('prevPage');
+    const nextPage = document.getElementById('nextPage');
+
+    if (prevPage) {
+        prevPage.disabled = currentPage === 1;
+    }
+
+    if (nextPage) {
+        nextPage.disabled = currentPage === totalPages;
+    }
+
+    // Generate page numbers
+    const paginationPages = document.getElementById('paginationPages');
+    if (!paginationPages) return;
+
+    paginationPages.innerHTML = '';
+
+    // Always show first page
+    addPageNumber(paginationPages, 1);
+
+    // Show ellipsis if needed
+    if (currentPage > 3) {
+        addEllipsis(paginationPages);
+    }
+
+    // Show pages around current page
+    const startPage = Math.max(2, currentPage - 1);
+    const endPage = Math.min(totalPages - 1, currentPage + 1);
+
+    for (let i = startPage; i <= endPage; i++) {
+        if (i !== 1 && i !== totalPages) {
+            addPageNumber(paginationPages, i);
+        }
+    }
+
+    // Show ellipsis if needed
+    if (currentPage < totalPages - 2) {
+        addEllipsis(paginationPages);
+    }
+
+    // Always show last page if there's more than one page
+    if (totalPages > 1) {
+        addPageNumber(paginationPages, totalPages);
+    }
+}
+
+// Add page number button
+function addPageNumber(container, pageNumber) {
+    const pageBtn = document.createElement('button');
+    pageBtn.className = `page-number ${pageNumber === currentPage ? 'active' : ''}`;
+    pageBtn.textContent = pageNumber;
+    pageBtn.addEventListener('click', () => {
+        showPage(pageNumber);
+    });
+    container.appendChild(pageBtn);
+}
+
+// Add ellipsis
+function addEllipsis(container) {
+    const ellipsis = document.createElement('span');
+    ellipsis.className = 'page-number ellipsis';
+    ellipsis.textContent = '...';
+    container.appendChild(ellipsis);
+}
+
+// Show specific page
+function showPage(pageNumber) {
+    const roomsTableBody = document.getElementById('roomsTableBody');
+    const rows = roomsTableBody.querySelectorAll('tr:not(#noRoomsRow)');
+
+    // Hide all rows
+    rows.forEach(row => {
+        row.style.display = 'none';
+    });
+
+    // Calculate range for current page
+    const startIndex = (pageNumber - 1) * rowsPerPage;
+    const endIndex = Math.min(startIndex + rowsPerPage, rows.length);
+
+    // Show rows for current page
+    for (let i = startIndex; i < endIndex; i++) {
+        if (rows[i]) {
+            rows[i].style.display = '';
+        }
+    }
+
+    currentPage = pageNumber;
+    updatePagination();
+}
+
+// Event listeners for pagination buttons
+document.addEventListener('DOMContentLoaded', () => {
+    const prevPage = document.getElementById('prevPage');
+    const nextPage = document.getElementById('nextPage');
+
+    if (prevPage) {
+        prevPage.addEventListener('click', () => {
+            if (currentPage > 1) {
+                showPage(currentPage - 1);
+            }
+        });
+    }
+
+    if (nextPage) {
+        nextPage.addEventListener('click', () => {
+            const roomsTableBody = document.getElementById('roomsTableBody');
+            const rows = roomsTableBody.querySelectorAll('tr:not(#noRoomsRow)');
+            const totalPages = Math.ceil(rows.length / rowsPerPage);
+
+            if (currentPage < totalPages) {
+                showPage(currentPage + 1);
+            }
+        });
+    }
+
+    // Initialize pagination
+    initializePagination();
+});
+
+// Update pagination when rooms are added or removed
+function updateRoomCount() {
+    const rows = document.querySelectorAll('#roomsTableBody tr:not(#noRoomsRow)');
+    const count = rows.length;
+    const roomCountElement = document.getElementById('roomCount');
+
+    if (roomCountElement) {
+        roomCountElement.textContent = count;
+    }
+
+    // Handle empty state
+    const noRoomsRow = document.getElementById('noRoomsRow');
+    const tableBody = document.getElementById('roomsTableBody');
+
+    if (count === 0 && !noRoomsRow) {
+        // Add empty state row
+        const emptyRow = document.createElement('tr');
+        emptyRow.id = 'noRoomsRow';
+        emptyRow.innerHTML = `
+            <td colspan="5" style="text-align: center; padding: 3rem;">
+                <div style="text-align: center; color: var(--text-light);">
+                    <i class="fas fa-door-closed" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+                    <h3 style="font-family: 'Kumbh Sans', sans-serif; margin-bottom: 0.5rem; color: var(--text-dark);">No Rooms Available</h3>
+                    <p style="margin-bottom: 1.5rem;">There are no rooms available at this moment.</p>
+                </div>
+            </td>
+        `;
+        tableBody.appendChild(emptyRow);
+
+        // Set up the button event listener
+        setupEmptyStateButton();
+    } else if (count > 0 && noRoomsRow) {
+        // Remove empty state row when rooms are added
+        noRoomsRow.remove();
+    }
+
+    // Update pagination
+    initializePagination();
+}
+
+// Update the search functionality to work with pagination
+if (searchInput) {
+    searchInput.addEventListener('input', (e) => {
+        const searchTerm = e.target.value.toLowerCase();
+        const rows = document.querySelectorAll('#roomsTableBody tr:not(#noRoomsRow)');
+        let visibleCount = 0;
+
+        rows.forEach(row => {
+            const roomName = row.querySelector('.room-details h3')?.textContent.toLowerCase() || '';
+            if (roomName.includes(searchTerm)) {
+                row.style.display = '';
+                visibleCount++;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+
+        // If searching, show all matching results without pagination
+        if (searchTerm) {
+            currentPage = 1;
+            // Temporarily hide pagination during search
+            const pagination = document.getElementById('roomsPagination');
+            if (pagination) {
+                pagination.style.display = 'none';
+            }
+        } else {
+            // If no search term, re-enable pagination if needed
+            const pagination = document.getElementById('roomsPagination');
+            if (pagination && visibleCount >= 5) {
+                pagination.style.display = 'flex';
+                initializePagination();
+            }
+        }
+    });
 }
 
 // ============================================
@@ -568,6 +923,9 @@ function confirmArchive() {
             'success'
         );
 
+        // Update pagination after archiving
+        initializePagination();
+
         // Log for debugging (in real app, send to server)
         console.log('Archived rooms:', roomNames);
     }, 1000);
@@ -667,4 +1025,4 @@ window.addEventListener('resize', () => {
     }, 250);
 });
 
-console.log('Room Management initialized successfully!');
+console.log('Room Management with separate modals initialized successfully!');

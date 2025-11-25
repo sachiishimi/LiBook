@@ -261,24 +261,14 @@ function editUser(button) {
     const row = button.closest('tr');
     if (!row) return;
 
-    const userNameElement = row.querySelector('.user-name');
-    const userEmailElement = row.querySelector('.user-email');
-    const usernameElement = row.querySelector('td:nth-child(2)');
-
-    // Parse full name
-    const fullName = userNameElement?.textContent.trim() || '';
-    const nameParts = fullName.split(' ');
-
-    // Prepare user data
+    // Get user data from data attributes
     const userData = {
-        id: row.dataset.userId || generateId(),
-        firstName: nameParts[0] || '',
-        middleName: nameParts.length > 2 ? nameParts.slice(1, -1).join(' ') : '',
-        lastName: nameParts.length > 1 ? nameParts[nameParts.length - 1] : '',
-        suffix: '',
-        email: userEmailElement?.textContent.trim() || '',
-        username: usernameElement?.textContent.trim() || '',
-        userType: activeTab === 'admins' ? 'admin' : 'librarian'
+        userId: row.dataset.userId,
+        firstName: row.dataset.firstName || '',
+        lastName: row.dataset.lastName || '',
+        middleName: row.dataset.middleName || '',
+        suffix: row.dataset.suffix || '',
+        email: row.dataset.email || '',
     };
 
     openEditModal(userData);
@@ -327,7 +317,7 @@ function initializeAddUserModal() {
 
     if (closeModalBtn) closeModalBtn.addEventListener('click', () => closeModal('addUserModal'));
     if (cancelModalBtn) cancelModalBtn.addEventListener('click', () => closeModal('addUserModal'));
-    if (submitBtn) submitBtn.addEventListener('click', submitAddForm);
+    //if (submitBtn) submitBtn.addEventListener('click', submitAddForm);
 
     if (passwordInput) {
         passwordInput.addEventListener('focus', () => {
@@ -411,50 +401,50 @@ function resetAddForm() {
     resetPasswordToggles(['password', 'confirmPassword']);
 }
 
-function submitAddForm(e) {
-    e.preventDefault();
+//function submitAddForm(e) {
+//    e.preventDefault();
 
-    // Validate all fields
-    const isValid = validateAddForm();
+//    // Validate all fields
+//    const isValid = validateAddForm();
 
-    if (!isValid) {
-        showNotification('Please fill in all required fields correctly', 'error');
-        // Focus first error field
-        const firstError = document.querySelector('#addUserModal .form-control.error');
-        if (firstError) firstError.focus();
-        return;
-    }
+//    if (!isValid) {
+//        showNotification('Please fill in all required fields correctly', 'error');
+//        // Focus first error field
+//        const firstError = document.querySelector('#addUserModal .form-control.error');
+//        if (firstError) firstError.focus();
+//        return;
+//    }
 
-    // Collect form data
-    const formData = {
-        lastName: document.getElementById('lastName')?.value.trim(),
-        firstName: document.getElementById('firstName')?.value.trim(),
-        middleName: document.getElementById('middleName')?.value.trim(),
-        suffix: document.getElementById('suffix')?.value.trim(),
-        idNumber: document.getElementById('idNumber')?.value.trim(),
-        email: document.getElementById('email')?.value.trim(),
-        username: document.getElementById('username')?.value.trim(),
-        password: document.getElementById('password')?.value,
-        userType: currentUserType
-    };
+//    // Collect form data
+//    const formData = {
+//        lastName: document.getElementById('lastName')?.value.trim(),
+//        firstName: document.getElementById('firstName')?.value.trim(),
+//        middleName: document.getElementById('middleName')?.value.trim(),
+//        suffix: document.getElementById('suffix')?.value.trim(),
+//        idNumber: document.getElementById('idNumber')?.value.trim(),
+//        email: document.getElementById('email')?.value.trim(),
+//        username: document.getElementById('username')?.value.trim(),
+//        password: document.getElementById('password')?.value,
+//        userType: currentUserType
+//    };
 
-    console.log('Adding new user:', formData);
+//    console.log('Adding new user:', formData);
 
-    // Show loading state
-    const submitBtn = document.getElementById('submitAddBtn');
-    const originalText = submitBtn.innerHTML;
-    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Adding...';
-    submitBtn.disabled = true;
+//    // Show loading state
+//    const submitBtn = document.getElementById('submitAddBtn');
+//    const originalText = submitBtn.innerHTML;
+//    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Adding...';
+//    submitBtn.disabled = true;
 
-    // Simulate API call
-    setTimeout(() => {
-        submitBtn.innerHTML = originalText;
-        submitBtn.disabled = false;
+//    // Simulate API call
+//    setTimeout(() => {
+//        submitBtn.innerHTML = originalText;
+//        submitBtn.disabled = false;
 
-        showNotification(`${currentUserType === 'admin' ? 'Administrator' : 'Librarian'} added successfully!`, 'success');
-        setTimeout(() => closeModal('addUserModal'), 1500);
-    }, 1000);
-}
+//        showNotification(`${currentUserType === 'admin' ? 'Administrator' : 'Librarian'} added successfully!`, 'success');
+//        setTimeout(() => closeModal('addUserModal'), 1500);
+//    }, 1000);
+//}
 
 function validateAddForm() {
     const fields = [
@@ -491,33 +481,33 @@ function initializeEditUserModal() {
     const closeEditModalBtn = document.getElementById('closeEditModalBtn');
     const cancelEditModalBtn = document.getElementById('cancelEditModalBtn');
     const submitEditBtn = document.getElementById('submitEditBtn');
-    const editPasswordInput = document.getElementById('editNewPassword');
+    //const editPasswordInput = document.getElementById('editNewPassword');
     const editConfirmPasswordInput = document.getElementById('editConfirmPassword');
 
     if (closeEditModalBtn) closeEditModalBtn.addEventListener('click', () => closeModal('editUserModal'));
     if (cancelEditModalBtn) cancelEditModalBtn.addEventListener('click', () => closeModal('editUserModal'));
     if (submitEditBtn) submitEditBtn.addEventListener('click', submitEditForm);
 
-    if (editPasswordInput) {
-        editPasswordInput.addEventListener('input', (e) => {
-            const value = e.target.value;
-            updatePasswordRequirements(value, 'edit');
-            validateEditPassword();
+    //if (editPasswordInput) {
+    //    editPasswordInput.addEventListener('input', (e) => {
+    //        const value = e.target.value;
+    //        updatePasswordRequirements(value, 'edit');
+    //        validateEditPassword();
 
-            // Show/hide requirements section
-            const requirementsSection = document.getElementById('editPasswordRequirements');
-            if (requirementsSection) {
-                requirementsSection.style.display = value.length > 0 ? 'block' : 'none';
-            }
-        });
-    }
+    //        // Show/hide requirements section
+    //        const requirementsSection = document.getElementById('editPasswordRequirements');
+    //        if (requirementsSection) {
+    //            requirementsSection.style.display = value.length > 0 ? 'block' : 'none';
+    //        }
+    //    });
+    //}
 
     if (editConfirmPasswordInput) {
         editConfirmPasswordInput.addEventListener('input', validateEditConfirmPassword);
     }
 
     // Real-time validation for edit fields
-    const editFormInputs = ['editLastName', 'editFirstName', 'editEmail', 'editUsername'];
+    const editFormInputs = ['editLastName', 'editFirstName', 'editEmail']; // removed 'editUsername'
     editFormInputs.forEach(inputId => {
         const input = document.getElementById(inputId);
         if (input) {
@@ -551,34 +541,35 @@ function openEditModal(userData) {
 
     if (modal) {  // ✅ Remove the modalTitle check
         // Populate form fields
+        document.getElementById('editUserId').value = userData.userId;
         document.getElementById('editFirstName').value = userData.firstName;
         document.getElementById('editLastName').value = userData.lastName;
         document.getElementById('editMiddleName').value = userData.middleName;
         document.getElementById('editSuffix').value = userData.suffix;
         document.getElementById('editEmail').value = userData.email;
-        document.getElementById('editUsername').value = userData.username;
+        //document.getElementById('editUsername').value = userData.username;
 
         // Clear password fields
-        document.getElementById('editNewPassword').value = '';
-        document.getElementById('editConfirmPassword').value = '';
+        //document.getElementById('editNewPassword').value = '';
+        //document.getElementById('editConfirmPassword').value = '';
 
         // Hide password requirements
-        const requirementsSection = document.getElementById('editPasswordRequirements');
-        if (requirementsSection) {
-            requirementsSection.style.display = 'none';
-        }
+        //const requirementsSection = document.getElementById('editPasswordRequirements');
+        //if (requirementsSection) {
+        //    requirementsSection.style.display = 'none';
+        //}
 
-        // Clear all validation states
-        document.querySelectorAll('#editUserModal .form-control').forEach(input => {
-            input.classList.remove('error', 'success');
-        });
+        //// Clear all validation states
+        //document.querySelectorAll('#editUserModal .form-control').forEach(input => {
+        //    input.classList.remove('error', 'success');
+        //});
 
-        document.querySelectorAll('#editUserModal .error-message').forEach(msg => {
-            msg.classList.remove('show');
-        });
+        //document.querySelectorAll('#editUserModal .error-message').forEach(msg => {
+        //    msg.classList.remove('show');
+        //});
 
-        updatePasswordRequirements('', 'edit');
-        resetPasswordToggles(['editNewPassword', 'editConfirmPassword']);
+        //updatePasswordRequirements('', 'edit');
+        ////resetPasswordToggles(['editNewPassword', 'editConfirmPassword']);
 
         modal.classList.add('active');
         document.body.style.overflow = 'hidden';
@@ -606,7 +597,7 @@ function submitEditForm(e) {
 
     // Collect form data
     const userId = document.getElementById('editUserId')?.value;
-    const newPassword = document.getElementById('editNewPassword')?.value;
+    //const newPassword = document.getElementById('editNewPassword')?.value;
 
     pendingEditData = {
         id: userId,
@@ -615,8 +606,8 @@ function submitEditForm(e) {
         middleName: document.getElementById('editMiddleName')?.value.trim(),
         suffix: document.getElementById('editSuffix')?.value.trim(),
         email: document.getElementById('editEmail')?.value.trim(),
-        username: document.getElementById('editUsername')?.value.trim(),
-        newPassword: newPassword || null,
+        //username: document.getElementById('editUsername')?.value.trim(),
+        //newPassword: newPassword || null,
         userType: currentEditUserData?.userType
     };
 
@@ -632,7 +623,7 @@ function validateEditForm() {
         { id: 'editLastName', validator: (v) => !!v },
         { id: 'editFirstName', validator: (v) => !!v },
         { id: 'editEmail', validator: (v) => v && isValidEmail(v) },
-        { id: 'editUsername', validator: (v) => !!v }
+        //{ id: 'editUsername', validator: (v) => !!v }
     ];
 
     let isValid = true;
@@ -648,11 +639,11 @@ function validateEditForm() {
     });
 
     // Validate password only if provided
-    const newPassword = document.getElementById('editNewPassword')?.value;
-    if (newPassword) {
-        if (!validateEditPassword()) isValid = false;
-        if (!validateEditConfirmPassword()) isValid = false;
-    }
+    //const newPassword = document.getElementById('editNewPassword')?.value;
+    //if (newPassword) {
+    //    if (!validateEditPassword()) isValid = false;
+    //    if (!validateEditConfirmPassword()) isValid = false;
+    //}
 
     return isValid;
 }
@@ -739,10 +730,10 @@ function backToEdit() {
             document.getElementById('editMiddleName').value = pendingEditData.middleName;
             document.getElementById('editSuffix').value = pendingEditData.suffix;
             document.getElementById('editEmail').value = pendingEditData.email;
-            document.getElementById('editUsername').value = pendingEditData.username;
+           // document.getElementById('editUsername').value = pendingEditData.username;
 
             if (pendingEditData.newPassword) {
-                document.getElementById('editNewPassword').value = pendingEditData.newPassword;
+               // document.getElementById('editNewPassword').value = pendingEditData.newPassword;
                 document.getElementById('editConfirmPassword').value = pendingEditData.newPassword;
                 updatePasswordRequirements(pendingEditData.newPassword, 'edit');
                 const requirementsSection = document.getElementById('editPasswordRequirements');
@@ -953,23 +944,23 @@ function validatePassword() {
     return isValid;
 }
 
-function validateEditPassword() {
-    const password = document.getElementById('editNewPassword')?.value || '';
+//function validateEditPassword() {
+//    const password = document.getElementById('editNewPassword')?.value || '';
 
-    // If password is empty, it's valid (optional field)
-    if (!password) {
-        toggleValidation('editNewPassword', 'editPasswordError', true, false);
-        return true;
-    }
+//    // If password is empty, it's valid (optional field)
+//    if (!password) {
+//        toggleValidation('editNewPassword', 'editPasswordError', true, false);
+//        return true;
+//    }
 
-    const hasLength = password.length >= 8;
-    const hasNumber = /\d/.test(password);
-    const hasSymbol = /[@*&]/.test(password);
-    const isValid = hasLength && hasNumber && hasSymbol;
+//    const hasLength = password.length >= 8;
+//    const hasNumber = /\d/.test(password);
+//    const hasSymbol = /[@*&]/.test(password);
+//    const isValid = hasLength && hasNumber && hasSymbol;
 
-    toggleValidation('editNewPassword', 'editPasswordError', isValid, true);
-    return isValid;
-}
+//    toggleValidation('editNewPassword', 'editPasswordError', isValid, true);
+//    return isValid;
+//}
 
 function validateConfirmPassword() {
     const password = document.getElementById('password')?.value || '';
@@ -980,20 +971,20 @@ function validateConfirmPassword() {
     return isValid;
 }
 
-function validateEditConfirmPassword() {
-    const password = document.getElementById('editNewPassword')?.value || '';
-    const confirmPassword = document.getElementById('editConfirmPassword')?.value || '';
+//function validateEditConfirmPassword() {
+//    const password = document.getElementById('editNewPassword')?.value || '';
+//    const confirmPassword = document.getElementById('editConfirmPassword')?.value || '';
 
-    // If no password is being set, confirm is valid
-    if (!password && !confirmPassword) {
-        toggleValidation('editConfirmPassword', 'editConfirmPasswordError', true, false);
-        return true;
-    }
+//    // If no password is being set, confirm is valid
+//    if (!password && !confirmPassword) {
+//        toggleValidation('editConfirmPassword', 'editConfirmPasswordError', true, false);
+//        return true;
+//    }
 
-    const isValid = confirmPassword === password;
-    toggleValidation('editConfirmPassword', 'editConfirmPasswordError', isValid, confirmPassword.length > 0);
-    return isValid;
-}
+//    const isValid = confirmPassword === password;
+//    toggleValidation('editConfirmPassword', 'editConfirmPasswordError', isValid, confirmPassword.length > 0);
+//    return isValid;
+//}
 
 function toggleValidation(inputId, errorId, isValid, hasValue) {
     const input = document.getElementById(inputId);

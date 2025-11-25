@@ -1,5 +1,10 @@
-﻿@{
+﻿@model IEnumerable<LiBook.Models.UserWithRolesViewModel>
+
+@{
     ViewBag.Title = "User Management";
+    // Separate users by role
+    var admins = Model.Where(u => u.IsAdmin).ToList();
+    var librarians = Model.Where(u => u.IsLibrarian).ToList();
 }
 
 <!DOCTYPE html>
@@ -140,7 +145,7 @@
                     <div class="card">
                         <div class="card-header">
                             <h2>Librarians</h2>
-                            <span class="user-count">5 librarians</span>
+                            <span class="user-count">@librarians.Count librarians</span>
                         </div>
                         <div class="card-body">
                             <div class="table-responsive">
@@ -148,137 +153,43 @@
                                     <thead>
                                         <tr>
                                             <th>Name</th>
-                                            <th>Username</th>
                                             <th>Status</th>
                                             <th>Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <tr data-user-id="lib001">
-                                            <td>
-                                                <div class="user-info-cell">
-                                                    <div class="user-avatar">
-                                                        <i class="fas fa-user"></i>
+                                        @foreach (var user in librarians)
+                                        {
+                                            <tr data-user-id="@user.ID"
+                                                data-first-name="@user.FirstName"
+                                                data-last-name="@user.LastName"
+                                                data-middle-name="@user.MiddleName"
+                                                data-suffix="@user.Suffix"
+                                                data-email="@user.Email">
+                                                <td>
+                                                    <div class="user-info-cell">
+                                                        <div class="user-avatar">
+                                                            <i class="fas fa-user"></i>
+                                                        </div>
+                                                        <div class="user-details">
+                                                            <span class="user-name">@user.FirstName @user.MiddleName @user.LastName @user.Suffix</span>
+                                                            <span class="user-email">@user.Email</span>
+                                                        </div>
                                                     </div>
-                                                    <div class="user-details">
-                                                        <span class="user-name">Maria Santos</span>
-                                                        <span class="user-email">maria.santos@libook.com</span>
+                                                </td>
+                                                <td><span class="status-badge active">@user.AccountStatus</span></td>
+                                                <td>
+                                                    <div class="action-buttons">
+                                                        <button class="icon-btn small" title="Edit" onclick="editUser(this)">
+                                                            <i class="fas fa-pen"></i>
+                                                        </button>
+                                                        <button class="icon-btn small danger" title="Delete">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
                                                     </div>
-                                                </div>
-                                            </td>
-                                            <td>msantos</td>
-                                            <td><span class="status-badge active">Active</span></td>
-                                            <td>
-                                                <div class="action-buttons">
-                                                    <button class="icon-btn small" title="Edit">
-                                                        <i class="fas fa-pen"></i>
-                                                    </button>
-                                                    <button class="icon-btn small danger" title="Delete">
-                                                        <i class="fas fa-trash"></i>
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                        <tr data-user-id="lib002">
-                                            <td>
-                                                <div class="user-info-cell">
-                                                    <div class="user-avatar">
-                                                        <i class="fas fa-user"></i>
-                                                    </div>
-                                                    <div class="user-details">
-                                                        <span class="user-name">John Reyes</span>
-                                                        <span class="user-email">john.reyes@libook.com</span>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td>jreyes</td>
-                                            <td><span class="status-badge active">Active</span></td>
-                                            <td>
-                                                <div class="action-buttons">
-                                                    <button class="icon-btn small" title="Edit">
-                                                        <i class="fas fa-pen"></i>
-                                                    </button>
-                                                    <button class="icon-btn small danger" title="Delete">
-                                                        <i class="fas fa-trash"></i>
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                        <tr data-user-id="lib003">
-                                            <td>
-                                                <div class="user-info-cell">
-                                                    <div class="user-avatar">
-                                                        <i class="fas fa-user"></i>
-                                                    </div>
-                                                    <div class="user-details">
-                                                        <span class="user-name">Ana Garcia</span>
-                                                        <span class="user-email">ana.garcia@libook.com</span>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td>agarcia</td>
-                                            <td><span class="status-badge inactive">Inactive</span></td>
-                                            <td>
-                                                <div class="action-buttons">
-                                                    <button class="icon-btn small" title="Edit">
-                                                        <i class="fas fa-pen"></i>
-                                                    </button>
-                                                    <button class="icon-btn small danger" title="Delete">
-                                                        <i class="fas fa-trash"></i>
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                        <tr data-user-id="lib004">
-                                            <td>
-                                                <div class="user-info-cell">
-                                                    <div class="user-avatar">
-                                                        <i class="fas fa-user"></i>
-                                                    </div>
-                                                    <div class="user-details">
-                                                        <span class="user-name">Pedro Cruz</span>
-                                                        <span class="user-email">pedro.cruz@libook.com</span>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td>pcruz</td>
-                                            <td><span class="status-badge active">Active</span></td>
-                                            <td>
-                                                <div class="action-buttons">
-                                                    <button class="icon-btn small" title="Edit">
-                                                        <i class="fas fa-pen"></i>
-                                                    </button>
-                                                    <button class="icon-btn small danger" title="Delete">
-                                                        <i class="fas fa-trash"></i>
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                        <tr data-user-id="lib005">
-                                            <td>
-                                                <div class="user-info-cell">
-                                                    <div class="user-avatar">
-                                                        <i class="fas fa-user"></i>
-                                                    </div>
-                                                    <div class="user-details">
-                                                        <span class="user-name">Lisa Fernandez</span>
-                                                        <span class="user-email">lisa.fernandez@libook.com</span>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td>lfernandez</td>
-                                            <td><span class="status-badge active">Active</span></td>
-                                            <td>
-                                                <div class="action-buttons">
-                                                    <button class="icon-btn small" title="Edit">
-                                                        <i class="fas fa-pen"></i>
-                                                    </button>
-                                                    <button class="icon-btn small danger" title="Delete">
-                                                        <i class="fas fa-trash"></i>
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
+                                                </td>
+                                            </tr>
+                                        }
                                     </tbody>
                                 </table>
                             </div>
@@ -291,7 +202,7 @@
                     <div class="card">
                         <div class="card-header">
                             <h2>Administrators</h2>
-                            <span class="user-count">3 administrators</span>
+                            <span class="user-count">@admins.Count administrators</span>
                         </div>
                         <div class="card-body">
                             <div class="table-responsive">
@@ -299,87 +210,43 @@
                                     <thead>
                                         <tr>
                                             <th>Name</th>
-                                            <th>Username</th>
                                             <th>Status</th>
                                             <th>Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <tr data-user-id="admin001">
-                                            <td>
-                                                <div class="user-info-cell">
-                                                    <div class="user-avatar admin">
-                                                        <i class="fas fa-user-shield"></i>
+                                        @foreach (var user in admins)
+                                        {
+                                            <tr data-user-id="@user.ID"
+                                                data-first-name="@user.FirstName"
+                                                data-last-name="@user.LastName"
+                                                data-middle-name="@user.MiddleName"
+                                                data-suffix="@user.Suffix"
+                                                data-email="@user.Email">
+                                                <td>
+                                                    <div class="user-info-cell">
+                                                        <div class="user-avatar admin">
+                                                            <i class="fas fa-user-shield"></i>
+                                                        </div>
+                                                        <div class="user-details">
+                                                            <span class="user-name">@user.FirstName @user.MiddleName @user.LastName @user.Suffix</span>
+                                                            <span class="user-email">@user.Email</span>
+                                                        </div>
                                                     </div>
-                                                    <div class="user-details">
-                                                        <span class="user-name">Roberto Admin</span>
-                                                        <span class="user-email">roberto@libook.com</span>
+                                                </td>
+                                                <td><span class="status-badge active">@user.AccountStatus</span></td>
+                                                <td>
+                                                    <div class="action-buttons">
+                                                        <button class="icon-btn small" title="Edit" onclick="editUser(this)">
+                                                            <i class="fas fa-pen"></i>
+                                                        </button>
+                                                        <button class="icon-btn small danger" title="Delete">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
                                                     </div>
-                                                </div>
-                                            </td>
-                                            <td>radmin</td>
-                                            <td><span class="status-badge active">Active</span></td>
-                                            <td>
-                                                <div class="action-buttons">
-                                                    <button class="icon-btn small" title="Edit">
-                                                        <i class="fas fa-pen"></i>
-                                                    </button>
-                                                    <button class="icon-btn small danger" title="Delete">
-                                                        <i class="fas fa-trash"></i>
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                        <tr data-user-id="admin002">
-                                            <td>
-                                                <div class="user-info-cell">
-                                                    <div class="user-avatar admin">
-                                                        <i class="fas fa-user-shield"></i>
-                                                    </div>
-                                                    <div class="user-details">
-                                                        <span class="user-name">Carmen Administrator</span>
-                                                        <span class="user-email">carmen@libook.com</span>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td>cadmin</td>
-                                            <td><span class="status-badge active">Active</span></td>
-                                            <td>
-                                                <div class="action-buttons">
-                                                    <button class="icon-btn small" title="Edit">
-                                                        <i class="fas fa-pen"></i>
-                                                    </button>
-                                                    <button class="icon-btn small danger" title="Delete">
-                                                        <i class="fas fa-trash"></i>
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                        <tr data-user-id="admin003">
-                                            <td>
-                                                <div class="user-info-cell">
-                                                    <div class="user-avatar admin">
-                                                        <i class="fas fa-user-shield"></i>
-                                                    </div>
-                                                    <div class="user-details">
-                                                        <span class="user-name">System Admin</span>
-                                                        <span class="user-email">system@libook.com</span>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td>sysadmin</td>
-                                            <td><span class="status-badge active">Active</span></td>
-                                            <td>
-                                                <div class="action-buttons">
-                                                    <button class="icon-btn small" title="Edit">
-                                                        <i class="fas fa-pen"></i>
-                                                    </button>
-                                                    <button class="icon-btn small danger" title="Delete">
-                                                        <i class="fas fa-trash"></i>
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
+                                                </td>
+                                            </tr>
+                                        }
                                     </tbody>
                                 </table>
                             </div>
@@ -409,137 +276,148 @@
             </div>
 
             <div class="modal-body">
-                <form id="addUserForm">
-                    <!-- Personal Information Section -->
-                    <div class="form-section">
-                        <div class="form-section-header">
-                            <i class="fas fa-user-circle"></i>
-                            <h3>Personal Information</h3>
+                @using (Html.BeginForm("CreateUser", "AdminDashboard", FormMethod.Post, new { id = "addUserForm" }))
+                {
+                    @Html.AntiForgeryToken()
+                        <!-- Personal Information Section -->
+                        <div class="form-section">
+                            <div class="form-section-header">
+                                <i class="fas fa-user-circle"></i>
+                                <h3>Personal Information</h3>
+                            </div>
+
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label>First Name <span class="required">*</span></label>
+                                    <input type="text" name="FirstName" class="form-control" id="firstName" placeholder="Enter first name" required>
+                                    <span class="error-message" id="firstNameError">
+                                        <i class="fas fa-exclamation-circle"></i>
+                                        First name is required
+                                    </span>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Last Name <span class="required">*</span></label>
+                                    <input type="text" name="LastName" class="form-control" id="lastName" placeholder="Enter last name" required>
+                                    <span class="error-message" id="lastNameError">
+                                        <i class="fas fa-exclamation-circle"></i>
+                                        Last name is required
+                                    </span>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Middle Name <span class="optional">(Optional)</span></label>
+                                    <input type="text" name="MiddleName" class="form-control" id="middleName" placeholder="Enter middle name">
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Suffix <span class="optional">(Optional)</span></label>
+                                    <input type="text" name="Suffix" class="form-control" id="suffix" placeholder="Jr., Sr., III">
+                                </div>
+                            </div>
                         </div>
 
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label>First Name <span class="required">*</span></label>
-                                <input type="text" class="form-control" id="firstName" placeholder="Enter first name" required>
-                                <span class="error-message" id="firstNameError">
-                                    <i class="fas fa-exclamation-circle"></i>
-                                    First name is required
-                                </span>
+                        <!-- Account Information Section -->
+                        <div class="form-section">
+                            <div class="form-section-header">
+                                <i class="fas fa-id-card"></i>
+                                <h3>Account Information</h3>
                             </div>
 
-                            <div class="form-group">
-                                <label>Last Name <span class="required">*</span></label>
-                                <input type="text" class="form-control" id="lastName" placeholder="Enter last name" required>
-                                <span class="error-message" id="lastNameError">
-                                    <i class="fas fa-exclamation-circle"></i>
-                                    Last name is required
-                                </span>
-                            </div>
+                            <div class="form-grid">
+                                <div class="form-group full-width">
+                                    <label>Email Address <span class="required">*</span></label>
+                                    <input type="email" name="Email" class="form-control" id="email" placeholder="user@example.com" required>
+                                    <span class="error-message" id="emailError">
+                                        <i class="fas fa-exclamation-circle"></i>
+                                        Please enter a valid email address
+                                    </span>
+                                </div>
 
-                            <div class="form-group">
-                                <label>Middle Name <span class="optional">(Optional)</span></label>
-                                <input type="text" class="form-control" id="middleName" placeholder="Enter middle name">
-                            </div>
+                                <div class="form-group">
+                                    <label for="roleId">Select Role:</label>
+                                    <select name="roleId" id="roleId" class="form-control" required>
+                                        <option value="1">Admin</option>
+                                        <option value="2">Librarian</option>
+                                        <!-- Add more roles as needed -->
+                                    </select>
+                                </div>
 
-                            <div class="form-group">
-                                <label>Suffix <span class="optional">(Optional)</span></label>
-                                <input type="text" class="form-control" id="suffix" placeholder="Jr., Sr., III">
+                                @*<div class="form-group full-width">
+            <label>Username <span class="required">*</span></label>
+            <input type="text" class="form-control" id="username" placeholder="Enter username" required>
+            <span class="error-message" id="usernameError">
+                <i class="fas fa-exclamation-circle"></i>
+                Username is required
+            </span>
+        </div>*@
                             </div>
                         </div>
+
+                        <!-- Security Section -->
+                        <!--<div class="form-section">
+                <div class="form-section-header">
+                    <i class="fas fa-lock"></i>
+                    <h3>Security</h3>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Password <span class="required">*</span></label>
+                        <div class="password-container">
+                            <input type="password" name="Password" class="form-control" id="password" placeholder="Enter password" required autocomplete="new-password">
+                            <button type="button" class="password-toggle" data-target="password">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        <span class="error-message" id="passwordError">
+                            <i class="fas fa-exclamation-circle"></i>
+                            Password does not meet requirements
+                        </span>
                     </div>
 
-                    <!-- Account Information Section -->
-                    <div class="form-section">
-                        <div class="form-section-header">
-                            <i class="fas fa-id-card"></i>
-                            <h3>Account Information</h3>
+                    <div class="form-group">
+                        <label>Confirm Password <span class="required">*</span></label>
+                        <div class="password-container">
+                            <input type="password" class="form-control" id="confirmPassword" placeholder="Re-enter password" required autocomplete="new-password">
+                            <button type="button" class="password-toggle" data-target="confirmPassword">
+                                <i class="fas fa-eye"></i>
+                            </button>
                         </div>
+                        <span class="error-message" id="confirmPasswordError">
+                            <i class="fas fa-exclamation-circle"></i>
+                            Passwords do not match
+                        </span>
+                    </div>
+                </div>
 
-                        <div class="form-grid">
-                            <div class="form-group full-width">
-                                <label>Email Address <span class="required">*</span></label>
-                                <input type="email" class="form-control" id="email" placeholder="user@example.com" required>
-                                <span class="error-message" id="emailError">
-                                    <i class="fas fa-exclamation-circle"></i>
-                                    Please enter a valid email address
-                                </span>
-                            </div>
-
-                            <div class="form-group full-width">
-                                <label>Username <span class="required">*</span></label>
-                                <input type="text" class="form-control" id="username" placeholder="Enter username" required>
-                                <span class="error-message" id="usernameError">
-                                    <i class="fas fa-exclamation-circle"></i>
-                                    Username is required
-                                </span>
-                            </div>
+                <div class="password-requirements" id="passwordRequirements" style="display: none;">
+                    <p class="requirements-title"><i class="fas fa-info-circle"></i> Password Requirements:</p>
+                    <div class="requirements-list">
+                        <div class="requirement" id="reqLength">
+                            <i class="fas fa-circle"></i>
+                            <span>At least 8 characters long</span>
+                        </div>
+                        <div class="requirement" id="reqNumber">
+                            <i class="fas fa-circle"></i>
+                            <span>Contains at least one number</span>
+                        </div>
+                        <div class="requirement" id="reqSymbol">
+                            <i class="fas fa-circle"></i>
+                            <span>Contains a special character (#, *, &)</span>
                         </div>
                     </div>
-
-                    <!-- Security Section -->
-                    <div class="form-section">
-                        <div class="form-section-header">
-                            <i class="fas fa-lock"></i>
-                            <h3>Security</h3>
-                        </div>
-
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label>Password <span class="required">*</span></label>
-                                <div class="password-container">
-                                    <input type="password" class="form-control" id="password" placeholder="Enter password" required autocomplete="new-password">
-                                    <button type="button" class="password-toggle" data-target="password">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                </div>
-                                <span class="error-message" id="passwordError">
-                                    <i class="fas fa-exclamation-circle"></i>
-                                    Password does not meet requirements
-                                </span>
-                            </div>
-
-                            <div class="form-group">
-                                <label>Confirm Password <span class="required">*</span></label>
-                                <div class="password-container">
-                                    <input type="password" class="form-control" id="confirmPassword" placeholder="Re-enter password" required autocomplete="new-password">
-                                    <button type="button" class="password-toggle" data-target="confirmPassword">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                </div>
-                                <span class="error-message" id="confirmPasswordError">
-                                    <i class="fas fa-exclamation-circle"></i>
-                                    Passwords do not match
-                                </span>
-                            </div>
-                        </div>
-
-                        <div class="password-requirements" id="passwordRequirements" style="display: none;">
-                            <p class="requirements-title"><i class="fas fa-info-circle"></i> Password Requirements:</p>
-                            <div class="requirements-list">
-                                <div class="requirement" id="reqLength">
-                                    <i class="fas fa-circle"></i>
-                                    <span>At least 8 characters long</span>
-                                </div>
-                                <div class="requirement" id="reqNumber">
-                                    <i class="fas fa-circle"></i>
-                                    <span>Contains at least one number</span>
-                                </div>
-                                <div class="requirement" id="reqSymbol">
-                                    <i class="fas fa-circle"></i>
-                                    <span>Contains a special character (#, *, &)</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </form>
-            </div>
+                </div>
+            </div>-->
+                }
+                </div>
 
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" id="cancelAddModalBtn">
                     <i class="fas fa-times"></i>
                     <span>Cancel</span>
                 </button>
-                <button type="button" class="btn btn-primary" id="submitAddBtn">
+                <button type="submit" form="addUserForm" class="btn btn-primary" id="submitAddBtn">
                     <i class="fas fa-check"></i>
                     <span>Create User</span>
                 </button>
@@ -566,131 +444,136 @@
             </div>
 
             <div class="modal-body">
-                <form id="editUserForm">
-                    <!-- Personal Information Section -->
-                    <div class="form-section">
-                        <div class="form-section-header">
-                            <i class="fas fa-user-circle"></i>
-                            <h3>Personal Information</h3>
+                @using (Html.BeginForm("EditUser", "AdminDashboard", FormMethod.Post, new { id = "editUserForm" }))
+                {
+                    @Html.AntiForgeryToken()
+                    <!-- Add hidden field for ID -->
+                    <input type="hidden" name="ID" id="editUserId" />
+
+                        <!-- Personal Information Section -->
+                        <div class="form-section">
+                            <div class="form-section-header">
+                                <i class="fas fa-user-circle"></i>
+                                <h3>Personal Information</h3>
+                            </div>
+
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label>First Name <span class="required">*</span></label>
+                                    <input type="text" name="FirstName" class="form-control" id="editFirstName" placeholder="Enter first name" required>
+                                    <span class="error-message" id="editFirstNameError">
+                                        <i class="fas fa-exclamation-circle"></i>
+                                        First name is required
+                                    </span>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Last Name <span class="required">*</span></label>
+                                    <input type="text" name="LastName" class="form-control" id="editLastName" placeholder="Enter last name" required>
+                                    <span class="error-message" id="editLastNameError">
+                                        <i class="fas fa-exclamation-circle"></i>
+                                        Last name is required
+                                    </span>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Middle Name <span class="optional">(Optional)</span></label>
+                                    <input type="text" name="MiddleName" class="form-control" id="editMiddleName" placeholder="Enter middle name">
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Suffix <span class="optional">(Optional)</span></label>
+                                    <input type="text" name="Suffix" class="form-control" id="editSuffix" placeholder="Jr., Sr., III">
+                                </div>
+                            </div>
                         </div>
 
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label>First Name <span class="required">*</span></label>
-                                <input type="text" class="form-control" id="editFirstName" placeholder="Enter first name" required>
-                                <span class="error-message" id="editFirstNameError">
-                                    <i class="fas fa-exclamation-circle"></i>
-                                    First name is required
-                                </span>
+                        <!-- Account Information Section -->
+                        <div class="form-section">
+                            <div class="form-section-header">
+                                <i class="fas fa-id-card"></i>
+                                <h3>Account Information</h3>
                             </div>
 
-                            <div class="form-group">
-                                <label>Last Name <span class="required">*</span></label>
-                                <input type="text" class="form-control" id="editLastName" placeholder="Enter last name" required>
-                                <span class="error-message" id="editLastNameError">
-                                    <i class="fas fa-exclamation-circle"></i>
-                                    Last name is required
-                                </span>
-                            </div>
+                            <div class="form-grid">
+                                <div class="form-group full-width">
+                                    <label>Email Address <span class="required">*</span></label>
+                                    <input type="email" name="Email" class="form-control" id="editEmail" placeholder="user@example.com" required>
+                                    <span class="error-message" id="editEmailError">
+                                        <i class="fas fa-exclamation-circle"></i>
+                                        Please enter a valid email address
+                                    </span>
+                                </div>
 
-                            <div class="form-group">
-                                <label>Middle Name <span class="optional">(Optional)</span></label>
-                                <input type="text" class="form-control" id="editMiddleName" placeholder="Enter middle name">
+                                @*<div class="form-group full-width">
+                            <label>Username <span class="required">*</span></label>
+                            <input type="text" class="form-control" id="editUsername" placeholder="Enter username" required>
+                            <span class="error-message" id="editUsernameError">
+                                <i class="fas fa-exclamation-circle"></i>
+                                Username is required
+                            </span>
+                        </div>*@
                             </div>
+                        </div>
 
-                            <div class="form-group">
-                                <label>Suffix <span class="optional">(Optional)</span></label>
-                                <input type="text" class="form-control" id="editSuffix" placeholder="Jr., Sr., III">
+                        <!-- Security Section -->
+                        @*<div class="form-section">
+                    <div class="form-section-header">
+                        <i class="fas fa-lock"></i>
+                        <h3>Change Password</h3>
+                        <span class="section-badge optional-badge">Optional</span>
+                    </div>
+                    <p class="section-description">Leave blank to keep the current password</p>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>New Password <span class="optional">(Optional)</span></label>
+                            <div class="password-container">
+                                <input type="password" class="form-control" id="editNewPassword" placeholder="Enter new password" autocomplete="new-password">
+                                <button type="button" class="password-toggle" data-target="editNewPassword">
+                                    <i class="fas fa-eye"></i>
+                                </button>
                             </div>
+                            <span class="error-message" id="editPasswordError">
+                                <i class="fas fa-exclamation-circle"></i>
+                                Password does not meet requirements
+                            </span>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Confirm New Password</label>
+                            <div class="password-container">
+                                <input type="password" class="form-control" id="editConfirmPassword" placeholder="Re-enter new password" autocomplete="new-password">
+                                <button type="button" class="password-toggle" data-target="editConfirmPassword">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                            <span class="error-message" id="editConfirmPasswordError">
+                                <i class="fas fa-exclamation-circle"></i>
+                                Passwords do not match
+                            </span>
                         </div>
                     </div>
 
-                    <!-- Account Information Section -->
-                    <div class="form-section">
-                        <div class="form-section-header">
-                            <i class="fas fa-id-card"></i>
-                            <h3>Account Information</h3>
-                        </div>
-
-                        <div class="form-grid">
-                            <div class="form-group full-width">
-                                <label>Email Address <span class="required">*</span></label>
-                                <input type="email" class="form-control" id="editEmail" placeholder="user@example.com" required>
-                                <span class="error-message" id="editEmailError">
-                                    <i class="fas fa-exclamation-circle"></i>
-                                    Please enter a valid email address
-                                </span>
+                    <div class="password-requirements" id="editPasswordRequirements" style="display: none;">
+                        <p class="requirements-title"><i class="fas fa-info-circle"></i> Password Requirements:</p>
+                        <div class="requirements-list">
+                            <div class="requirement" id="editReqLength">
+                                <i class="fas fa-circle"></i>
+                                <span>At least 8 characters long</span>
                             </div>
-
-                            <div class="form-group full-width">
-                                <label>Username <span class="required">*</span></label>
-                                <input type="text" class="form-control" id="editUsername" placeholder="Enter username" required>
-                                <span class="error-message" id="editUsernameError">
-                                    <i class="fas fa-exclamation-circle"></i>
-                                    Username is required
-                                </span>
+                            <div class="requirement" id="editReqNumber">
+                                <i class="fas fa-circle"></i>
+                                <span>Contains at least one number</span>
+                            </div>
+                            <div class="requirement" id="editReqSymbol">
+                                <i class="fas fa-circle"></i>
+                                <span>Contains a special character (#, *, &)</span>
                             </div>
                         </div>
                     </div>
-
-                    <!-- Security Section -->
-                    <div class="form-section">
-                        <div class="form-section-header">
-                            <i class="fas fa-lock"></i>
-                            <h3>Change Password</h3>
-                            <span class="section-badge optional-badge">Optional</span>
-                        </div>
-                        <p class="section-description">Leave blank to keep the current password</p>
-
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label>New Password <span class="optional">(Optional)</span></label>
-                                <div class="password-container">
-                                    <input type="password" class="form-control" id="editNewPassword" placeholder="Enter new password" autocomplete="new-password">
-                                    <button type="button" class="password-toggle" data-target="editNewPassword">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                </div>
-                                <span class="error-message" id="editPasswordError">
-                                    <i class="fas fa-exclamation-circle"></i>
-                                    Password does not meet requirements
-                                </span>
-                            </div>
-
-                            <div class="form-group">
-                                <label>Confirm New Password</label>
-                                <div class="password-container">
-                                    <input type="password" class="form-control" id="editConfirmPassword" placeholder="Re-enter new password" autocomplete="new-password">
-                                    <button type="button" class="password-toggle" data-target="editConfirmPassword">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                </div>
-                                <span class="error-message" id="editConfirmPasswordError">
-                                    <i class="fas fa-exclamation-circle"></i>
-                                    Passwords do not match
-                                </span>
-                            </div>
-                        </div>
-
-                        <div class="password-requirements" id="editPasswordRequirements" style="display: none;">
-                            <p class="requirements-title"><i class="fas fa-info-circle"></i> Password Requirements:</p>
-                            <div class="requirements-list">
-                                <div class="requirement" id="editReqLength">
-                                    <i class="fas fa-circle"></i>
-                                    <span>At least 8 characters long</span>
-                                </div>
-                                <div class="requirement" id="editReqNumber">
-                                    <i class="fas fa-circle"></i>
-                                    <span>Contains at least one number</span>
-                                </div>
-                                <div class="requirement" id="editReqSymbol">
-                                    <i class="fas fa-circle"></i>
-                                    <span>Contains a special character (#, *, &)</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </form>
+                </div>*@
+                }
             </div>
 
             <div class="modal-footer">
@@ -698,7 +581,7 @@
                     <i class="fas fa-times"></i>
                     <span>Cancel</span>
                 </button>
-                <button type="button" class="btn btn-primary" id="submitEditBtn">
+                <button type="submit" form="editUserForm" class="btn btn-primary"> <!--id="submitEditBtn"-->
                     <i class="fas fa-check"></i>
                     <span>Save Changes</span>
                 </button>
@@ -768,6 +651,5 @@
     </div>
 
     <script src="~/Scripts/librarian.js"></script>
-    </script>
 </body>
 </html>

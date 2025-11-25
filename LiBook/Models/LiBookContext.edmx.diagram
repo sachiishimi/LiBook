@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+ <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <!-- Diagram content (shape and connector positions) -->
+    <edmx:Diagrams>
+      <Diagram DiagramId="a7cadbe884dc47e3bfc98cf261e9e554" Name="Diagram1">
+        <EntityTypeShape EntityType="LiBookModel.Booking" Width="1.5" PointX="3" PointY="4" IsExpanded="true" />
+        <EntityTypeShape EntityType="LiBookModel.Member" Width="1.5" PointX="5.25" PointY="2.625" IsExpanded="true" />
+        <EntityTypeShape EntityType="LiBookModel.RoleMaster" Width="1.5" PointX="3.75" PointY="12.375" IsExpanded="true" />
+        <EntityTypeShape EntityType="LiBookModel.Room" Width="1.5" PointX="0.75" PointY="0.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="LiBookModel.Schedule" Width="1.5" PointX="0.75" PointY="8.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="LiBookModel.UserRolesMapping" Width="1.5" PointX="6" PointY="5.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="LiBookModel.User" Width="1.5" PointX="0.75" PointY="4.5" IsExpanded="true" />
+        <AssociationConnector Association="LiBookModel.FK__Booking__RoomID__5070F446" ManuallyRouted="false" />
+        <AssociationConnector Association="LiBookModel.FK__Booking__Schedul__5165187F" ManuallyRouted="false" />
+        <AssociationConnector Association="LiBookModel.FK__Members__Booking__5535A963" ManuallyRouted="false" />
+        <AssociationConnector Association="LiBookModel.FK__UserRoles__RoleI__4F7CD00D" ManuallyRouted="false" />
+        <AssociationConnector Association="LiBookModel.FK__UserRoles__UserI__4E88ABD4" ManuallyRouted="false" />
+      </Diagram>
+    </edmx:Diagrams>
+  </edmx:Designer>
+</edmx:Edmx>

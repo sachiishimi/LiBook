@@ -1,4 +1,6 @@
-﻿@{
+﻿@model IEnumerable<LiBook.Models.Room>
+
+@{
     ViewBag.Title = "Room Management";
 }
 <!DOCTYPE html>
@@ -66,9 +68,14 @@
                 </button>
             </div>
 
-            <div class="search-bar">
-                <i class="fas fa-search"></i>
-                <input type="text" placeholder="Search...">
+            @*<div class="search-bar">
+            <i class="fas fa-search"></i>
+            <input type="text" placeholder="Search...">
+        </div>*@
+
+            <div class="content-header">
+                <h1>Room Management</h1>
+                <p>Manage collaboration rooms and their availability.</p>
             </div>
 
             <div class="topbar-actions">
@@ -110,10 +117,6 @@
 
         <!-- Room Management Content -->
         <main class="content">
-            <div class="content-header">
-                <h1>Room Management</h1>
-                <p>Manage collaboration rooms and their availability.</p>
-            </div>
 
             <div class="header-actions">
                 <div class="search-container">
@@ -131,192 +134,93 @@
             <div class="rooms-card">
                 <div class="card-header">
                     <h2>Collaboration Rooms</h2>
-                    <span class="rooms-count"><span id="roomCount">6</span> rooms</span>
+                    <span class="rooms-count"><span id="roomCount">@Model.Count()</span> rooms</span>
                 </div>
 
                 <table class="rooms-table">
                     <thead>
                         <tr>
-                            <th width="50"></th>
                             <th>Room Name</th>
-                            <th>Room User 1</th>
-                            <th>Room User 2</th>
+                            <th>Room Type</th>
+                            <th>Capacity</th>
                             <th>Status</th>
                             <th style="text-align: center;">Actions</th>
                         </tr>
                     </thead>
                     <tbody id="roomsTableBody">
-                        <tr>
-                            <td class="checkbox-cell"><input type="checkbox" class="custom-checkbox"></td>
-                            <td>
-                                <div class="room-info">
-                                    <div class="room-icon">
-                                        <i class="fas fa-door-open"></i>
+                        @if (Model.Any())
+                        {
+                            foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="room-info">
+                                            <div class="room-icon">
+                                                <i class="fas fa-door-open"></i>
+                                            </div>
+                                            <div class="room-details">
+                                                <h3>@Html.DisplayFor(modelItem => item.RoomName)</h3>
+                                                <span class="room-id" data-room-id="@item.ID">Room #@Html.DisplayFor(modelItem => item.ID)</span>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td><span class="user-type student">@Html.DisplayFor(modelItem => item.RoomType)</span></td>
+                                    <td><span class="capacity">@Html.DisplayFor(modelItem => item.Capacity)</span></td>
+                                    <td><span class="status-badge available">@Html.DisplayFor(modelItem => item.Availability)</span></td>
+                                    <td>
+                                        <div class="action-buttons">
+                                            <button class="icon-btn edit" title="Edit Room" data-tooltip="Edit Room">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="icon-btn archive" title="Archive Room" data-tooltip="Archive Room">
+                                                <i class="fas fa-archive"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr id="noRoomsRow">
+                                <td colspan="5" style="text-align: center; padding: 3rem;">
+                                    <div style="text-align: center; color: var(--text-light);">
+                                        <i class="fas fa-door-closed" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+                                        <h3 style="font-family: 'League Spartan', sans-serif; margin-bottom: 0.5rem; color: var(--text-dark);">No Rooms Available</h3>
+                                        <p style="margin-bottom: 1.5rem;">There are no rooms available at this moment.</p>
+
                                     </div>
-                                    <div class="room-details">
-                                        <h3>Student Collab Room 1</h3>
-                                        <span class="room-id">Room #001</span>
-                                    </div>
-                                </div>
-                            </td>
-                            <td><span class="user-type student">Student</span></td>
-                            <td><span class="user-type student">Student</span></td>
-                            <td><span class="status-badge available">Available</span></td>
-                            <td>
-                                <div class="action-buttons">
-                                    <button class="icon-btn edit" title="Edit Room">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button class="icon-btn archive" title="Archive Room">
-                                        <i class="fas fa-archive"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="checkbox-cell"><input type="checkbox" class="custom-checkbox"></td>
-                            <td>
-                                <div class="room-info">
-                                    <div class="room-icon">
-                                        <i class="fas fa-door-open"></i>
-                                    </div>
-                                    <div class="room-details">
-                                        <h3>Student Collab Room 2</h3>
-                                        <span class="room-id">Room #002</span>
-                                    </div>
-                                </div>
-                            </td>
-                            <td><span class="user-type student">Student</span></td>
-                            <td><span class="user-type student">Student</span></td>
-                            <td><span class="status-badge in-use">In Use</span></td>
-                            <td>
-                                <div class="action-buttons">
-                                    <button class="icon-btn edit" title="Edit Room">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button class="icon-btn archive" title="Archive Room">
-                                        <i class="fas fa-archive"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="checkbox-cell"><input type="checkbox" class="custom-checkbox"></td>
-                            <td>
-                                <div class="room-info">
-                                    <div class="room-icon">
-                                        <i class="fas fa-door-open"></i>
-                                    </div>
-                                    <div class="room-details">
-                                        <h3>Student Collab Room 3</h3>
-                                        <span class="room-id">Room #003</span>
-                                    </div>
-                                </div>
-                            </td>
-                            <td><span class="user-type student">Student</span></td>
-                            <td><span class="user-type visitor">Visitor</span></td>
-                            <td><span class="status-badge available">Available</span></td>
-                            <td>
-                                <div class="action-buttons">
-                                    <button class="icon-btn edit" title="Edit Room">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button class="icon-btn archive" title="Archive Room">
-                                        <i class="fas fa-archive"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="checkbox-cell"><input type="checkbox" class="custom-checkbox"></td>
-                            <td>
-                                <div class="room-info">
-                                    <div class="room-icon">
-                                        <i class="fas fa-door-open"></i>
-                                    </div>
-                                    <div class="room-details">
-                                        <h3>Student Collab Room 4</h3>
-                                        <span class="room-id">Room #004</span>
-                                    </div>
-                                </div>
-                            </td>
-                            <td><span class="user-type student">Student</span></td>
-                            <td><span class="user-type visitor">Visitor</span></td>
-                            <td><span class="status-badge available">Available</span></td>
-                            <td>
-                                <div class="action-buttons">
-                                    <button class="icon-btn edit" title="Edit Room">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button class="icon-btn archive" title="Archive Room">
-                                        <i class="fas fa-archive"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="checkbox-cell"><input type="checkbox" class="custom-checkbox"></td>
-                            <td>
-                                <div class="room-info">
-                                    <div class="room-icon">
-                                        <i class="fas fa-door-open"></i>
-                                    </div>
-                                    <div class="room-details">
-                                        <h3>Faculty Collab Room 1</h3>
-                                        <span class="room-id">Room #005</span>
-                                    </div>
-                                </div>
-                            </td>
-                            <td><span class="user-type faculty">Faculty</span></td>
-                            <td><span class="user-type faculty">Faculty</span></td>
-                            <td><span class="status-badge in-use">In Use</span></td>
-                            <td>
-                                <div class="action-buttons">
-                                    <button class="icon-btn edit" title="Edit Room">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button class="icon-btn archive" title="Archive Room">
-                                        <i class="fas fa-archive"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="checkbox-cell"><input type="checkbox" class="custom-checkbox"></td>
-                            <td>
-                                <div class="room-info">
-                                    <div class="room-icon">
-                                        <i class="fas fa-door-open"></i>
-                                    </div>
-                                    <div class="room-details">
-                                        <h3>Admin Collab Room 1</h3>
-                                        <span class="room-id">Room #006</span>
-                                    </div>
-                                </div>
-                            </td>
-                            <td><span class="user-type admin">Admin</span></td>
-                            <td><span class="user-type admin">Admin</span></td>
-                            <td><span class="status-badge in-use">In Use</span></td>
-                            <td>
-                                <div class="action-buttons">
-                                    <button class="icon-btn edit" title="Edit Room">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button class="icon-btn archive" title="Archive Room">
-                                        <i class="fas fa-archive"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
+                                </td>
+                            </tr>
+                        }
                     </tbody>
                 </table>
+                @if (Model.Any() && Model.Count() >= 5)
+                {
+                    <div class="table-pagination" id="roomsPagination">
+                        <div class="pagination-info">
+                            Showing <span id="paginationStart">1</span>-<span id="paginationEnd">5</span> of <span id="paginationTotal">@Model.Count()</span> rooms
+                        </div>
+                        <div class="pagination-controls">
+                            <button class="pagination-btn" id="prevPage" disabled>
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+                            <div class="pagination-pages" id="paginationPages">
+                            </div>
+                            <button class="pagination-btn" id="nextPage">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                }
             </div>
         </main>
     </div>
 
 
     <!-- Add/Edit Room Modal - Redesigned -->
-    <div class="modal-overlay" id="roomModal">
+    <!-- Add Room Modal -->
+    <div class="modal-overlay" id="addRoomModal">
         <div class="modal-container modal-medium">
             <div class="modal-header">
                 <div class="modal-header-content">
@@ -324,17 +228,124 @@
                         <i class="fas fa-door-open"></i>
                     </div>
                     <div class="modal-title-wrapper">
-                        <h2 id="modalTitle">Add New Room</h2>
+                        <h2>Add New Room</h2>
                         <p class="modal-subtitle">Configure collaboration room settings</p>
                     </div>
                 </div>
-                <button class="close-modal" id="closeModal" type="button">
+                <button class="close-modal" id="closeAddModal" type="button">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
 
             <div class="modal-body">
-                <form id="roomForm">
+                @using (Html.BeginForm("CreateRoom", "AdminDashboard", FormMethod.Post, new { id = "addRoomForm" }))
+                {
+                    @Html.AntiForgeryToken()
+                        <!-- Room Information Section -->
+                        <div class="form-section">
+                            <div class="form-section-header">
+                                <i class="fas fa-info-circle"></i>
+                                <h3>Room Information</h3>
+                            </div>
+
+                            <div class="form-grid">
+                                <div class="form-group full-width">
+                                    <label for="addRoomName">Room Name <span class="required">*</span></label>
+                                    <input type="text" name="RoomName" class="form-control" id="addRoomName" placeholder="e.g., Student Collab Room 1" required>
+                                    <span class="field-hint">
+                                        <i class="fas fa-lightbulb"></i>
+                                        Choose a descriptive name for easy identification
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- User Configuration Section -->
+                        <div class="form-section">
+                            <div class="form-section-header">
+                                <i class="fas fa-users"></i>
+                                <h3>User Configuration</h3>
+                            </div>
+                            <p class="section-description">Define who can use this collaboration room</p>
+
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label for="addRoomUser1">Primary User Type <span class="required">*</span></label>
+                                    <select class="form-control" name="Roomtype" id="addRoomUser1" required>
+                                        <option value="">Select user type</option>
+                                        <option value="Academic">Academic</option>
+                                        <option value="Faculty">Faculty</option>
+                                        <option value="Public">Public</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="addCapacity">Capacity <span class="required">*</span></label>
+                                    <input type="number" name="Capacity" class="form-control" id="addCapacity" placeholder="e.g., 4" min="1" max="50" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Room Status Section -->
+                        <div class="form-section">
+                            <div class="form-section-header">
+                                <i class="fas fa-toggle-on"></i>
+                                <h3>Room Status</h3>
+                            </div>
+
+                            <div class="form-grid">
+                                <div class="form-group full-width">
+                                    <label for="addRoomStatus">Availability Status <span class="required">*</span></label>
+                                    <select class="form-control" name="Availability" id="addRoomStatus" required>
+                                        <option value="">Select status</option>
+                                        <option value="Available">Available - Ready for use</option>
+                                        <option value="Unavailable">Unavailable - Currently in use</option>
+                                        <option value="Under Maintenance">Under Maintenance - Not accessible</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                }
+                </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="cancelAddBtn">
+                    <i class="fas fa-times"></i>
+                    <span>Cancel</span>
+                </button>
+                <button type="submit" value="Create" form="addRoomForm" class="btn btn-success">
+                    <i class="fas fa-plus"></i>
+                    <span>Add Room</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Room Modal -->
+    <div class="modal-overlay" id="editRoomModal">
+        <div class="modal-container modal-medium">
+            <div class="modal-header">
+                <div class="modal-header-content">
+                    <div class="modal-icon-wrapper room">
+                        <i class="fas fa-door-open"></i>
+                    </div>
+                    <div class="modal-title-wrapper">
+                        <h2>Edit Room</h2>
+                        <p class="modal-subtitle">Update collaboration room settings</p>
+                    </div>
+                </div>
+                <button class="close-modal" id="closeEditModal" type="button">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div class="modal-body">
+                @using (Html.BeginForm("EditRoom", "AdminDashboard", FormMethod.Post, new { id = "editRoomForm" }))
+                {
+                    @Html.AntiForgeryToken()
+                    <!-- Add hidden field for ID -->
+                    <input type="hidden" name="ID" id="editRoomId" />
+
                     <!-- Room Information Section -->
                     <div class="form-section">
                         <div class="form-section-header">
@@ -344,8 +355,8 @@
 
                         <div class="form-grid">
                             <div class="form-group full-width">
-                                <label for="roomName">Room Name <span class="required">*</span></label>
-                                <input type="text" class="form-control" id="roomName" placeholder="e.g., Student Collab Room 1" required>
+                                <label for="editRoomName">Room Name <span class="required">*</span></label>
+                                <input type="text" name="RoomName" class="form-control" id="editRoomName" placeholder="e.g., Student Collab Room 1" required>
                                 <span class="field-hint">
                                     <i class="fas fa-lightbulb"></i>
                                     Choose a descriptive name for easy identification
@@ -364,25 +375,18 @@
 
                         <div class="form-grid">
                             <div class="form-group">
-                                <label for="roomUser1">Primary User Type <span class="required">*</span></label>
-                                <select class="form-control" id="roomUser1" required>
+                                <label for="editRoomUser1">Primary User Type <span class="required">*</span></label>
+                                <select class="form-control" name="RoomType" id="editRoomUser1" required>
                                     <option value="">Select user type</option>
-                                    <option value="student">Student</option>
-                                    <option value="faculty">Faculty</option>
-                                    <option value="admin">Admin</option>
-                                    <option value="visitor">Visitor</option>
+                                    <option value="Academic">Academic</option>
+                                    <option value="Faculty">Faculty</option>
+                                    <option value="Public">Public</option>
                                 </select>
                             </div>
 
                             <div class="form-group">
-                                <label for="roomUser2">Secondary User Type <span class="required">*</span></label>
-                                <select class="form-control" id="roomUser2" required>
-                                    <option value="">Select user type</option>
-                                    <option value="student">Student</option>
-                                    <option value="faculty">Faculty</option>
-                                    <option value="admin">Admin</option>
-                                    <option value="visitor">Visitor</option>
-                                </select>
+                                <label for="editCapacity">Capacity <span class="required">*</span></label>
+                                <input type="number" name="Capacity" class="form-control" id="editCapacity" placeholder="e.g., 4" min="1" max="50" required>
                             </div>
                         </div>
                     </div>
@@ -396,27 +400,27 @@
 
                         <div class="form-grid">
                             <div class="form-group full-width">
-                                <label for="roomStatus">Availability Status <span class="required">*</span></label>
-                                <select class="form-control" id="roomStatus" required>
+                                <label for="editRoomStatus">Availability Status <span class="required">*</span></label>
+                                <select class="form-control" name="Availability" id="editRoomStatus" required>
                                     <option value="">Select status</option>
-                                    <option value="available">Available - Ready for use</option>
-                                    <option value="unavailable">Unavailable - Currently in use</option>
-                                    <option value="under-maintenance">Under Maintenance - Not accessible</option>
+                                    <option value="Available">Available - Ready for use</option>
+                                    <option value="Unavailable">Unavailable - Currently in use</option>
+                                    <option value="Under Maintenance">Under Maintenance - Not accessible</option>
                                 </select>
                             </div>
                         </div>
                     </div>
-                </form>
+                }
             </div>
 
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" id="cancelBtn">
+                <button type="button" class="btn btn-secondary" id="cancelEditBtn">
                     <i class="fas fa-times"></i>
                     <span>Cancel</span>
                 </button>
-                <button type="submit" form="roomForm" class="btn btn-success">
+                <button type="submit" value="Save" form="editRoomForm" class="btn btn-success">
                     <i class="fas fa-check"></i>
-                    <span>Confirm</span>
+                    <span>Update Room</span>
                 </button>
             </div>
         </div>

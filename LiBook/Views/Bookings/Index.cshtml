@@ -1,0 +1,111 @@
+﻿@model IEnumerable<LiBook.Models.Booking>
+
+@{
+    ViewBag.Title = "Index";
+}
+
+<h2>Index</h2>
+
+<p>
+    @Html.ActionLink("Create New", "Create")
+</p>
+<table class="table">
+    <tr>
+        <th>
+            @Html.DisplayNameFor(model => model.StudentNumber)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Program)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Purpose)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.BookingDate)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.SubmittedAt)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.ApprovedAt)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.CancelledAt)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.ReserveeFirstName)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.ReserveeMiddleName)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.ReserveeLastName)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.ReserveeSuffix)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.ReserveeEmail)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Room.RoomName)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Schedule.ID)
+        </th>
+        <th></th>
+    </tr>
+
+@foreach (var item in Model) {
+    <tr>
+        <td>
+            @Html.DisplayFor(modelItem => item.StudentNumber)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.Program)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.Purpose)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.BookingDate)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.SubmittedAt)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.ApprovedAt)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.CancelledAt)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.ReserveeFirstName)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.ReserveeMiddleName)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.ReserveeLastName)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.ReserveeSuffix)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.ReserveeEmail)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.Room.RoomName)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.Schedule.ID)
+        </td>
+        <td>
+            @Html.ActionLink("Edit", "Edit", new { id=item.ID }) |
+            @Html.ActionLink("Details", "Details", new { id=item.ID }) |
+            @Html.ActionLink("Delete", "Delete", new { id=item.ID })
+        </td>
+    </tr>
+}
+
+</table>
