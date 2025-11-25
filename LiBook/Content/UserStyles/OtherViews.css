@@ -1,0 +1,211 @@
+﻿body, html {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.faculty-form-container {
+    /*        background: linear-gradient(130deg, #F89104 0.05%, #F9FAF5 40%, #F9FAF5 70%, #8b4545 70%, #6b2c2c 100%);*/
+    background-image: linear-gradient(130deg, #FFFFC5 0.5%, rgba(249, 250, 245, 0.85) 40%, rgba(249, 250, 245, 0.85) 70%, #00172D 70%, #000B18 100%), url('/Content/Images/libphoto.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #1a1a1a;
+}
+
+.form-card {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 30px 40px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    position: relative;
+}
+
+.form-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 30px;
+    padding-bottom: 15px;
+    border-bottom: 3px solid #000;
+}
+
+.back-arrow {
+    font-size: 24px;
+    margin-right: 15px;
+    cursor: pointer;
+    text-decoration: none;
+    color: #000;
+}
+
+.form-header h2 {
+    margin: 0;
+    font-size: 28px;
+    font-weight: 600;
+    font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+}
+
+.form-content {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 30px;
+}
+
+.form-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    align-items: end;
+}
+
+    .form-row.two-col {
+        grid-template-columns: 1fr 2fr;
+    }
+
+    .form-row.two-col-balanced {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .form-row.full {
+        grid-template-columns: 1fr;
+    }
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+    .form-group label {
+        font-weight: bold;
+        margin-bottom: 5px;
+        font-size: 14px;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group option {
+        padding: 8px 10px;
+        border: 1px solid #000;
+        font-size: 14px;
+        width: 100%;
+        box-sizing: border-box;
+        border-radius: 10px;
+        border-color: #1a1a1a;
+        background: rgba(255, 255, 255, 0.8); /* 0 = transparent, 1 = solid */
+    }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none; /* Removes the default browser outline */
+            border: 1px solid #007BFF; /* Changes border color */
+            box-shadow: 0 0 2px rgba(0, 123, 255, 0.5); /* Optional glow effect */
+        }
+
+.student-number-group {
+    display: flex;
+    gap: 5px;
+    align-items: end;
+}
+
+    .student-number-group input:first-child {
+        width: 60px;
+    }
+
+    .student-number-group span {
+        padding: 0 5px;
+        font-weight: bold;
+    }
+
+.members-section {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.members-columns {
+    display: flex;
+    gap: 20px; /* space between columns */
+}
+
+.members-column {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+}
+
+    .members-column input {
+        /*            width: 100%;*/
+        height: 25px;
+        box-sizing: border-box;
+        border-radius: 5px;
+    }
+
+.photo-section {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.photo-placeholder {
+    width: 260px;
+    height: 400px;
+/*    background-image: url('/Content/Images/qculogo.png');*/
+/*    background-repeat: no-repeat;*/
+    /*        border: 2px dashed #ccc;*/
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #999;
+    font-size: 14px;
+}
+
+    .photo-placeholder img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover; /* or contain depending on your need */
+        display: block; /* removes extra space below images */
+    }
+
+.btn-next {
+    background: #2c3e50;
+    color: white;
+    padding: 12px 40px;
+    border: none;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    float: right;
+    margin-top: 20px;
+    font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+    font-weight: 600;
+    border-radius: 25px;
+}
+
+    .btn-next:hover {
+        background: #1a252f;
+    }
+
+.time-fields {
+    display: flex;
+    gap: 5px;
+}
+
+    .time-fields input {
+        flex: 1;
+    }
+
+#addMemberBtn, #removeMemberBtn {
+    background-color: lightgrey;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}

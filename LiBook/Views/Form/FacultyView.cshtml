@@ -1,0 +1,229 @@
+﻿@*@model StudentFormViewModel*@
+
+@{
+    ViewBag.Title = "Faculty Form";
+    Layout = null;
+}
+
+<title>@ViewBag.Title</title>
+
+    <link href="~/Content/UserStyles/OtherViews.css" rel="stylesheet" />
+    <link rel="icon" type="image/png" href="~/Content/images/qculogo.png">
+    <div class="faculty-form-container">
+        <div class="form-card">
+            <div class="form-header">
+                <a href="@Url.Action("RoleSelection", "Home")" class="back-arrow">←</a>
+                <h2>@ViewBag.Title</h2>
+            </div>
+
+            @using (Html.BeginForm("Index", "Home", FormMethod.Post, new { enctype = "multipart/form-data" }))
+            {
+                @Html.AntiForgeryToken()
+
+                <div class="form-content">
+                    <div class="form-fields">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Last Name:</label>
+                                <input type="text" name="LastName" class="form-control" required maxlength="50" />
+                            </div>
+                            <div class="form-group">
+                                <label>First Name:</label>
+                                <input type="text" name="FirstName" class="form-control" required maxlength="50" />
+                            </div>
+                            <div class="form-group">
+                                <label>M.I.:</label>
+                                <input type="text" name="MiddleInitial" class="form-control" maxlength="2" />
+                            </div>
+                            <div class="form-group">
+                                <label>Suffix:</label>
+                                <input type="text" name="Suffix" class="form-control" maxlength="10" />
+                            </div>
+                        </div>
+
+                        <div class="form-row two-col">
+
+                            <div class="form-group">
+                                <label>No. of Members:</label>
+                                <input type="number" id="memberCount" name="NumberOfMembers" class="form-control" min="2" max="10" />
+                            </div>
+
+                            <div class="form-group">
+                                <label>Email:</label>
+                                <input type="email" name="Email" class="form-control" maxlength="254" required />
+                            </div>
+
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Date:</label>
+                                <input type="date" name="Date" class="form-control" min="@DateTime.Now.ToString("yyyy-MM-dd")" required />
+                            </div>
+                            <div class="form-group" style="grid-column: span 2;">
+                                <label>Time:</label>
+                                <div class="time-fields">
+                                    <input type="time" name="TimeStart" class="form-control" required />
+                                    <span style="align-self: center;">-</span>
+                                    <input type="time" name="TimeEnd" class="form-control" required />
+                                </div>
+                            </div>
+
+                        </div>
+                        <div class="form-row two-col">
+                            <div class="form-group">
+                                <label>Purpose:</label>
+                                <select name="Purpose" class="form-control" required>
+                                    <option value="" disabled selected>Select Purpose</option>
+                                    <option value="Meeting">Meeting</option>
+                                    <option value="Group Study">Group Study</option>
+                                    <option value="Discussion">Discussion</option>
+                                    <option value="Presentation">Presentation / Workshop</option>
+                                    <option value="Brainstorming">Brainstorming Session</option>
+                                    <option value="Interview">Interview</option>
+                                    <option value="Exam Preparation">Exam / Test Preparation</option>
+                                    <option value="Team Collaboration">Team Collaboration</option>
+                                    <option value="Project Planning">Project Planning</option>
+                                    <option value="Training">Training / Seminar</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Department:</label>
+                                <select name="Department" class="form-control" required>
+                                    <option value="" disabled selected>Select Department</option>
+
+                                    <option value="Bachelor of Science in Accountancy">Bachelor of Science in Accountancy (BSA)</option>
+                                    <option value="Bachelor of Science in Entrepreneurship">Bachelor of Science in Entrepreneurship (BSEntrep)</option>
+                                    <option value="Bachelor of Science in Management Accounting">Bachelor of Science in Management Accounting (BSMA)</option>
+
+                                    <option value="Bachelor of Science in Electronics Engineering">Bachelor of Science in Electronics Engineering (BSECE)</option>
+                                    <option value="Bachelor of Science in Industrial Engineering">Bachelor of Science in Industrial Engineering (BSIE)</option>
+                                    <option value="Bachelor of Science in Computer Engineering">Bachelor of Science in Computer Engineering (BSCpE)</option>
+
+                                    <option value="Bachelor of Early Childhood Education">Bachelor of Early Childhood Education (BECEd)</option>
+
+                                    <option value="Bachelor of Science in Information Technology">Bachelor of Science in Information Technology (BSIT)</option>
+                                    <option value="Bachelor of Science in Information System">Bachelor of Science in Information System (BSIS)</option>
+                                    <option value="Bachelor of Science in Computer Science">Bachelor of Science in Computer Science (BSCS)</option>
+
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="photo-section">
+                        <div class="photo-placeholder">
+                            <img src="~/Content/images/faculty.png" />
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-next" id="submitBtn">Next</button>
+                <div style="clear: both;"></div>
+            }
+        </div>
+    </div>
+
+@* Modal Partial *@
+@Html.Partial("_ConfirmModal")
+
+<script>
+    const container = document.getElementById("membersContainer");
+    const addBtn = document.getElementById("addMemberBtn");
+    const removeBtn = document.getElementById("removeMemberBtn");
+    const memberCountInput = document.getElementById("memberCount");
+    const maxMembers = 10;
+
+    let memberIndex = 2; // starts with 2
+    let currentColumn = 1;
+
+    // Add Member
+    addBtn.addEventListener("click", () => {
+        if (memberIndex >= maxMembers) { alert("Max 10 members."); return; }
+        memberIndex++;
+        memberCountInput.value = memberIndex;
+
+        if ((memberIndex - 1) % 2 === 0) {
+            currentColumn++;
+            const newColumn = document.createElement("div");
+            newColumn.className = "members-column";
+            newColumn.id = "column-" + currentColumn;
+            container.appendChild(newColumn);
+        }
+
+        const input = document.createElement("input");
+        input.type = "text";
+        input.name = "Member" + memberIndex;
+        input.className = "form-control";
+        input.required = true;  // <-- makes it required
+        input.placeholder = "Member " + memberIndex;
+        document.getElementById("column-" + currentColumn).appendChild(input);
+    });
+
+    // Remove Member
+    removeBtn.addEventListener("click", () => {
+        if (memberIndex <= 2) { alert("Must have at least 2 members."); return; }
+
+        const lastInput = document.querySelector(`#column-${currentColumn} input:last-child`);
+        if (lastInput) {
+            lastInput.remove();
+            memberIndex--;
+            memberCountInput.value = memberIndex;
+
+            const colDiv = document.getElementById("column-" + currentColumn);
+            if (colDiv.children.length === 0) { colDiv.remove(); currentColumn--; }
+        }
+    });
+
+    // Modal Confirmation
+    const form = document.querySelector("form");
+    const modal = document.getElementById("confirmModal");
+    const modalContent = document.getElementById("modalContent");
+    const modalConfirmBtn = document.getElementById("confirmSubmitBtn");
+    const modalCancelBtn = document.getElementById("closeModalBtn");
+
+    form.addEventListener("submit", (e) => {
+        e.preventDefault();
+
+        // Build formatted fields
+        const last = form["LastName"].value;
+        const first = form["FirstName"].value;
+        const mi = form["MiddleInitial"].value;
+        const suf = form["Suffix"].value;
+
+        const studentNum = `${form["StudentNumberPrefix"].value}-${form["StudentNumberSuffix"].value}`;
+        const email = form["Email"].value;
+        const purpose = form["Purpose"].value;
+        const program = form["Program"].value;
+        const date = form["Date"].value;
+        const timeStart = form["TimeStart"].value;
+        const timeEnd = form["TimeEnd"].value;
+
+        // Members
+        let members = "";
+        const totalMembers = parseInt(form["NumberOfMembers"].value);
+
+        for (let i = 1; i <= totalMembers; i++) {
+            const val = form[`Member${i}`].value;
+            members += `<li>${val}</li>`;
+        }
+
+        // Final formatted modal HTML
+        const html = `
+        <p><strong>Name:</strong> ${last}, ${first} ${mi ? mi + "." : ""} ${suf}</p>
+        <p><strong>Student Number:</strong> ${studentNum}</p>
+        <p><strong>Email:</strong> ${email}</p>
+        <p><strong>Program:</strong> ${program}</p>
+        <p><strong>Purpose:</strong> ${purpose}</p>
+        <p><strong>Date:</strong> ${date}</p>
+        <p><strong>Time:</strong> ${timeStart} - ${timeEnd}</p>
+
+        <p><strong>Members (${totalMembers}):</strong></p>
+        <ul>${members}</ul>
+    `;
+
+        modalContent.innerHTML = html;
+        modal.style.display = "flex";
+    });
+
+</script>

@@ -1,5 +1,5 @@
 ﻿@{
-    ViewBag.Title = "RoleSelection";
+    ViewBag.Title = "Role Selection";
     Layout = null;
 }
 
@@ -16,7 +16,9 @@
     <div class="container">
         <div class="left-side">
             <div class="logo-section">
-                <h1 class="logo">QCU <span>LiBook</span></h1>
+                <a href="@Url.Action("Index", "Home")" style="text-decoration:none; color:inherit;">
+                    <h1 class="logo">QCU <span>LiBook</span></h1>
+                </a>
             </div>
 
             <form action="@Url.Action("RoleSelection", "Home")" method="get">
