@@ -3415,3 +3415,91 @@ body {
         opacity: 1;
     }
 }
+
+/* ============================================
+   ROOM TYPE BADGE - EYE-CATCHING STYLING
+   ============================================ */
+
+.room-type-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.room-type-tag:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.room-type-tag i {
+    font-size: 1.1rem;
+}
+
+/* Academic Badge - Blue */
+.room-type-tag.room-type-academic {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+/* Faculty Badge - Green */
+.room-type-tag.room-type-faculty {
+    background: linear-gradient(135deg, #56ab2f 0%, #a8e063 100%);
+    color: white;
+}
+
+/* Public Badge - Orange */
+.room-type-tag.room-type-public {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+}
+
+/* Add some animation on load */
+@keyframes badgePulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+}
+
+.room-type-tag {
+    animation: badgePulse 2s ease-in-out infinite;
+}
+
+/* Stop animation on hover */
+.room-type-tag:hover {
+    animation: none;
+}
+
+/* Optional: Add a glow effect */
+.room-type-tag.room-type-academic {
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+.room-type-tag.room-type-faculty {
+    box-shadow: 0 4px 15px rgba(86, 171, 47, 0.4);
+}
+
+.room-type-tag.room-type-public {
+    box-shadow: 0 4px 15px rgba(240, 147, 251, 0.4);
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+    .room-type-tag {
+        font-size: 0.85rem;
+        padding: 8px 12px;
+    }
+    
+    .room-type-tag i {
+        font-size: 1rem;
+    }
+}

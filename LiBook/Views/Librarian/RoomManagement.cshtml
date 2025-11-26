@@ -114,8 +114,8 @@
                         <input type="text" placeholder="Search rooms..." id="searchRoomInput">
                     </div>
                     <div class="filter-group">
-                        <label>User Type:</label>
-                        <select class="filter-select" id="userTypeFilter">
+                        <label>Room Type:</label>
+                        <select class="filter-select" id="roomTypeFilter">
                             <option value="all">All Types</option>
                             <option value="Academic">Academic</option>
                             <option value="Faculty">Faculty</option>
@@ -136,7 +136,7 @@
                         <i class="fas fa-th"></i>
                     </div>
                     <div class="stat-info">
-                        <h3 id="allCount">@ViewBag.AllCount</h3>
+                        <h3 id="allCount">@(ViewBag.AllCount ?? 0)</h3>
                         <p>All Rooms</p>
                     </div>
                 </div>
@@ -145,7 +145,7 @@
                         <i class="fas fa-door-open"></i>
                     </div>
                     <div class="stat-info">
-                        <h3 id="availableCount">@ViewBag.AvailableCount</h3>
+                        <h3 id="availableCount">@(ViewBag.AvailableCount ?? 0)</h3>
                         <p>Available</p>
                     </div>
                 </div>
@@ -154,7 +154,7 @@
                         <i class="fas fa-ban"></i>
                     </div>
                     <div class="stat-info">
-                        <h3 id="unavailableCount">@ViewBag.UnavailableCount</h3>
+                        <h3 id="unavailableCount">@(ViewBag.UnavailableCount ?? 0)</h3>
                         <p>Unavailable</p>
                     </div>
                 </div>
@@ -163,7 +163,7 @@
                         <i class="fas fa-wrench"></i>
                     </div>
                     <div class="stat-info">
-                        <h3 id="maintenanceCount">@ViewBag.MaintenanceCount</h3>
+                        <h3 id="maintenanceCount">@(ViewBag.MaintenanceCount ?? 0)</h3>
                         <p>Maintenance</p>
                     </div>
                 </div>
@@ -175,91 +175,72 @@
                 {
                     foreach (var room in Model)
                     {
-                        var statusClass = "available";
-                        var statusText = "Available";
-                        var userTypeClass = "academic";
-                        var userTypeIcon = "fa-graduation-cap";
-
-                        if (!string.IsNullOrEmpty(room.Status))
-                        {
-                            statusClass = room.Status.ToLower();
-                            statusText = room.Status;
-                        }
-
-                        if (!string.IsNullOrEmpty(room.UserType))
-                        {
-                            userTypeClass = room.UserType.ToLower();
-
-                            if (userTypeClass == "faculty")
-                            {
-                                userTypeIcon = "fa-chalkboard-teacher";
-                            }
-                            else if (userTypeClass == "public")
-                            {
-                                userTypeIcon = "fa-users";
-                            }
-                        }
-
+                        // Get actual database values
                         var roomName = room.RoomName ?? "Unknown Room";
-                        var roomType = room.RoomType ?? "Unknown Type";
+                        var roomType = room.RoomType ?? "Academic"; // Academic, Public, or Faculty
                         var capacity = room.Capacity;
-                        var userType = room.UserType ?? "Academic";
-                        var equipment = room.Equipment ?? "Smart TV, Whiteboard";
+                        var availability = room.Status ?? "Available";
 
-                        // IMPORTANT: Convert RoomID to string to ensure it's always rendered
-                        var roomIdStr = room.RoomID.ToString();
+                        // Determine availability status class for card styling
+                        var statusClass = availability.ToLower();
 
-                        <div class="room-card @statusClass" data-room-id="@roomIdStr" data-status="@statusClass" data-user-type="@userTypeClass" data-capacity="@capacity">
+                        // Determine room type styling and icon
+                        var roomTypeClass = roomType.ToLower();
+                        var roomTypeIcon = "fa-graduation-cap"; // Default Academic
+
+                        if (roomTypeClass == "faculty")
+                        {
+                            roomTypeIcon = "fa-chalkboard-teacher";
+                        }
+                        else if (roomTypeClass == "public")
+                        {
+                            roomTypeIcon = "fa-users";
+                        }
+
+                        <div class="room-card @statusClass"
+                             data-room-id="@room.RoomID"
+                             data-status="@statusClass"
+                             data-room-type="@roomTypeClass"
+                             data-capacity="@capacity">
+
+                            <!-- Room Card Header -->
                             <div class="room-card-header">
                                 <div class="room-info">
                                     <h3 class="room-name">@roomName</h3>
-                                    <p class="room-type-label">@roomType</p>
+                                    <p class="room-availability">@availability</p>
                                 </div>
-                                <span class="status-badge status-@statusClass">@statusText</span>
+                                <span class="status-badge status-@statusClass">@availability</span>
                             </div>
+
+                            <!-- Room Card Body -->
                             <div class="room-card-body">
-                                <div class="room-tag room-tag-@userTypeClass">
-                                    <i class="fas @userTypeIcon"></i>
-                                    <span>For: @userType</span>
+                                <!-- SIMPLE ELEGANT ROOM TYPE BADGE -->
+                                <div class="room-tag room-tag-@roomTypeClass">
+                                    <i class="fas @roomTypeIcon"></i>
+                                    <span>For: @roomType</span>
                                 </div>
+
+                                <!-- Room Details -->
                                 <div class="room-details">
                                     <div class="room-detail">
                                         <i class="fas fa-users"></i>
-                                        <span>@capacity people</span>
+                                        <span>Capacity: @capacity</span>
                                     </div>
                                     <div class="room-detail">
-                                        <i class="fas fa-tv"></i>
-                                        <span>@equipment</span>
+                                        <i class="fas fa-door-open"></i>
+                                        <span>@availability</span>
                                     </div>
                                 </div>
 
-                                @if (!string.IsNullOrEmpty(room.CurrentReservation))
-                                {
-                                    <div class="reservation-info">
-                                        <div class="current-reservation">
-                                            <i class="fas fa-user-clock"></i>
-                                            <span><strong>Current:</strong> @room.CurrentReservation</span>
-                                        </div>
-                                    </div>
-                                }
-                                else if (!string.IsNullOrEmpty(room.NextReservation))
-                                {
-                                    <div class="reservation-info">
-                                        <div class="next-reservation">
-                                            <i class="fas fa-clock"></i>
-                                            <span><strong>Next:</strong> @room.NextReservation</span>
-                                        </div>
-                                    </div>
-                                }
-
+                                <!-- Action Buttons -->
                                 <div class="room-actions">
-                                    <button class="room-btn room-btn-primary" onclick="openRoomDetails(@roomIdStr)">
+                                    <button class="room-btn room-btn-primary btn-details" data-room-id="@room.RoomID">
                                         <i class="fas fa-info-circle"></i>
                                         <span>Details</span>
                                     </button>
                                     @if (statusClass == "available")
                                     {
-                                        <button class="room-btn room-btn-success" onclick="createWalkIn(@roomIdStr)">
+                                        <button class="room-btn room-btn-success btn-walkin" data-room-id="@room.RoomID">
                                             <i class="fas fa-user-plus"></i>
                                             <span>Walk-In</span>
                                         </button>
@@ -283,5 +264,27 @@
 
     <!-- Scripts -->
     <script src="~/Scripts/roommanagement.js"></script>
+    <script>
+        // Add event listeners for buttons using data attributes
+        document.addEventListener('DOMContentLoaded', function() {
+            // Details buttons
+            var detailsBtns = document.querySelectorAll('.btn-details');
+            detailsBtns.forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    var roomId = parseInt(this.getAttribute('data-room-id'));
+                    openRoomDetails(roomId);
+                });
+            });
+
+            // Walk-in buttons
+            var walkinBtns = document.querySelectorAll('.btn-walkin');
+            walkinBtns.forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    var roomId = parseInt(this.getAttribute('data-room-id'));
+                    createWalkIn(roomId);
+                });
+            });
+        });
+    </script>
 </body>
 </html>

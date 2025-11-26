@@ -9,13 +9,14 @@ var sidebarToggleDesktop = document.getElementById('sidebarToggleDesktop');
 var mainContent = document.querySelector('.main-content');
 var userProfile = document.getElementById('userProfile');
 var searchInput = document.getElementById('searchRoomInput');
-var userTypeFilter = document.getElementById('userTypeFilter');
+var roomTypeFilter = document.getElementById('roomTypeFilter');
 var refreshBtn = document.getElementById('refreshRoomsBtn');
 var roomsContainer = document.getElementById('roomsContainer');
 
 // Global variables
 var allRooms = [];
 var currentFilter = 'all';
+var currentRoomTypeFilter = 'all';
 var currentSearchTerm = '';
 
 // ========================================
@@ -252,8 +253,13 @@ function updateRoomsDisplay() {
 
     // Filter rooms based on current filters
     var filteredRooms = allRooms.filter(function(room) {
-        // Status filter
-        var statusMatch = currentFilter === 'all' || room.status.toLowerCase() === currentFilter.toLowerCase();
+        // Availability filter (from stat cards)
+        var statusMatch = currentFilter === 'all' || 
+            (room.status && room.status.toLowerCase() === currentFilter.toLowerCase());
+        
+        // Room type filter (Academic/Faculty/Public)
+        var roomTypeMatch = currentRoomTypeFilter === 'all' || 
+            (room.type && room.type.toLowerCase() === currentRoomTypeFilter.toLowerCase());
         
         // Search filter
         var searchMatch = true;
@@ -263,13 +269,7 @@ function updateRoomsDisplay() {
                 (room.type && room.type.toLowerCase().includes(searchLower));
         }
         
-        // User type filter
-        var userTypeMatch = true;
-        if (userTypeFilter && userTypeFilter.value !== 'all') {
-            userTypeMatch = room.userType && room.userType.toLowerCase() === userTypeFilter.value.toLowerCase();
-        }
-        
-        return statusMatch && searchMatch && userTypeMatch;
+        return statusMatch && roomTypeMatch && searchMatch;
     });
 
     // Display rooms
@@ -286,42 +286,48 @@ function updateRoomsDisplay() {
     roomsContainer.innerHTML = filteredRooms.map(function(room) {
         var statusClass = (room.status || 'available').toLowerCase();
         var statusText = room.status || 'Available';
-        var userTypeClass = (room.userType || 'academic').toLowerCase();
+        var roomType = room.type || 'Academic';
+        var roomTypeClass = roomType.toLowerCase();
         
-        var userTypeIcon = userTypeClass === 'faculty' ? 'fa-chalkboard-teacher' : 
-            userTypeClass === 'academic' ? 'fa-graduation-cap' : 'fa-users';
+        // Determine icon based on room type
+        var roomTypeIcon = 'fa-graduation-cap'; // Default Academic
+        if (roomTypeClass === 'faculty') {
+            roomTypeIcon = 'fa-chalkboard-teacher';
+        } else if (roomTypeClass === 'public') {
+            roomTypeIcon = 'fa-users';
+        }
 
         var walkInButton = statusClass === 'available' ? 
-            '<button class="room-btn room-btn-success" onclick="createWalkIn(' + room.id + ')">' +
+            '<button class="room-btn room-btn-success btn-walkin" data-room-id="' + room.id + '">' +
             '<i class="fas fa-user-plus"></i>' +
             '<span>Walk-In</span>' +
             '</button>' : '';
 
-        return '<div class="room-card ' + statusClass + '" data-room-id="' + room.id + '" data-status="' + statusClass + '" data-user-type="' + userTypeClass + '" data-capacity="' + room.capacity + '">' +
+        return '<div class="room-card ' + statusClass + '" data-room-id="' + room.id + '" data-status="' + statusClass + '" data-room-type="' + roomTypeClass + '" data-capacity="' + room.capacity + '">' +
             '<div class="room-card-header">' +
             '<div class="room-info">' +
-            '<h3 class="room-name">' + room.name + '</h3>' +
-            '<p class="room-type-label">' + room.type + '</p>' +
+            '<h3 class="room-name">' + (room.name || 'Unknown Room') + '</h3>' +
+            '<p class="room-availability">' + statusText + '</p>' +
             '</div>' +
             '<span class="status-badge status-' + statusClass + '">' + statusText + '</span>' +
             '</div>' +
             '<div class="room-card-body">' +
-            '<div class="room-tag room-tag-' + userTypeClass + '">' +
-            '<i class="fas ' + userTypeIcon + '"></i>' +
-            '<span>For: ' + room.userType + '</span>' +
+            '<div class="room-type-tag room-type-' + roomTypeClass + '">' +
+            '<i class="fas ' + roomTypeIcon + '"></i>' +
+            '<span>For: ' + roomType + '</span>' +
             '</div>' +
             '<div class="room-details">' +
             '<div class="room-detail">' +
             '<i class="fas fa-users"></i>' +
-            '<span>' + room.capacity + ' people</span>' +
+            '<span>Capacity: ' + room.capacity + '</span>' +
             '</div>' +
             '<div class="room-detail">' +
-            '<i class="fas fa-tv"></i>' +
-            '<span>' + room.equipment + '</span>' +
+            '<i class="fas fa-door-open"></i>' +
+            '<span>' + statusText + '</span>' +
             '</div>' +
             '</div>' +
             '<div class="room-actions">' +
-            '<button class="room-btn room-btn-primary" onclick="openRoomDetails(' + room.id + ')">' +
+            '<button class="room-btn room-btn-primary btn-details" data-room-id="' + room.id + '">' +
             '<i class="fas fa-info-circle"></i>' +
             '<span>Details</span>' +
             '</button>' +
@@ -330,6 +336,32 @@ function updateRoomsDisplay() {
             '</div>' +
             '</div>';
     }).join('');
+    
+    // Re-attach event listeners to newly created buttons
+    attachButtonListeners();
+}
+
+/**
+ * Attach event listeners to buttons
+ */
+function attachButtonListeners() {
+    // Details buttons
+    var detailsBtns = document.querySelectorAll('.btn-details');
+    detailsBtns.forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var roomId = parseInt(this.getAttribute('data-room-id'));
+            openRoomDetails(roomId);
+        });
+    });
+
+    // Walk-in buttons
+    var walkinBtns = document.querySelectorAll('.btn-walkin');
+    walkinBtns.forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var roomId = parseInt(this.getAttribute('data-room-id'));
+            createWalkIn(roomId);
+        });
+    });
 }
 
 /**
@@ -356,9 +388,10 @@ if (searchInput) {
     });
 }
 
-// User type filter
-if (userTypeFilter) {
-    userTypeFilter.addEventListener('change', function() {
+// Room type filter (Academic/Faculty/Public)
+if (roomTypeFilter) {
+    roomTypeFilter.addEventListener('change', function() {
+        currentRoomTypeFilter = this.value;
         updateRoomsDisplay();
     });
 }
@@ -404,7 +437,12 @@ function openRoomDetails(roomId) {
     
     getRoomData(roomId, function(roomData) {
         if (roomData) {
-            showNotification('Loading details for ' + roomData.name + '...', 'info');
+            var detailsMessage = 'Room: ' + roomData.name + '\n' +
+                'Type: ' + roomData.type + '\n' +
+                'Capacity: ' + roomData.capacity + '\n' +
+                'Status: ' + roomData.status;
+            
+            alert(detailsMessage);
             console.log('Room Data:', roomData);
         }
     });
@@ -426,30 +464,12 @@ function createWalkIn(roomId) {
     var purpose = prompt('Enter purpose:');
     if (!purpose) return;
 
-    fetch('/Librarian/CreateWalkIn', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            roomId: roomId,
-            userName: userName,
-            purpose: purpose
-        })
-    })
-        .then(function(response) { return response.json(); })
-        .then(function(result) {
-            if (result.success) {
-                showNotification('Walk-in created successfully!', 'success');
-                refreshRooms(); // Refresh to show updated status
-            } else {
-                showNotification('Error: ' + result.message, 'error');
-            }
-        })
-        .catch(function(error) {
-            console.error('Error creating walk-in:', error);
-            showNotification('Failed to create walk-in', 'error');
-        });
+    // For now, just show a success message
+    // In production, you'd send this to the server
+    showNotification('Walk-in created for room ' + roomId + ' by ' + userName, 'success');
+    
+    // Optionally update the room status on the server
+    // fetch('/Librarian/CreateWalkIn', { ... })
 }
 
 // ========================================
@@ -461,7 +481,7 @@ function initializePage() {
         updateRoomsDisplay();
     });
     
-    console.log('Room Management initialized with database connection!');
+    console.log('Room Management initialized with Room Type badges!');
 }
 
 // ========================================

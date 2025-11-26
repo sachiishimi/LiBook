@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Web.Mvc;
 using LiBook.Models;
 
@@ -11,25 +10,6 @@ namespace LiBook.Controllers
     public class LibrarianController : Controller
     {
         private LiBookEntities db = new LiBookEntities();
-
-        // ============================================
-        // DIAGNOSTIC: SHOW ROOM FIELDS
-        // ============================================
-        // ADD THIS TEMPORARY METHOD TO SEE YOUR FIELD NAMES
-        public ActionResult DiagnosticRoomFields()
-        {
-            var roomType = typeof(Room);
-            var properties = roomType.GetProperties();
-
-            var fieldInfo = properties.Select(p => new
-            {
-                Name = p.Name,
-                Type = p.PropertyType.Name
-            }).ToList();
-
-            // Return as JSON so you can see all field names
-            return Json(fieldInfo, JsonRequestBehavior.AllowGet);
-        }
 
         // ============================================
         // DASHBOARD
@@ -48,85 +28,30 @@ namespace LiBook.Controllers
         }
 
         // ============================================
-        // ROOM MANAGEMENT PAGE - SAFE VERSION
+        // ROOM MANAGEMENT PAGE - DATABASE ONLY
         // ============================================
         public ActionResult RoomManagement()
         {
             try
             {
-                // Get all rooms without filtering
-                var allRooms = db.Rooms.ToList();
+                // Get all non-archived rooms
+                var allRooms = db.Rooms.Where(r => !r.DateArchived.HasValue).ToList();
 
-                // Create view models using safe navigation
-                var rooms = new List<RoomManagementViewModel>();
-
-                foreach (var r in allRooms)
+                // Create view models using ONLY actual database fields
+                var rooms = allRooms.Select(r => new RoomManagementViewModel
                 {
-                    try
-                    {
-                        var vm = new RoomManagementViewModel();
+                    RoomID = r.ID,
+                    RoomName = r.RoomName,
+                    RoomType = r.RoomType,
+                    Capacity = r.Capacity,
+                    Status = r.Availability
+                }).ToList();
 
-                        // Try to get ID - adjust property name as needed
-                        try { vm.RoomID = (int)r.GetType().GetProperty("Id")?.GetValue(r, null); } catch { }
-                        if (vm.RoomID == 0)
-                        {
-                            try { vm.RoomID = (int)r.GetType().GetProperty("RoomID")?.GetValue(r, null); } catch { }
-                        }
-                        if (vm.RoomID == 0)
-                        {
-                            try { vm.RoomID = (int)r.GetType().GetProperty("RoomId")?.GetValue(r, null); } catch { }
-                        }
-
-                        // Try to get RoomName
-                        try { vm.RoomName = r.GetType().GetProperty("RoomName")?.GetValue(r, null)?.ToString() ?? "Unknown"; } catch { vm.RoomName = "Unknown"; }
-
-                        // Try to get RoomType
-                        try { vm.RoomType = r.GetType().GetProperty("RoomType")?.GetValue(r, null)?.ToString(); } catch { }
-                        if (string.IsNullOrEmpty(vm.RoomType))
-                        {
-                            try { vm.RoomType = r.GetType().GetProperty("RoomType1")?.GetValue(r, null)?.ToString(); } catch { }
-                        }
-                        if (string.IsNullOrEmpty(vm.RoomType))
-                        {
-                            try { vm.RoomType = r.GetType().GetProperty("Type")?.GetValue(r, null)?.ToString(); } catch { }
-                        }
-                        if (string.IsNullOrEmpty(vm.RoomType)) vm.RoomType = "Unknown";
-
-                        // Try to get Capacity
-                        try
-                        {
-                            var cap = r.GetType().GetProperty("Capacity")?.GetValue(r, null);
-                            vm.Capacity = cap != null ? Convert.ToInt32(cap) : 0;
-                        }
-                        catch { vm.Capacity = 0; }
-
-                        // Try to get Status
-                        try { vm.Status = r.GetType().GetProperty("Status")?.GetValue(r, null)?.ToString() ?? "Available"; } catch { vm.Status = "Available"; }
-
-                        // Try to get UserType
-                        try { vm.UserType = r.GetType().GetProperty("UserType")?.GetValue(r, null)?.ToString(); } catch { }
-                        if (string.IsNullOrEmpty(vm.UserType))
-                        {
-                            try { vm.UserType = r.GetType().GetProperty("UserType1")?.GetValue(r, null)?.ToString(); } catch { }
-                        }
-                        if (string.IsNullOrEmpty(vm.UserType)) vm.UserType = "Academic";
-
-                        vm.Equipment = "Smart TV, Whiteboard";
-
-                        rooms.Add(vm);
-                    }
-                    catch (Exception ex)
-                    {
-                        // Skip this room if there's an error
-                        System.Diagnostics.Debug.WriteLine("Error processing room: " + ex.Message);
-                    }
-                }
-
-                // Calculate stats
+                // Calculate stats based on Availability field
                 ViewBag.AllCount = rooms.Count;
-                ViewBag.AvailableCount = rooms.Count(r => r.Status == "Available");
-                ViewBag.UnavailableCount = rooms.Count(r => r.Status == "Unavailable");
-                ViewBag.MaintenanceCount = rooms.Count(r => r.Status == "Maintenance");
+                ViewBag.AvailableCount = rooms.Count(r => r.Status != null && r.Status.Equals("Available", StringComparison.OrdinalIgnoreCase));
+                ViewBag.UnavailableCount = rooms.Count(r => r.Status != null && r.Status.Equals("Unavailable", StringComparison.OrdinalIgnoreCase));
+                ViewBag.MaintenanceCount = rooms.Count(r => r.Status != null && r.Status.Equals("Maintenance", StringComparison.OrdinalIgnoreCase));
 
                 return View(rooms);
             }
@@ -142,80 +67,30 @@ namespace LiBook.Controllers
         }
 
         // ============================================
-        // AJAX: GET ALL ROOMS - SAFE VERSION
+        // AJAX: GET ALL ROOMS - DATABASE ONLY
         // ============================================
         [HttpGet]
         public JsonResult GetAllRooms()
         {
             try
             {
-                var allRooms = db.Rooms.ToList();
-                var rooms = new List<dynamic>();
+                var allRooms = db.Rooms.Where(r => !r.DateArchived.HasValue).ToList();
 
-                foreach (var r in allRooms)
+                var rooms = allRooms.Select(r => new
                 {
-                    try
-                    {
-                        var id = 0;
-                        try { id = (int)r.GetType().GetProperty("Id")?.GetValue(r, null); } catch { }
-                        if (id == 0)
-                        {
-                            try { id = (int)r.GetType().GetProperty("RoomID")?.GetValue(r, null); } catch { }
-                        }
-
-                        var name = "";
-                        try { name = r.GetType().GetProperty("RoomName")?.GetValue(r, null)?.ToString() ?? "Unknown"; } catch { name = "Unknown"; }
-
-                        var type = "";
-                        try { type = r.GetType().GetProperty("RoomType")?.GetValue(r, null)?.ToString(); } catch { }
-                        if (string.IsNullOrEmpty(type))
-                        {
-                            try { type = r.GetType().GetProperty("RoomType1")?.GetValue(r, null)?.ToString(); } catch { }
-                        }
-                        if (string.IsNullOrEmpty(type)) type = "Unknown";
-
-                        var capacity = 0;
-                        try
-                        {
-                            var cap = r.GetType().GetProperty("Capacity")?.GetValue(r, null);
-                            capacity = cap != null ? Convert.ToInt32(cap) : 0;
-                        }
-                        catch { capacity = 0; }
-
-                        var status = "";
-                        try { status = r.GetType().GetProperty("Status")?.GetValue(r, null)?.ToString() ?? "Available"; } catch { status = "Available"; }
-
-                        var userType = "";
-                        try { userType = r.GetType().GetProperty("UserType")?.GetValue(r, null)?.ToString(); } catch { }
-                        if (string.IsNullOrEmpty(userType))
-                        {
-                            try { userType = r.GetType().GetProperty("UserType1")?.GetValue(r, null)?.ToString(); } catch { }
-                        }
-                        if (string.IsNullOrEmpty(userType)) userType = "Academic";
-
-                        rooms.Add(new
-                        {
-                            id = id,
-                            name = name,
-                            type = type,
-                            capacity = capacity,
-                            status = status,
-                            userType = userType,
-                            equipment = "Smart TV, Whiteboard"
-                        });
-                    }
-                    catch (Exception)
-                    {
-                        // Skip this room
-                    }
-                }
+                    id = r.ID,
+                    name = r.RoomName,
+                    type = r.RoomType,
+                    capacity = r.Capacity,
+                    status = r.Availability
+                }).ToList();
 
                 var stats = new
                 {
                     allCount = rooms.Count,
-                    availableCount = rooms.Count(r => r.status == "Available"),
-                    unavailableCount = rooms.Count(r => r.status == "Unavailable"),
-                    maintenanceCount = rooms.Count(r => r.status == "Maintenance")
+                    availableCount = rooms.Count(r => r.status != null && r.status.Equals("Available", StringComparison.OrdinalIgnoreCase)),
+                    unavailableCount = rooms.Count(r => r.status != null && r.status.Equals("Unavailable", StringComparison.OrdinalIgnoreCase)),
+                    maintenanceCount = rooms.Count(r => r.status != null && r.status.Equals("Maintenance", StringComparison.OrdinalIgnoreCase))
                 };
 
                 return Json(new { success = true, data = rooms, stats = stats }, JsonRequestBehavior.AllowGet);
@@ -227,42 +102,111 @@ namespace LiBook.Controllers
         }
 
         // ============================================
-        // AJAX: GET ROOM DATA - SAFE VERSION
+        // AJAX: GET ROOM DATA - DATABASE ONLY
         // ============================================
         [HttpGet]
         public JsonResult GetRoomData(int roomId)
         {
             try
             {
-                var allRooms = db.Rooms.ToList();
-                var room = allRooms.FirstOrDefault(r =>
-                {
-                    try
-                    {
-                        var id = 0;
-                        try { id = (int)r.GetType().GetProperty("Id")?.GetValue(r, null); } catch { }
-                        if (id == 0)
-                        {
-                            try { id = (int)r.GetType().GetProperty("RoomID")?.GetValue(r, null); } catch { }
-                        }
-                        return id == roomId;
-                    }
-                    catch
-                    {
-                        return false;
-                    }
-                });
+                var room = db.Rooms.FirstOrDefault(r => r.ID == roomId && !r.DateArchived.HasValue);
 
                 if (room == null)
                 {
                     return Json(new { success = false, message = "Room not found" }, JsonRequestBehavior.AllowGet);
                 }
 
-                return Json(new { success = true, data = new { name = "Room data loaded" } }, JsonRequestBehavior.AllowGet);
+                var roomData = new
+                {
+                    id = room.ID,
+                    name = room.RoomName,
+                    type = room.RoomType,
+                    capacity = room.Capacity,
+                    status = room.Availability
+                };
+
+                return Json(new { success = true, data = roomData }, JsonRequestBehavior.AllowGet);
             }
             catch (Exception ex)
             {
                 return Json(new { success = false, message = ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        // ============================================
+        // AJAX: ADD NEW ROOM
+        // ============================================
+        [HttpPost]
+        public JsonResult AddRoom(Room room)
+        {
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    db.Rooms.Add(room);
+                    db.SaveChanges();
+                    return Json(new { success = true, message = "Room added successfully" });
+                }
+                return Json(new { success = false, message = "Invalid data" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        // ============================================
+        // AJAX: UPDATE ROOM
+        // ============================================
+        [HttpPost]
+        public JsonResult UpdateRoom(Room room)
+        {
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    var existingRoom = db.Rooms.Find(room.ID);
+                    if (existingRoom != null)
+                    {
+                        existingRoom.RoomName = room.RoomName;
+                        existingRoom.RoomType = room.RoomType;
+                        existingRoom.Capacity = room.Capacity;
+                        existingRoom.Availability = room.Availability;
+                        
+                        db.SaveChanges();
+                        return Json(new { success = true, message = "Room updated successfully" });
+                    }
+                    return Json(new { success = false, message = "Room not found" });
+                }
+                return Json(new { success = false, message = "Invalid data" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        // ============================================
+        // AJAX: DELETE ROOM (Archive)
+        // ============================================
+        [HttpPost]
+        public JsonResult DeleteRoom(int roomId)
+        {
+            try
+            {
+                var room = db.Rooms.Find(roomId);
+                if (room != null)
+                {
+                    // Soft delete by setting DateArchived
+                    room.DateArchived = DateTime.Now;
+                    db.SaveChanges();
+                    return Json(new { success = true, message = "Room archived successfully" });
+                }
+                return Json(new { success = false, message = "Room not found" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
             }
         }
 
@@ -288,7 +232,7 @@ namespace LiBook.Controllers
     }
 
     // ============================================
-    // VIEW MODELS
+    // VIEW MODEL - DATABASE FIELDS ONLY
     // ============================================
     public class RoomManagementViewModel
     {
@@ -297,9 +241,5 @@ namespace LiBook.Controllers
         public string RoomType { get; set; }
         public int Capacity { get; set; }
         public string Status { get; set; }
-        public string UserType { get; set; }
-        public string Equipment { get; set; }
-        public string CurrentReservation { get; set; }
-        public string NextReservation { get; set; }
     }
 }
