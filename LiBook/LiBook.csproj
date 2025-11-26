@@ -125,6 +125,7 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="Models\StudentViewModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -148,6 +149,7 @@
     <Content Include="Content\images\landingpage.png" />
     <Content Include="Content\images\libphoto.jpg" />
     <Content Include="Content\images\loginbg.png" />
+    <Content Include="Content\images\modalbg.jpg" />
     <Content Include="Content\images\qculogo.png" />
     <Content Include="Content\images\students.png" />
     <Content Include="Content\UserStyles\Index.css" />
@@ -193,7 +195,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
-    <Folder Include="Models\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Content\bootstrap.rtl.min.css.map" />

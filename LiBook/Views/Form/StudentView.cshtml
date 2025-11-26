@@ -123,8 +123,8 @@
                             <label>Name of members:</label>
                             <div id="membersContainer" class="members-columns">
                                 <div class="members-column" id="column-1">
-                                    <input type="text" name="Member1" class="form-control" placeholder="Member 1" required/>
-                                    <input type="text" name="Member2" class="form-control" placeholder="Member 2" required/>
+                                    <input type="text" name="Members[0]" class="form-control" placeholder="Member 1" required />
+                                    <input type="text" name="Members[1]" class="form-control" placeholder="Member 2" required />
                                 </div>
                             </div>
                         </div>
@@ -179,7 +179,7 @@
 
         const input = document.createElement("input");
         input.type = "text";
-        input.name = "Member" + memberIndex;
+        input.name = `Members[${memberIndex}]`; 
         input.className = "form-control";
         input.required = true;  // <-- makes it required
         input.placeholder = "Member " + memberIndex;
@@ -201,22 +201,42 @@
         }
     });
 
-    // Modal Confirmation
-    const form = document.querySelector("form");
-    const modal = document.getElementById("confirmModal");
-    const modalContent = document.getElementById("modalContent");
-    const modalConfirmBtn = document.getElementById("confirmSubmitBtn");
-    const modalCancelBtn = document.getElementById("closeModalBtn");
+   //<!--MODAAAAAAAAAAAAAAAAAAAAL-->
 
+    // Get elements
+    const modal = document.getElementById("confirmModal");
+    const closeBtn = document.getElementById("closeModalBtn");
+    const confirmBtn = document.getElementById("confirmSubmitBtn");
+    const form = document.querySelector("form");
+
+    // Close modal function
+    function closeModal() {
+        modal.style.display = "none";
+    }
+
+    // Open modal function
+    function openModal(content) {
+        document.getElementById("modalContent").innerHTML = content;
+        modal.style.display = "flex";
+    }
+
+    // Close button
+    closeBtn.addEventListener("click", closeModal);
+
+    // Clicking outside modal box closes modal
+    modal.addEventListener("click", (e) => {
+        if (e.target === modal) closeModal();
+    });
+
+    // Intercept form submission
     form.addEventListener("submit", (e) => {
         e.preventDefault();
 
-        // Build formatted fields
+        // Build modal content
         const last = form["LastName"].value;
         const first = form["FirstName"].value;
         const mi = form["MiddleInitial"].value;
         const suf = form["Suffix"].value;
-
         const studentNum = `${form["StudentNumberPrefix"].value}-${form["StudentNumberSuffix"].value}`;
         const email = form["Email"].value;
         const purpose = form["Purpose"].value;
@@ -225,31 +245,78 @@
         const timeStart = form["TimeStart"].value;
         const timeEnd = form["TimeEnd"].value;
 
-        // Members
-        let members = "";
-        const totalMembers = parseInt(form["NumberOfMembers"].value);
+        //let members = "";
+        //const totalMembers = parseInt(form["NumberOfMembers"].value);
+        //for (let i = 1; i <= totalMembers; i++) {
+        //    members += `<li>${form[`Member${i}`].value}</li>`;
+        //}
 
-        for (let i = 1; i <= totalMembers; i++) {
-            const val = form[`Member${i}`].value;
-            members += `<li>${val}</li>`;
-        }
+        const membersArray = Array.from(document.querySelectorAll("input[name^='Members']"))
+            .map(i => i.value)
 
-        // Final formatted modal HTML
+        const membersStr = membersArray.join(", ");
+
+        console.log("All member inputs found:", document.querySelectorAll("input[name^='Members']"));
+        console.log("Members array:", membersArray);
+        console.log("Members string:", membersStr);
+
         const html = `
-        <p><strong>Name:</strong> ${last}, ${first} ${mi ? mi + "." : ""} ${suf}</p>
-        <p><strong>Student Number:</strong> ${studentNum}</p>
-        <p><strong>Email:</strong> ${email}</p>
-        <p><strong>Program:</strong> ${program}</p>
-        <p><strong>Purpose:</strong> ${purpose}</p>
-        <p><strong>Date:</strong> ${date}</p>
-        <p><strong>Time:</strong> ${timeStart} - ${timeEnd}</p>
+            <div class="info-row">
+                <span class="info-label">Name:</span>
+                <span class="info-value">${last}, ${first} ${mi ? mi + "." : ""} ${suf}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Student Number:</span>
+                <span class="info-value">${studentNum}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Email:</span>
+                <span class="info-value">${email}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Program:</span>
+                <span class="info-value">${program}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Purpose:</span>
+                <span class="info-value">${purpose}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Date:</span>
+                <span class="info-value">${date}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Time:</span>
+                <span class="info-value">${timeStart} - ${timeEnd}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Members (${membersArray.length}):</span>
+                <span class="info-value">${membersStr}</span>
+            </div>
+        `;
 
-        <p><strong>Members (${totalMembers}):</strong></p>
-        <ul>${members}</ul>
-    `;
+        openModal(html);
+    });
 
-        modalContent.innerHTML = html;
-        modal.style.display = "flex";
+    // Confirm button submits the form
+    confirmBtn.addEventListener("click", () => {
+        const memberInputs = Array.from(document.querySelectorAll("input[name^='Members'][type='text']"));
+
+        // Reindex them to be sequential: Members[0], Members[1], Members[2], etc.
+        memberInputs.forEach((input, index) => {
+            input.name = `Members[${index}]`;
+        });
+
+        // Debug - see what's being sent
+        //console.log("Form data being submitted:");
+        //const formData = new FormData(form);
+        //for (let pair of formData.entries()) {
+        //    console.log(pair[0] + ': ' + pair[1]);
+        //}
+
+        form.action = "/Form/StudentView";
+        form.method = "POST";
+        form.submit();
     });
 
 </script>
