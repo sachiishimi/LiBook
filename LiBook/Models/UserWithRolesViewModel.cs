@@ -17,10 +17,8 @@ namespace LiBook.Models
         public DateTime? DateArchived { get; set; }
         public List<string> Roles { get; set; }
 
-        // Helper properties for the view
-        public string FullName => $"{FirstName} {LastName}";
-        public string DisplayName => $"{FirstName} {LastName} {Suffix}".Trim();
-        public bool IsAdmin => Roles?.Any(r => r.Equals("Admin", StringComparison.OrdinalIgnoreCase)) == true;
-        public bool IsLibrarian => Roles?.Any(r => r.Equals("Librarian", StringComparison.OrdinalIgnoreCase)) == true;
+        // Helper properties for role checking
+        public bool IsAdmin => Roles?.Contains("Admin") == true;
+        public bool IsLibrarian => Roles?.Contains("Librarian") == true;
     }
 }
