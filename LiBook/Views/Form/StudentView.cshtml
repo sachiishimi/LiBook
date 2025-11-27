@@ -1,4 +1,4 @@
-﻿@*@model StudentFormViewModel*@
+﻿@model LiBook.Models.StudentModel
 
 @{
     ViewBag.Title = "Student Form";
@@ -15,7 +15,7 @@
             <h2>Student Form</h2>
         </div>
 
-        @using (Html.BeginForm("Index", "Home", FormMethod.Post, new { enctype = "multipart/form-data" }))
+        @using (Html.BeginForm("StudentFormView", "Form", FormMethod.Post, new { enctype = "multipart/form-data" }))
         {
             @Html.AntiForgeryToken()
 
@@ -32,7 +32,7 @@
                         </div>
                         <div class="form-group">
                             <label>M.I.:</label>
-                            <input type="text" name="MiddleInitial" class="form-control" maxlength="2" />
+                            <input type="text" name="MiddleInitial" class="form-control" maxlength="1" />
                         </div>
                         <div class="form-group">
                             <label>Suffix:</label>
@@ -103,9 +103,9 @@
                         <div class="form-group" style="grid-column: span 2;">
                             <label>Time:</label>
                             <div class="time-fields">
-                                <input type="time" name="TimeStart" class="form-control" required />
+                                <input type="time" id="TimeStart" name="TimeStart" class="form-control" required />
                                 <span style="align-self: center;">-</span>
-                                <input type="time" name="TimeEnd" class="form-control" required />
+                                <input type="time" id="TimeEnd" name="TimeEnd" class="form-control" required />
                             </div>
                         </div>
 
@@ -154,6 +154,24 @@
 @Html.Partial("_ConfirmModal")
 
 <script>
+
+    // TIME INPUT VALIDATION
+    const timeStart = document.getElementById('TimeStart');
+    const timeEnd = document.getElementById('TimeEnd');
+    const timeError = document.getElementById('timeError');
+
+    function validateTime() {
+        if (timeStart.value && timeEnd.value) {
+            if (timeStart.value >= timeEnd.value) {
+                alert("Start time must be before end time");
+                timeEnd.value = ""; // Clear the end time
+                return false;
+            }
+        }
+        return true; //
+    }
+
+    // DYNAMICALLY ADDED MEMBER FIELDS
     const container = document.getElementById("membersContainer");
     const addBtn = document.getElementById("addMemberBtn");
     const removeBtn = document.getElementById("removeMemberBtn");
@@ -179,7 +197,7 @@
 
         const input = document.createElement("input");
         input.type = "text";
-        input.name = `Members[${memberIndex}]`; 
+        input.name = `Members[${memberIndex}]`;
         input.className = "form-control";
         input.required = true;  // <-- makes it required
         input.placeholder = "Member " + memberIndex;
@@ -201,7 +219,7 @@
         }
     });
 
-   //<!--MODAAAAAAAAAAAAAAAAAAAAL-->
+    // MODAAAAAAAAAAAAAAAAAAAAL
 
     // Get elements
     const modal = document.getElementById("confirmModal");
@@ -232,6 +250,10 @@
     form.addEventListener("submit", (e) => {
         e.preventDefault();
 
+        if (!validateTime()) {
+            return;
+        }
+
         // Build modal content
         const last = form["LastName"].value;
         const first = form["FirstName"].value;
@@ -255,10 +277,6 @@
             .map(i => i.value)
 
         const membersStr = membersArray.join(", ");
-
-        console.log("All member inputs found:", document.querySelectorAll("input[name^='Members']"));
-        console.log("Members array:", membersArray);
-        console.log("Members string:", membersStr);
 
         const html = `
             <div class="info-row">
@@ -306,13 +324,6 @@
         memberInputs.forEach((input, index) => {
             input.name = `Members[${index}]`;
         });
-
-        // Debug - see what's being sent
-        //console.log("Form data being submitted:");
-        //const formData = new FormData(form);
-        //for (let pair of formData.entries()) {
-        //    console.log(pair[0] + ': ' + pair[1]);
-        //}
 
         form.action = "/Form/StudentView";
         form.method = "POST";

@@ -14,17 +14,23 @@ namespace LiBook.Controllers
         public ActionResult AdminView() => View();
         public ActionResult VisitorView() => View();
 
-        // POST method for the Student form
+        // POST methods
+
+        // Student
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult StudentView(StudentViewModel model)
+        public ActionResult StudentView(StudentModel model)
         {
             if (!ModelState.IsValid)
             {
                 return View(model);
             }
 
-            System.Diagnostics.Debug.WriteLine($"Student: {model.LastName}, {model.FirstName}, {model.MiddleInitial}");
+            System.Diagnostics.Debug.WriteLine(
+                $"Student: {model.LastName}, {model.FirstName}" +
+                $"{(string.IsNullOrWhiteSpace(model.MiddleInitial) ? "" : " " + model.MiddleInitial + ".")}" +
+                $"{(string.IsNullOrWhiteSpace(model.Suffix) ? "" : " " + model.Suffix)}"
+            );
             System.Diagnostics.Debug.WriteLine($"Student Number: {model.StudentNumberPrefix}-{model.StudentNumberSuffix}");
             System.Diagnostics.Debug.WriteLine($"Email: {model.Email}");
             System.Diagnostics.Debug.WriteLine($"Program: {model.Program}");
@@ -41,6 +47,34 @@ namespace LiBook.Controllers
 
             TempData["SuccessMessage"] = "Form submitted successfully!";
             return RedirectToAction("StudentView");
+        }
+
+        // Faculty
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult FacultyView(FacultyModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            // Log faculty info
+            System.Diagnostics.Debug.WriteLine(
+                $"Faculty: {model.LastName}, {model.FirstName}" +
+                $"{(string.IsNullOrWhiteSpace(model.MiddleInitial) ? "" : " " + model.MiddleInitial + ".")}" +
+                $"{(string.IsNullOrWhiteSpace(model.Suffix) ? "" : " " + model.Suffix)}"
+            );
+            System.Diagnostics.Debug.WriteLine($"Email: {model.Email}");
+            System.Diagnostics.Debug.WriteLine($"Department: {model.Department}");
+            System.Diagnostics.Debug.WriteLine($"Purpose: {model.Purpose}");
+            System.Diagnostics.Debug.WriteLine($"Date: {model.Date.ToShortDateString()}");
+            System.Diagnostics.Debug.WriteLine($"Time: {model.TimeStart} - {model.TimeEnd}");
+            System.Diagnostics.Debug.WriteLine($"Number of Members: {model.NumberOfMembers}");
+
+            TempData["SuccessMessage"] = "Form submitted successfully!";
+            return RedirectToAction("FacultyView");
         }
     }
 }
