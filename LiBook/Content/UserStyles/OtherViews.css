@@ -33,6 +33,20 @@
     color: #1a1a1a;
 }
 
+.visitor-form-container {
+    /*        background: linear-gradient(130deg, #F89104 0.05%, #F9FAF5 40%, #F9FAF5 70%, #8b4545 70%, #6b2c2c 100%);*/
+    background-image: linear-gradient(130deg, rgba(255, 255, 197, 0.85) 0.5%, rgba(249, 250, 245, 0.85) 40%, rgba(249, 250, 245, 0.85) 70%, #4CAF50 70%, #4CAF50 100%), url('/Content/Images/libphoto.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #1a1a1a;
+}
+
 .form-card {
     max-width: 900px;
     margin: 0 auto;

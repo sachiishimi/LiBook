@@ -100,5 +100,30 @@ namespace LiBook.Controllers
             TempData["SuccessMessage"] = "Form submitted successfully!";
             return RedirectToAction("Index", "Home");
         }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Visitor(VisitorModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            System.Diagnostics.Debug.WriteLine(
+                $"Visitor: {model.LastName}, {model.FirstName}" +
+                $"{(string.IsNullOrWhiteSpace(model.MiddleInitial) ? "" : " " + model.MiddleInitial + ".")}" +
+                $"{(string.IsNullOrWhiteSpace(model.Suffix) ? "" : " " + model.Suffix)}"
+            );
+            System.Diagnostics.Debug.WriteLine($"Email: {model.Email}");
+            System.Diagnostics.Debug.WriteLine($"Institution: {model.Institution}");
+            System.Diagnostics.Debug.WriteLine($"Purpose: {model.Purpose}");
+            System.Diagnostics.Debug.WriteLine($"Date: {model.Date.ToShortDateString()}");
+            System.Diagnostics.Debug.WriteLine($"Time: {model.TimeStart} - {model.TimeEnd}");
+            System.Diagnostics.Debug.WriteLine($"Number of Members: {model.NumberOfMembers}");
+
+            TempData["SuccessMessage"] = "Form submitted successfully!";
+            return RedirectToAction("Index", "Home");
+        }
     }
 }

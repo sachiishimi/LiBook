@@ -128,6 +128,7 @@
     <Compile Include="Models\AdminModel.cs" />
     <Compile Include="Models\FacultyModel.cs" />
     <Compile Include="Models\StudentModel.cs" />
+    <Compile Include="Models\VisitorModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -195,6 +196,7 @@
     <Content Include="Views\Shared\_ConfirmModal.cshtml" />
     <Content Include="Views\Form\FacultyView.cshtml" />
     <Content Include="Views\Form\AdminView.cshtml" />
+    <Content Include="Views\Form\VisitorView.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

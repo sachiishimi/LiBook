@@ -1,0 +1,223 @@
+﻿@model LiBook.Models.VisitorModel
+
+@{
+    ViewBag.Title = "Visitor Form";
+    Layout = null;
+}
+
+<title>@ViewBag.Title</title>
+
+<link href="~/Content/UserStyles/OtherViews.css" rel="stylesheet" />
+<link rel="icon" type="image/png" href="~/Content/images/qculogo.png">
+<div class="visitor-form-container">
+    <div class="form-card">
+        <div class="form-header">
+            <a href="@Url.Action("RoleSelection", "Home")" class="back-arrow">←</a>
+            <h2>@ViewBag.Title</h2>
+        </div>
+
+        @using (Html.BeginForm("Visitor", "Form", FormMethod.Post, new { enctype = "multipart/form-data" }))
+        {
+            @Html.AntiForgeryToken()
+
+    <div class="form-content">
+        <div class="form-fields">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Last Name:</label>
+                    <input type="text" name="LastName" class="form-control" required maxlength="50" />
+                </div>
+                <div class="form-group">
+                    <label>First Name:</label>
+                    <input type="text" name="FirstName" class="form-control" required maxlength="50" />
+                </div>
+                <div class="form-group">
+                    <label>M.I.:</label>
+                    <input type="text" name="MiddleInitial" class="form-control" maxlength="1" />
+                </div>
+                <div class="form-group">
+                    <label>Suffix:</label>
+                    <input type="text" name="Suffix" class="form-control" maxlength="10" />
+                </div>
+            </div>
+
+            <div class="form-row two-col">
+                <div class="form-group">
+                    <label>Purpose:</label>
+                    <select name="Purpose" class="form-control" required>
+                        <option value="" disabled selected>Select Purpose</option>
+                        <option value="Meeting">Meeting</option>
+                        <option value="Group Study">Group Study</option>
+                        <option value="Discussion">Discussion</option>
+                        <option value="Presentation">Presentation / Workshop</option>
+                        <option value="Brainstorming">Brainstorming Session</option>
+                        <option value="Interview">Interview</option>
+                        <option value="Exam Preparation">Exam / Test Preparation</option>
+                        <option value="Team Collaboration">Team Collaboration</option>
+                        <option value="Project Planning">Project Planning</option>
+                        <option value="Training">Training / Seminar</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Institution:</label>
+                    <input type="text" id="institution" name="Institution" class="institution" max="40" />
+                </div>
+            </div>
+            <div class="form-row two-col">
+                <div class="form-group">
+                    <label>No. of Members:</label>
+                    <input type="number" id="memberCount" name="NumberOfMembers" class="form-control" min="2" max="10" />
+                </div>
+
+                <div class="form-group">
+                    <label>Email:</label>
+                    <input type="email" name="Email" class="form-control" maxlength="254" required />
+                </div>
+
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Date:</label>
+                    <input type="date" name="Date" class="form-control" min="@DateTime.Now.ToString("yyyy-MM-dd")" required />
+                </div>
+                <div class="form-group" style="grid-column: span 2;" id="timeForm">
+                    <label>Time:</label>
+                    <div class="time-fields">
+                        <input type="time" id="TimeStart" name="TimeStart" class="form-control" required />
+                        <span style="align-self: center;">-</span>
+                        <input type="time" id="TimeEnd" name="TimeEnd" class="form-control" required />
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div style="display:flex; justify-content:center; align-items:center; height:240px; padding:24px; box-sizing:border-box;">
+            <img src="~/Content/images/qculogo.png" style="padding:20px; max-width:100%; height:auto; display:block;" alt="logo">
+        </div>
+
+    </div>
+
+            <button type="submit" class="btn-next" id="submitBtn">Next</button>
+            <div style="clear: both;"></div>
+        }
+    </div>
+</div>
+
+@Html.Partial("_ConfirmModal")
+
+<script>
+
+    // TIME INPUT VALIDATION
+    const timeStart = document.getElementById('TimeStart');
+    const timeEnd = document.getElementById('TimeEnd');
+    const timeError = document.getElementById('timeError');
+
+    function validateTime() {
+        if (timeStart.value && timeEnd.value) {
+            if (timeStart.value >= timeEnd.value) {
+                alert("Start time must be before end time");
+                timeEnd.value = ""; // Clear the end time
+                return false;
+            }
+        }
+        return true; //
+    }
+
+
+    // MODAL CONFIRMATION
+
+    // Get elements
+    const modal = document.getElementById("confirmModal");
+    const closeBtn = document.getElementById("closeModalBtn");
+    const confirmBtn = document.getElementById("confirmSubmitBtn");
+    const form = document.querySelector("form");
+
+    // Close modal function
+    function closeModal() {
+        modal.style.display = "none";
+    }
+
+    // Open modal function
+    function openModal(content) {
+        document.getElementById("modalContent").innerHTML = content;
+        modal.style.display = "flex";
+    }
+
+    // Close button
+    closeBtn.addEventListener("click", closeModal);
+
+    // Clicking outside modal box closes modal
+    modal.addEventListener("click", (e) => {
+        if (e.target === modal) closeModal();
+    });
+
+    form.addEventListener("submit", (e) => {
+        e.preventDefault();
+
+        if (!validateTime()) {
+            return;
+        }
+
+        const last = form["LastName"].value;
+        const first = form["FirstName"].value;
+        const mi = form["MiddleInitial"].value;
+        const suf = form["Suffix"].value;
+
+        const email = form["Email"].value;
+        const purpose = form["Purpose"].value;
+        const institution = form["Institution"].value;
+        const date = form["Date"].value;
+        const timeStartVal = form["TimeStart"].value;
+        const timeEndVal = form["TimeEnd"].value;
+
+        const totalMembers = document.getElementById('memberCount')?.value || 0;
+
+        const html = `
+            <div class="info-row">
+                <span class="info-label">Name:</span>
+                <span class="info-value">${last}, ${first} ${mi ? mi + "." : ""} ${suf}</span>
+            </div>
+
+            <div class="info-row">
+                <span class="info-label">Email:</span>
+                <span class="info-value">${email}</span>
+            </div>
+
+            <div class="info-row">
+                <span class="info-label">Department:</span>
+                <span class="info-value">${institution}</span>
+            </div>
+
+            <div class="info-row">
+                <span class="info-label">Purpose:</span>
+                <span class="info-value">${purpose}</span>
+            </div>
+
+            <div class="info-row">
+                <span class="info-label">Date:</span>
+                <span class="info-value">${date}</span>
+            </div>
+
+            <div class="info-row">
+                <span class="info-label">Time:</span>
+                <span class="info-value">${timeStartVal} - ${timeEndVal}</span>
+            </div>
+
+            <div class="info-row">
+                <span class="info-label">Members:</span>
+                <span class="info-value">${totalMembers}</span>
+            </div>
+
+    `;
+        openModal(html);
+    });
+
+    // Confirm button submits the form
+    confirmBtn.addEventListener("click", () => {
+        form.action = "/Form/Visitor";
+        form.method = "POST";
+        form.submit();
+    });
+
+</script>
