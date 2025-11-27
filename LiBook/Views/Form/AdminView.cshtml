@@ -1,7 +1,7 @@
-﻿@model LiBook.Models.FacultyModel
+﻿@model LiBook.Models.AdminModel
 
 @{
-    ViewBag.Title = "Faculty Form";
+    ViewBag.Title = "Admin Form";
     Layout = null;
 }
 
@@ -9,14 +9,14 @@
 
 <link href="~/Content/UserStyles/OtherViews.css" rel="stylesheet" />
 <link rel="icon" type="image/png" href="~/Content/images/qculogo.png">
-<div class="faculty-form-container">
+<div class="admin-form-container">
     <div class="form-card">
         <div class="form-header">
             <a href="@Url.Action("RoleSelection", "Home")" class="back-arrow">←</a>
             <h2>@ViewBag.Title</h2>
         </div>
 
-        @using (Html.BeginForm("Faculty", "Form", FormMethod.Post, new { enctype = "multipart/form-data" }))
+        @using (Html.BeginForm("Admin", "Form", FormMethod.Post, new { enctype = "multipart/form-data" }))
         {
             @Html.AntiForgeryToken()
 
@@ -224,7 +224,7 @@
 
     // Confirm button submits the form
     confirmBtn.addEventListener("click", () => {
-        form.action = "/Form/Faculty";
+        form.action = "/Form/Admin";
         form.method = "POST";
         form.submit();
     });

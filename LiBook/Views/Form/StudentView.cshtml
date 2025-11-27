@@ -15,7 +15,7 @@
             <h2>Student Form</h2>
         </div>
 
-        @using (Html.BeginForm("StudentFormView", "Form", FormMethod.Post, new { enctype = "multipart/form-data" }))
+        @using (Html.BeginForm("Student", "Form", FormMethod.Post, new { enctype = "multipart/form-data" }))
         {
             @Html.AntiForgeryToken()
 
@@ -325,7 +325,7 @@
             input.name = `Members[${index}]`;
         });
 
-        form.action = "/Form/StudentView";
+        form.action = "/Form/Student";
         form.method = "POST";
         form.submit();
     });

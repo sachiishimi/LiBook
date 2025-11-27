@@ -16,10 +16,10 @@ namespace LiBook.Controllers
 
         // POST methods
 
-        // Student
+        // POST Student
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult StudentView(StudentModel model)
+        public ActionResult Student(StudentModel model)
         {
             if (!ModelState.IsValid)
             {
@@ -46,21 +46,20 @@ namespace LiBook.Controllers
             }
 
             TempData["SuccessMessage"] = "Form submitted successfully!";
-            return RedirectToAction("StudentView");
+            return RedirectToAction("Index", "Home");
         }
 
-        // Faculty
+        // POST Faculty
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult FacultyView(FacultyModel model)
+        public ActionResult Faculty(FacultyModel model)
         {
             if (!ModelState.IsValid)
             {
                 return View(model);
             }
 
-            // Log faculty info
             System.Diagnostics.Debug.WriteLine(
                 $"Faculty: {model.LastName}, {model.FirstName}" +
                 $"{(string.IsNullOrWhiteSpace(model.MiddleInitial) ? "" : " " + model.MiddleInitial + ".")}" +
@@ -74,7 +73,32 @@ namespace LiBook.Controllers
             System.Diagnostics.Debug.WriteLine($"Number of Members: {model.NumberOfMembers}");
 
             TempData["SuccessMessage"] = "Form submitted successfully!";
-            return RedirectToAction("FacultyView");
+            return RedirectToAction("Index", "Home");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Admin(AdminModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            System.Diagnostics.Debug.WriteLine(
+                $"Admin: {model.LastName}, {model.FirstName}" +
+                $"{(string.IsNullOrWhiteSpace(model.MiddleInitial) ? "" : " " + model.MiddleInitial + ".")}" +
+                $"{(string.IsNullOrWhiteSpace(model.Suffix) ? "" : " " + model.Suffix)}"
+            );
+            System.Diagnostics.Debug.WriteLine($"Email: {model.Email}");
+            System.Diagnostics.Debug.WriteLine($"Department: {model.Department}");
+            System.Diagnostics.Debug.WriteLine($"Purpose: {model.Purpose}");
+            System.Diagnostics.Debug.WriteLine($"Date: {model.Date.ToShortDateString()}");
+            System.Diagnostics.Debug.WriteLine($"Time: {model.TimeStart} - {model.TimeEnd}");
+            System.Diagnostics.Debug.WriteLine($"Number of Members: {model.NumberOfMembers}");
+
+            TempData["SuccessMessage"] = "Form submitted successfully!";
+            return RedirectToAction("Index", "Home");
         }
     }
 }
