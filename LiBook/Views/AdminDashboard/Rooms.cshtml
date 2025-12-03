@@ -172,9 +172,15 @@
                                             <button class="icon-btn edit" title="Edit Room" data-tooltip="Edit Room">
                                                 <i class="fas fa-edit"></i>
                                             </button>
-                                            <button class="icon-btn archive" title="Archive Room" data-tooltip="Archive Room">
-                                                <i class="fas fa-archive"></i>
-                                            </button>
+                                            @using (Html.BeginForm("ArchiveRoom", "AdminDashboard", FormMethod.Post, new { style = "display: inline;" }))
+                                            {
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="id" value="@item.ID" />
+                                                <button type="submit" class="icon-btn archive" title="Archive Room" data-tooltip="Archive Room"
+                                                        onclick="return confirm('Archive @item.RoomName?')">
+                                                    <i class="fas fa-archive"></i>
+                                                </button>
+                                            }
                                         </div>
                                     </td>
                                 </tr>

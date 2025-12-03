@@ -183,9 +183,15 @@
                                                         <button class="icon-btn small" title="Edit" onclick="editUser(this)">
                                                             <i class="fas fa-pen"></i>
                                                         </button>
-                                                        <button class="icon-btn small danger" title="Delete">
-                                                            <i class="fas fa-trash"></i>
-                                                        </button>
+                                                        @using (Html.BeginForm("ArchiveUser", "AdminDashboard", FormMethod.Post, new { style = "display: inline;" }))
+                                                        {
+                                                            @Html.AntiForgeryToken()
+                                                            <input type="hidden" name="id" value="@user.ID" />
+                                                            <button type="submit" class="icon-btn small danger" title="Archive User"
+                                                                    onclick="return confirm('Archive user @user.FirstName @user.LastName?')">
+                                                                <i class="fas fa-trash"></i>
+                                                            </button>
+                                                        }
                                                     </div>
                                                 </td>
                                             </tr>
@@ -240,9 +246,15 @@
                                                         <button class="icon-btn small" title="Edit" onclick="editUser(this)">
                                                             <i class="fas fa-pen"></i>
                                                         </button>
-                                                        <button class="icon-btn small danger" title="Delete">
-                                                            <i class="fas fa-trash"></i>
-                                                        </button>
+                                                        @using (Html.BeginForm("ArchiveUser", "AdminDashboard", FormMethod.Post, new { style = "display: inline;" }))
+                                                        {
+                                                            @Html.AntiForgeryToken()
+                                                            <input type="hidden" name="id" value="@user.ID" />
+                                                            <button type="submit" class="icon-btn small danger" title="Archive User"
+                                                                    onclick="return confirm('Archive administrator @user.FirstName @user.LastName?')">
+                                                                <i class="fas fa-trash"></i>
+                                                            </button>
+                                                        }
                                                     </div>
                                                 </td>
                                             </tr>

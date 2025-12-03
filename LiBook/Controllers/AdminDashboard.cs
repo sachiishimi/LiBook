@@ -270,6 +270,22 @@ namespace LiBook.Controllers
             return View(room);
         }
 
+        // Add this method to AdminDashboard.cs
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult ArchiveRoom(int id)
+        {
+            var room = db.Rooms.Find(id);
+            if (room != null)
+            {
+                room.DateArchived = DateTime.Now;
+                db.Entry(room).State = EntityState.Modified;
+                db.SaveChanges();
+            }
+
+            return RedirectToAction("Rooms");
+        }
+
 
 
         // USERS
@@ -403,6 +419,22 @@ namespace LiBook.Controllers
                 db.SaveChanges();
                 return RedirectToAction("Librarian");
             }
+            return RedirectToAction("Librarian");
+        }
+        // Add this method to AdminDashboard.cs (after the EditUser method)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult ArchiveUser(int id)
+        {
+            var user = db.Users.Find(id);
+            if (user != null)
+            {
+                user.DateArchived = DateTime.Now;
+                user.AccountStatus = "Inactive";
+                db.Entry(user).State = EntityState.Modified;
+                db.SaveChanges();
+            }
+
             return RedirectToAction("Librarian");
         }
 

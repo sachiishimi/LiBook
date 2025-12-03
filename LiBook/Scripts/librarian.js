@@ -174,11 +174,15 @@ function filterUsers(searchTerm) {
 
 function initializeActionButtons() {
     if (addUserBtn) addUserBtn.addEventListener('click', addNewUser);
-    document.addEventListener('click', function(e) {
+    document.addEventListener('click', function (e) {
         var editBtn = e.target.closest('.icon-btn.small:not(.danger)');
-        var deleteBtn = e.target.closest('.icon-btn.small.danger');
-        if (editBtn) { e.preventDefault(); e.stopPropagation(); editUser(editBtn); }
-        else if (deleteBtn) { e.preventDefault(); e.stopPropagation(); deleteUser(deleteBtn); }
+        // Only prevent default for edit button, not for delete/archive button
+        if (editBtn) {
+            e.preventDefault();
+            e.stopPropagation();
+            editUser(editBtn);
+        }
+        // Don't handle delete button here - let the form submit normally
     });
 }
 
