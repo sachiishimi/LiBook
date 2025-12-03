@@ -1,4 +1,4 @@
-﻿@model IEnumerable<LiBook.Models.Room>
+﻿﻿@model IEnumerable<LiBook.Models.Room>
 
 @{
     ViewBag.Title = "Reservations";
@@ -99,7 +99,7 @@
                         @using (Html.BeginForm("Logout", "Account", FormMethod.Post, new { id = "logoutForm" }))
                         {
                             @Html.AntiForgeryToken()
-                            <a href="#" class="dropdown-item logout" onclick="document.getElementById('logoutForm').submit()">
+                            <a href="#" class="dropdown-item logout">
                                 <i class="fas fa-sign-out-alt"></i>
                                 <span>Logout</span>
                             </a>

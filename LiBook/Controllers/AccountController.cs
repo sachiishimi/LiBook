@@ -18,23 +18,52 @@ namespace LiBook.Controllers
         {
             using (LiBookEntities context = new LiBookEntities())
             {
-                bool IsValidUser = context.Users.Any(user => user.Email.ToLower() ==
-                     model.Email.ToLower() && user.UserPassword == model.UserPassword);
-                if (IsValidUser)
+                // First check if user exists and password matches
+                var user = context.Users.FirstOrDefault(u => u.Email.ToLower() == model.Email.ToLower()
+                                                          && u.UserPassword == model.UserPassword
+                                                          && u.AccountStatus == "Active"
+                                                          && u.DateArchived == null);
+
+                if (user != null)
                 {
-                    FormsAuthentication.SetAuthCookie(model.Email, false);
-                    return RedirectToAction("Index", "AdminDashboard");
+                    // Get user roles
+                    var userRoles = (from roleMapping in context.UserRolesMappings
+                                     join role in context.RoleMasters
+                                     on roleMapping.RoleID equals role.ID
+                                     where roleMapping.UserID == user.ID
+                                     select role.RoleName).ToArray();
+
+                    // Check if user has Librarian OR Admin role
+                    if (userRoles.Contains("Librarian") || userRoles.Contains("Admin"))
+                    {
+                        FormsAuthentication.SetAuthCookie(model.Email, false);
+
+                        // Redirect based on role
+                        if (userRoles.Contains("Admin"))
+                        {
+                            return RedirectToAction("Index", "AdminDashboard");
+                        }
+                        else
+                        {
+                            return RedirectToAction("LibrarianDashboard", "Librarian");
+                        }
+                    }
+                    else
+                    {
+                        ModelState.AddModelError("", "Access denied. Librarian or Admin role required.");
+                        return View();
+                    }
                 }
-                ModelState.AddModelError("", "invalid Username or Password");
+
+                ModelState.AddModelError("", "Invalid email or password");
                 return View();
             }
         }
+
         public ActionResult Logout()
         {
             FormsAuthentication.SignOut();
             return RedirectToAction("Login");
         }
-
-
     }
 }
