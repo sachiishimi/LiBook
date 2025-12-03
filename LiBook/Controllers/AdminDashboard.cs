@@ -1,13 +1,11 @@
-﻿using System;
+﻿using LiBook.Models;
+using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Entity;
 using System.Linq;
-using System.Net;
-using System.Web;
 using System.Web.Mvc;
-using LiBook.Models;
-using Newtonsoft.Json;
 using static LiBook.Models.ViewModel;
 using EntityState = System.Data.Entity.EntityState;
 
@@ -323,9 +321,13 @@ namespace LiBook.Controllers
             return $"{startTime.Value:hh\\:mm} - {endTime.Value:hh\\:mm}";
         }
         // Add this method to get a single booking's details
+        // Update the GetBookingDetails method in AdminDashboardController.cs
         public ActionResult GetBookingDetails(int id)
         {
             var booking = db.Bookings
+                .Include(b => b.Members) // Make sure to include Members
+                .Include(b => b.Room)
+                .Include(b => b.Schedule)
                 .Where(b => b.ID == id)
                 .Select(b => new
                 {
@@ -345,7 +347,7 @@ namespace LiBook.Controllers
                     CancelledAt = b.CancelledAt,
                     ScheduleStartTime = b.Schedule.StartTime,
                     ScheduleEndTime = b.Schedule.EndTime,
-                    Members = b.Members.Select(m => m.FullName).ToList()
+                    Members = b.Members.Select(m => m.FullName).ToList() // Ensure this is properly populated
                 })
                 .FirstOrDefault();
 
@@ -371,10 +373,52 @@ namespace LiBook.Controllers
                 CancelledAt = booking.CancelledAt,
                 Status = GetBookingStatus(booking.SubmittedAt, booking.ApprovedAt, booking.CancelledAt),
                 Schedule = FormatSchedule(booking.ScheduleStartTime, booking.ScheduleEndTime),
-                Members = booking.Members
+                Members = booking.Members // This should now have the members
             };
 
             return Json(bookingViewModel, JsonRequestBehavior.AllowGet);
+        }
+        // Add these methods for bulk cancellation
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult CancelMultipleBookings(List<int> ids)
+        {
+            try
+            {
+                var bookings = db.Bookings.Where(b => ids.Contains(b.ID)).ToList();
+                foreach (var booking in bookings)
+                {
+                    booking.CancelledAt = DateTime.Now;
+                }
+
+                db.SaveChanges();
+                return Json(new { success = true, count = bookings.Count });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult CancelAllBookings(int roomId)
+        {
+            try
+            {
+                var bookings = db.Bookings.Where(b => b.RoomID == roomId && !b.CancelledAt.HasValue).ToList();
+                foreach (var booking in bookings)
+                {
+                    booking.CancelledAt = DateTime.Now;
+                }
+
+                db.SaveChanges();
+                return Json(new { success = true, count = bookings.Count });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
         }
 
 
@@ -426,6 +470,76 @@ namespace LiBook.Controllers
             }
 
             return RedirectToAction("Rooms");
+        }
+        // Ensure this method exists and is correct
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult CancelBooking(int id)
+        {
+            try
+            {
+                var booking = db.Bookings.Find(id);
+                if (booking != null)
+                {
+                    booking.CancelledAt = DateTime.Now;
+                    db.Entry(booking).State = EntityState.Modified;
+                    db.SaveChanges();
+                    return Json(new { success = true });
+                }
+                return Json(new { success = false, message = "Booking not found" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+        // Archive multiple bookings
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult ArchiveBookings(List<int> ids)
+        {
+            try
+            {
+                var bookings = db.Bookings.Where(b => ids.Contains(b.ID)).ToList();
+                foreach (var booking in bookings)
+                {
+                    // Add DateArchived field to Booking model first
+                    // Then uncomment this:
+                    // booking.DateArchived = DateTime.Now;
+                }
+
+                db.SaveChanges();
+                return Json(new { success = true, count = bookings.Count });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        // Archive single booking
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult ArchiveBooking(int id)
+        {
+            try
+            {
+                var booking = db.Bookings.Find(id);
+                if (booking != null)
+                {
+                    // Add DateArchived field to Booking model first
+                    // Then uncomment this:
+                    // booking.DateArchived = DateTime.Now;
+                    db.Entry(booking).State = EntityState.Modified;
+                    db.SaveChanges();
+                    return Json(new { success = true });
+                }
+                return Json(new { success = false, message = "Booking not found" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
         }
 
 
