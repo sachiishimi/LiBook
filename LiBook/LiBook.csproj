@@ -192,6 +192,7 @@
     <Content Include="Content\admindashboard.css" />
     <Content Include="Content\adminmanagement.css" />
     <Content Include="Content\archives.css" />
+    <Content Include="Content\booklanding.css" />
     <Content Include="Content\bootstrap-grid.css" />
     <Content Include="Content\bootstrap-grid.min.css" />
     <Content Include="Content\bootstrap-grid.rtl.css" />
@@ -239,6 +240,7 @@
     <Content Include="Models\LiBookContext.edmx.diagram">
       <DependentUpon>LiBookContext.edmx</DependentUpon>
     </Content>
+    <Content Include="Scripts\booklanding.js" />
     <Content Include="Scripts\bootstrap.bundle.js" />
     <Content Include="Scripts\bootstrap.bundle.min.js" />
     <Content Include="Scripts\bootstrap.esm.js" />
@@ -302,6 +304,7 @@
     <Content Include="Views\Bookings\Details.cshtml" />
     <Content Include="Views\Bookings\Edit.cshtml" />
     <Content Include="Views\Bookings\Index.cshtml" />
+    <Content Include="Views\Bookings\BookingLanding.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

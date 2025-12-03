@@ -14,11 +14,35 @@ namespace LiBook
             routes.IgnoreRoute("{resource}.axd/{*pathInfo}");
 
             routes.MapRoute(
-                name: "Default",
+                name: "Login",
                 url: "{controller}/{action}/{id}",
                defaults: new { controller = "Account", action = "Login", id = UrlParameter.Optional }
 
             );
+            routes.MapRoute(
+                name: "BookRoom",
+                url: "book",
+                defaults: new { controller = "Bookings", action = "Landing" }
+            );
+
+            routes.MapRoute(
+                name: "BookingStart",
+                url: "booking/start",
+                defaults: new { controller = "Bookings", action = "Landing" }
+            );
+
+            // Home route
+            routes.MapRoute(
+                name: "Home",
+                url: "",
+                defaults: new { controller = "Bookings", action = "Landing" }
+            );
+
+            routes.MapRoute(
+               name: "Default",
+               url: "",
+               defaults: new { controller = "Home", action = "Index" }
+);
         }
     }
 }
