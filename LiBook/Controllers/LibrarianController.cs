@@ -15,6 +15,145 @@ namespace LiBook.Controllers
         private LiBookEntities db = new LiBookEntities();
 
         // ============================================
+        // ARCHIVES MANAGEMENT PAGE
+        // ============================================
+        public ActionResult LibrarianArchives(string statusFilter = "successful", string dateFilter = "all", string userTypeFilter = "all")
+        {
+            try
+            {
+                var now = DateTime.Now;
+
+                // Get all completed bookings (both successful and cancelled)
+                var allBookings = db.Bookings
+                    .Include(b => b.Room)
+                    .Include(b => b.Schedule)
+                    .Include(b => b.Members)
+                    .ToList();
+
+                // Filter by status (successful vs cancelled)
+                List<Booking> filteredBookings;
+
+                if (statusFilter.ToLower() == "cancelled")
+                {
+                    // Cancelled bookings: have CancelledAt date
+                    filteredBookings = allBookings
+                        .Where(b => b.CancelledAt.HasValue)
+                        .ToList();
+                }
+                else // successful (default)
+                {
+                    // Successful bookings: Completed reservations (BookingDate is in the past)
+                    filteredBookings = allBookings
+                        .Where(b => b.BookingDate < now.Date && // Booking date is in the past
+                                   !b.CancelledAt.HasValue) // Not cancelled
+                        .ToList();
+                }
+
+                // Transform to view models
+                var archivedReservations = new List<ArchiveReservationViewModel>();
+
+                foreach (var booking in filteredBookings)
+                {
+                    var vm = new ArchiveReservationViewModel
+                    {
+                        ID = booking.ID,
+                        ReservationID = $"RES-{booking.ID:000}",
+                        ReserveeName = FormatName(booking.ReserveeFirstName, booking.ReserveeMiddleName, booking.ReserveeLastName, booking.ReserveeSuffix),
+                        UserType = DetermineUserType(booking),
+                        BookingDate = booking.BookingDate,
+                        StartTime = booking.Schedule?.StartTime ?? TimeSpan.Zero,
+                        EndTime = booking.Schedule?.EndTime ?? TimeSpan.Zero,
+                        RoomName = booking.Room?.RoomName ?? "Unknown Room",
+                        Status = booking.CancelledAt.HasValue ? "Cancelled" : "Complete",
+                        IsSuccessful = !booking.CancelledAt.HasValue && booking.BookingDate < now.Date
+                    };
+
+                    archivedReservations.Add(vm);
+                }
+
+                // Apply date filter
+                if (!string.IsNullOrEmpty(dateFilter) && dateFilter.ToLower() != "all")
+                {
+                    switch (dateFilter.ToLower())
+                    {
+                        case "today":
+                            var today = DateTime.Today;
+                            archivedReservations = archivedReservations
+                                .Where(r => r.BookingDate.Date == today)
+                                .ToList();
+                            break;
+
+                        case "week":
+                            var weekAgo = DateTime.Today.AddDays(-7);
+                            archivedReservations = archivedReservations
+                                .Where(r => r.BookingDate >= weekAgo)
+                                .ToList();
+                            break;
+
+                        case "month":
+                            var monthAgo = DateTime.Today.AddMonths(-1);
+                            archivedReservations = archivedReservations
+                                .Where(r => r.BookingDate >= monthAgo)
+                                .ToList();
+                            break;
+                    }
+                }
+
+                // Apply user type filter
+                if (!string.IsNullOrEmpty(userTypeFilter) && userTypeFilter.ToLower() != "all")
+                {
+                    archivedReservations = archivedReservations
+                        .Where(r => r.UserType.Equals(userTypeFilter, StringComparison.OrdinalIgnoreCase))
+                        .ToList();
+                }
+
+                // Calculate statistics
+                var successfulCount = allBookings.Count(b => !b.CancelledAt.HasValue && b.BookingDate < now.Date);
+                var cancelledCount = allBookings.Count(b => b.CancelledAt.HasValue);
+                var successfulToday = allBookings.Count(b =>
+                    !b.CancelledAt.HasValue &&
+                    b.BookingDate.Date == DateTime.Today &&
+                    b.BookingDate < now.Date);
+                var cancelledToday = allBookings.Count(b =>
+                    b.CancelledAt.HasValue &&
+                    b.CancelledAt.Value.Date == DateTime.Today);
+
+                // Pass data to view
+                ViewBag.StatusFilter = statusFilter;
+                ViewBag.DateFilter = dateFilter;
+                ViewBag.UserTypeFilter = userTypeFilter;
+                ViewBag.SuccessfulCount = successfulCount;
+                ViewBag.CancelledCount = cancelledCount;
+                ViewBag.SuccessfulToday = successfulToday;
+                ViewBag.CancelledToday = cancelledToday;
+
+                return View(archivedReservations);
+            }
+            catch (Exception ex)
+            {
+                ViewBag.ErrorMessage = "Error loading archives: " + ex.Message;
+                ViewBag.SuccessfulCount = 0;
+                ViewBag.CancelledCount = 0;
+                ViewBag.SuccessfulToday = 0;
+                ViewBag.CancelledToday = 0;
+                return View(new List<ArchiveReservationViewModel>());
+            }
+        }
+
+        // ============================================
+        // FILTER ARCHIVES
+        // ============================================
+        public ActionResult FilterArchives(string statusFilter, string dateFilter, string userTypeFilter)
+        {
+            return RedirectToAction("LibrarianArchives", new
+            {
+                statusFilter = statusFilter ?? "successful",
+                dateFilter = dateFilter ?? "all",
+                userTypeFilter = userTypeFilter ?? "all"
+            });
+        }
+
+        // ============================================
         // ROOM MANAGEMENT PAGE - Main Entry Point
         // ============================================
         public ActionResult RoomManagement(string status = "all", string userType = "all")
@@ -155,61 +294,6 @@ namespace LiBook.Controllers
                 TempData["ErrorMessage"] = "Error loading room details: " + ex.Message;
                 return RedirectToAction("RoomManagement");
             }
-        }
-
-        // ============================================
-        // HELPER: Get current day's reservation
-        // ============================================
-        private string GetCurrentReservation(int roomId)
-        {
-            var now = DateTime.Now;
-            var today = DateTime.Today;
-
-            // Get all bookings for today, then filter in memory
-            var currentBooking = db.Bookings
-                .Where(b => b.RoomID == roomId &&
-                           DbFunctions.TruncateTime(b.BookingDate) == today &&
-                           !b.CancelledAt.HasValue)
-                .ToList() // Execute query and bring to memory
-                .Where(b => b.Schedule.StartTime <= now.TimeOfDay &&
-                           b.Schedule.EndTime >= now.TimeOfDay)
-                .FirstOrDefault();
-
-            if (currentBooking != null)
-            {
-                return $"{currentBooking.ReserveeFirstName} {currentBooking.ReserveeLastName}";
-            }
-            return string.Empty;
-        }
-
-        // ============================================
-        // HELPER: Get next upcoming reservation
-        // ============================================
-        private string GetNextReservation(int roomId)
-        {
-            var now = DateTime.Now;
-            var today = DateTime.Today;
-
-            // Get future bookings, then filter in memory
-            var futureBookings = db.Bookings
-                .Where(b => b.RoomID == roomId &&
-                           !b.CancelledAt.HasValue &&
-                           b.BookingDate >= today)
-                .OrderBy(b => b.BookingDate)
-                .ThenBy(b => b.Schedule.StartTime)
-                .ToList(); // Execute query and bring to memory
-
-            // Filter for bookings after current time
-            var nextBooking = futureBookings
-                .Where(b => b.BookingDate > today ||
-                           (b.BookingDate == today && b.Schedule.StartTime > now.TimeOfDay))
-                .FirstOrDefault();
-
-            if (nextBooking != null)
-            {
-                return $"{nextBooking.ReserveeFirstName} {nextBooking.ReserveeLastName} - {nextBooking.BookingDate:MMM dd}";
-            }
-            return string.Empty;
         }
 
         // ============================================
@@ -371,15 +455,56 @@ namespace LiBook.Controllers
             return "unknown";
         }
 
-        // ============================================
-        // DASHBOARD & ARCHIVES
-        // ============================================
-        public ActionResult LibrarianDashboard()
+        private string GetCurrentReservation(int roomId)
         {
-            return View();
+            var now = DateTime.Now;
+            var today = DateTime.Today;
+
+            var currentBooking = db.Bookings
+                .Where(b => b.RoomID == roomId &&
+                           DbFunctions.TruncateTime(b.BookingDate) == today &&
+                           !b.CancelledAt.HasValue)
+                .ToList()
+                .Where(b => b.Schedule.StartTime <= now.TimeOfDay &&
+                           b.Schedule.EndTime >= now.TimeOfDay)
+                .FirstOrDefault();
+
+            if (currentBooking != null)
+            {
+                return $"{currentBooking.ReserveeFirstName} {currentBooking.ReserveeLastName}";
+            }
+            return string.Empty;
         }
 
-        public ActionResult LibrarianArchives()
+        private string GetNextReservation(int roomId)
+        {
+            var now = DateTime.Now;
+            var today = DateTime.Today;
+
+            var futureBookings = db.Bookings
+                .Where(b => b.RoomID == roomId &&
+                           !b.CancelledAt.HasValue &&
+                           b.BookingDate >= today)
+                .OrderBy(b => b.BookingDate)
+                .ThenBy(b => b.Schedule.StartTime)
+                .ToList();
+
+            var nextBooking = futureBookings
+                .Where(b => b.BookingDate > today ||
+                           (b.BookingDate == today && b.Schedule.StartTime > now.TimeOfDay))
+                .FirstOrDefault();
+
+            if (nextBooking != null)
+            {
+                return $"{nextBooking.ReserveeFirstName} {nextBooking.ReserveeLastName} - {nextBooking.BookingDate:MMM dd}";
+            }
+            return string.Empty;
+        }
+
+        // ============================================
+        // DASHBOARD
+        // ============================================
+        public ActionResult LibrarianDashboard()
         {
             return View();
         }
@@ -392,40 +517,72 @@ namespace LiBook.Controllers
             }
             base.Dispose(disposing);
         }
-    }
 
-    // ============================================
-    // VIEW MODELS
-    // ============================================
-    public class RoomManagementViewModel
-    {
-        public int RoomID { get; set; }
-        public string RoomName { get; set; }
-        public string RoomType { get; set; }
-        public int Capacity { get; set; }
-        public string Status { get; set; }
-        public string UserType { get; set; }
-        public string Equipment { get; set; }
-        public string CurrentReservation { get; set; }
-        public string NextReservation { get; set; }
-    }
+        // ============================================
+        // VIEW MODELS - NESTED INSIDE CONTROLLER CLASS
+        // ============================================
 
-    public class RoomDetailsViewModel
-    {
-        public int RoomID { get; set; }
-        public string RoomName { get; set; }
-        public string RoomType { get; set; }
-        public int Capacity { get; set; }
-        public string Status { get; set; }
-        public string Equipment { get; set; }
-        public List<BookingInfoViewModel> Bookings { get; set; }
-    }
+        public class ArchiveReservationViewModel
+        {
+            public int ID { get; set; }
+            public string ReservationID { get; set; }
+            public string ReserveeName { get; set; }
+            public string UserType { get; set; }
+            public DateTime BookingDate { get; set; }
+            public TimeSpan StartTime { get; set; }
+            public TimeSpan EndTime { get; set; }
+            public string RoomName { get; set; }
+            public string Status { get; set; }
+            public bool IsSuccessful { get; set; }
+        }
 
-    public class BookingInfoViewModel
-    {
-        public string ReserveeName { get; set; }
-        public DateTime BookingDate { get; set; }
-        public TimeSpan StartTime { get; set; }
-        public TimeSpan EndTime { get; set; }
+        public class ReservationViewModel
+        {
+            public int ID { get; set; }
+            public string ReserveeName { get; set; }
+            public string Email { get; set; }
+            public string RoomName { get; set; }
+            public DateTime BookingDate { get; set; }
+            public string StartTime { get; set; }
+            public string EndTime { get; set; }
+            public string Purpose { get; set; }
+            public string Program { get; set; }
+            public string StudentNumber { get; set; }
+            public string UserType { get; set; }
+            public string Status { get; set; }
+            public List<string> Members { get; set; }
+        }
+
+        public class RoomManagementViewModel
+        {
+            public int RoomID { get; set; }
+            public string RoomName { get; set; }
+            public string RoomType { get; set; }
+            public int Capacity { get; set; }
+            public string Status { get; set; }
+            public string UserType { get; set; }
+            public string Equipment { get; set; }
+            public string CurrentReservation { get; set; }
+            public string NextReservation { get; set; }
+        }
+
+        public class RoomDetailsViewModel
+        {
+            public int RoomID { get; set; }
+            public string RoomName { get; set; }
+            public string RoomType { get; set; }
+            public int Capacity { get; set; }
+            public string Status { get; set; }
+            public string Equipment { get; set; }
+            public List<BookingInfoViewModel> Bookings { get; set; }
+        }
+
+        public class BookingInfoViewModel
+        {
+            public string ReserveeName { get; set; }
+            public DateTime BookingDate { get; set; }
+            public TimeSpan StartTime { get; set; }
+            public TimeSpan EndTime { get; set; }
+        }
     }
 }

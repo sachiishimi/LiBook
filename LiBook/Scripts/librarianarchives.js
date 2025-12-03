@@ -198,280 +198,38 @@ window.addEventListener('resize', () => {
 });
 
 // ========================================
-// ENHANCED NOTIFICATION SYSTEM WITH QUEUE
-// ========================================
-var notificationQueue = [];
-var isShowingNotification = false;
-
-function showQueuedNotification(message, type) {
-    type = type || 'info';
-
-    if (isShowingNotification) {
-        notificationQueue.push({ message: message, type: type });
-        return;
-    }
-
-    isShowingNotification = true;
-    showNotification(message, type);
-
-    setTimeout(function () {
-        isShowingNotification = false;
-        if (notificationQueue.length > 0) {
-            var nextNotification = notificationQueue.shift();
-            if (nextNotification) {
-                showQueuedNotification(nextNotification.message, nextNotification.type);
-            }
-        }
-    }, 3300);
-}
-
-// Update notification button to use queued system
-if (notificationBtn) {
-    notificationBtn.addEventListener('click', () => {
-        showQueuedNotification('You have 3 new notifications', 'info');
-    });
-}
-
-// ========================================
-// TAB FUNCTIONALITY
+// TAB FUNCTIONALITY - UPDATED FOR FORM SUBMISSION
 // ========================================
 const tabButtons = document.querySelectorAll('.tab-btn');
-const tabContents = document.querySelectorAll('.tab-content');
 
 tabButtons.forEach(button => {
     button.addEventListener('click', () => {
-        const targetTab = button.getAttribute('data-tab');
-
-        // Remove active class from all buttons and contents
+        // Remove active class from all buttons
         tabButtons.forEach(btn => btn.classList.remove('active'));
-        tabContents.forEach(content => content.classList.remove('active'));
-
-        // Add active class to clicked button and corresponding content
+        // Add active class to clicked button
         button.classList.add('active');
-        const activeContent = document.getElementById(`${targetTab}-tab`);
-        if (activeContent) {
-            activeContent.classList.add('active');
-        }
 
-        // Reset filters when switching tabs
-        const dateFilterSelect = document.getElementById(`${targetTab}DateFilter`);
-        const userTypeFilterSelect = document.getElementById(`${targetTab}UserTypeFilter`);
-
-        if (dateFilterSelect) dateFilterSelect.value = 'all';
-        if (userTypeFilterSelect) userTypeFilterSelect.value = 'all';
-
-        applyFilters(targetTab, 'all', 'all');
-
-        showQueuedNotification(`Switched to ${targetTab} reservations`, 'info');
+        // Show notification
+        showNotification(`Loading ${button.textContent.trim()}...`, 'info');
     });
 });
 
 // ========================================
-// DATE PARSING AND RANGE CHECKING
-// ========================================
-function parseDate(dateString) {
-    return new Date(dateString);
-}
-
-function isDateInRange(dateString, filterType) {
-    const date = parseDate(dateString);
-    if (isNaN(date.getTime())) return false;
-
-    const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-
-    switch (filterType) {
-        case 'today':
-            const checkDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-            return checkDate.getTime() === today.getTime();
-
-        case 'week':
-            const weekAgo = new Date(today);
-            weekAgo.setDate(weekAgo.getDate() - 7);
-            return date >= weekAgo && date <= now;
-
-        case 'month':
-            const monthAgo = new Date(today);
-            monthAgo.setMonth(monthAgo.getMonth() - 1);
-            return date >= monthAgo && date <= now;
-
-        case 'all':
-        default:
-            return true;
-    }
-}
-
-// ========================================
-// USER TYPE FILTERING
-// ========================================
-function matchesUserType(userType, filterType) {
-    if (filterType === 'all') return true;
-
-    // Handle "Admin/Faculty" option - matches both Admin and Faculty
-    if (filterType === 'Faculty') {
-        return userType === 'Faculty' || userType === 'Admin';
-    }
-
-    return userType === filterType;
-}
-
-// ========================================
-// CORE FILTER FUNCTION - DUAL FILTERING
-// ========================================
-function applyFilters(tabType, dateFilter, userTypeFilter) {
-    const tableId = `${tabType}-tab`;
-    const table = document.querySelector(`#${tableId} .data-table tbody`);
-
-    if (!table) return;
-
-    // Filter the table with BOTH filters
-    const rows = table.querySelectorAll('tr');
-    let visibleCount = 0;
-    let todayCount = 0;
-
-    rows.forEach(row => {
-        const cells = row.querySelectorAll('td');
-        const rowUserType = row.getAttribute('data-user-type');
-
-        if (cells.length > 3 && rowUserType) {
-            const dateString = cells[3].textContent; // Date column
-
-            // Check both date and user type filters
-            const dateMatch = isDateInRange(dateString, dateFilter);
-            const userTypeMatch = matchesUserType(rowUserType, userTypeFilter);
-
-            // Show row only if BOTH filters match
-            if (dateMatch && userTypeMatch) {
-                row.style.display = '';
-                visibleCount++;
-            } else {
-                row.style.display = 'none';
-            }
-
-            // Always count today's entries for the static right card
-            if (isDateInRange(dateString, 'today')) {
-                todayCount++;
-            }
-        }
-    });
-
-    // Update stat cards with new logic
-    updateStatCards(tabType, dateFilter, visibleCount, rows.length, todayCount);
-
-    // Update active stat card highlighting
-    highlightActiveStatCard(tabType, dateFilter);
-
-    // Update filter dropdowns
-    const dateFilterSelect = document.getElementById(`${tabType}DateFilter`);
-    const userTypeFilterSelect = document.getElementById(`${tabType}UserTypeFilter`);
-
-    if (dateFilterSelect) dateFilterSelect.value = dateFilter;
-    if (userTypeFilterSelect) userTypeFilterSelect.value = userTypeFilter;
-
-    // Show notification
-    const dateFilterNames = {
-        'all': 'All Time',
-        'today': 'Today',
-        'week': 'This Week',
-        'month': 'This Month'
-    };
-
-    const userTypeNames = {
-        'all': 'All Users',
-        'Student': 'Students',
-        'Faculty': 'Admin/Faculty',
-        'Admin': 'Admin/Faculty',
-        'Visitor': 'Visitors'
-    };
-
-    showQueuedNotification(
-        `Filters: ${dateFilterNames[dateFilter]} | ${userTypeNames[userTypeFilter]} (${visibleCount} results)`,
-        'success'
-    );
-}
-
-// ========================================
-// UPDATE STAT CARDS WITH 3-CARD LAYOUT
-// Left: Total (Static)
-// Middle: Dynamic (changes based on DATE filter only)
-// Right: Today Count (Static)
-// ========================================
-function updateStatCards(tabType, dateFilter, filteredCount, totalCount, todayCount) {
-    // Get stat card elements
-    const totalCountElement = document.getElementById(`${tabType}-total-count`);
-    const filteredCountElement = document.getElementById(`${tabType}-filtered-count`);
-    const filteredLabelElement = document.getElementById(`${tabType}-filtered-label`);
-    const todayCountElement = document.getElementById(`${tabType}-today-count`);
-
-    // LEFT CARD: Always show total count (Static)
-    if (totalCountElement) {
-        totalCountElement.textContent = totalCount;
-    }
-
-    // MIDDLE CARD: Dynamic - updates based on DATE filter
-    if (filteredCountElement && filteredLabelElement) {
-        filteredCountElement.textContent = filteredCount;
-
-        switch (dateFilter) {
-            case 'today':
-                filteredLabelElement.textContent = 'Today';
-                break;
-            case 'week':
-                filteredLabelElement.textContent = 'This Week';
-                break;
-            case 'month':
-                filteredLabelElement.textContent = 'This Month';
-                break;
-            case 'all':
-            default:
-                filteredLabelElement.textContent = 'All Time';
-                break;
-        }
-    }
-
-    // RIGHT CARD: Always show today's count (Static)
-    if (todayCountElement) {
-        todayCountElement.textContent = todayCount;
-    }
-}
-
-// ========================================
-// HIGHLIGHT ACTIVE STAT CARD
-// ========================================
-function highlightActiveStatCard(tabType, dateFilter) {
-    // Get all stat cards for this tab
-    const tabContent = document.getElementById(`${tabType}-tab`);
-    if (!tabContent) return;
-
-    const statCards = tabContent.querySelectorAll('.clickable-stat');
-
-    // Remove active class from all cards
-    statCards.forEach(card => card.classList.remove('active-filter'));
-
-    // Add active class to the matching card (middle card only)
-    statCards.forEach(card => {
-        if (card.getAttribute('data-filter') === dateFilter) {
-            card.classList.add('active-filter');
-        }
-    });
-}
-
-// ========================================
-// SEARCH FUNCTIONALITY
+// CLIENT-SIDE SEARCH FUNCTIONALITY
 // ========================================
 const successfulSearch = document.getElementById('successfulSearch');
 const cancelledSearch = document.getElementById('cancelledSearch');
 
-function setupSearchFunctionality(searchInput, tableId, tabType) {
+function setupSearchFunctionality(searchInput, tabType) {
     if (!searchInput) return;
 
     searchInput.addEventListener('input', (e) => {
         const searchTerm = e.target.value.toLowerCase();
-        const table = document.querySelector(`#${tableId} .data-table tbody`);
+        const table = document.querySelector(`#${tabType}-tab .data-table tbody`);
 
         if (!table) return;
 
-        const rows = table.querySelectorAll('tr');
+        const rows = table.querySelectorAll('tr[data-reservation-id]');
         let visibleCount = 0;
 
         rows.forEach(row => {
@@ -485,64 +243,21 @@ function setupSearchFunctionality(searchInput, tableId, tabType) {
         });
 
         if (visibleCount === 0 && searchTerm !== '') {
-            showQueuedNotification('No results found', 'info');
+            showNotification('No results found for "' + searchTerm + '"', 'info');
         }
-
-        // Update stats after search with current filters
-        const dateFilterSelect = document.getElementById(`${tabType}DateFilter`);
-        const currentDateFilter = dateFilterSelect ? dateFilterSelect.value : 'all';
-
-        // Recalculate counts for stat cards
-        let todayCount = 0;
-        rows.forEach(row => {
-            const cells = row.querySelectorAll('td');
-            if (cells.length > 3) {
-                const dateString = cells[3].textContent;
-                if (isDateInRange(dateString, 'today')) {
-                    todayCount++;
-                }
-            }
-        });
-
-        updateStatCards(tabType, currentDateFilter, visibleCount, rows.length, todayCount);
     });
 }
 
-setupSearchFunctionality(successfulSearch, 'successful-tab', 'successful');
-setupSearchFunctionality(cancelledSearch, 'cancelled-tab', 'cancelled');
-
-// ========================================
-// FILTER DROPDOWN FUNCTIONALITY - DUAL FILTERS
-// ========================================
-function setupFilterFunctionality(tabType) {
-    const dateFilterSelect = document.getElementById(`${tabType}DateFilter`);
-    const userTypeFilterSelect = document.getElementById(`${tabType}UserTypeFilter`);
-
-    // Date filter change
-    if (dateFilterSelect) {
-        dateFilterSelect.addEventListener('change', (e) => {
-            const dateFilter = e.target.value;
-            const userTypeFilter = userTypeFilterSelect ? userTypeFilterSelect.value : 'all';
-            applyFilters(tabType, dateFilter, userTypeFilter);
-        });
-    }
-
-    // User type filter change
-    if (userTypeFilterSelect) {
-        userTypeFilterSelect.addEventListener('change', (e) => {
-            const userTypeFilter = e.target.value;
-            const dateFilter = dateFilterSelect ? dateFilterSelect.value : 'all';
-            applyFilters(tabType, dateFilter, userTypeFilter);
-        });
-    }
+if (successfulSearch) {
+    setupSearchFunctionality(successfulSearch, 'successful');
 }
 
-setupFilterFunctionality('successful');
-setupFilterFunctionality('cancelled');
+if (cancelledSearch) {
+    setupSearchFunctionality(cancelledSearch, 'cancelled');
+}
 
 // ========================================
 // STAT CARD CLICK FUNCTIONALITY
-// Note: Only the middle card is clickable and updates the DATE filter
 // ========================================
 const clickableStats = document.querySelectorAll('.clickable-stat');
 
@@ -551,34 +266,14 @@ clickableStats.forEach(statCard => {
         const dateFilter = statCard.getAttribute('data-filter');
         const tabType = statCard.getAttribute('data-tab');
 
-        // Get current user type filter
-        const userTypeFilterSelect = document.getElementById(`${tabType}UserTypeFilter`);
-        const userTypeFilter = userTypeFilterSelect ? userTypeFilterSelect.value : 'all';
-
-        // Apply both filters
-        applyFilters(tabType, dateFilter, userTypeFilter);
-    });
-});
-
-// ========================================
-// PAGINATION FUNCTIONALITY
-// ========================================
-const paginationButtons = document.querySelectorAll('.pagination-btn');
-
-paginationButtons.forEach(button => {
-    button.addEventListener('click', () => {
-        if (button.disabled) return;
-
-        const container = button.closest('.pagination');
-        if (container) {
-            container.querySelectorAll('.pagination-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-        }
-
-        if (!button.querySelector('i')) {
-            button.classList.add('active');
-            showQueuedNotification(`Page ${button.textContent} loaded`, 'info');
+        // Get the appropriate form and update date filter
+        const form = document.getElementById(`${tabType}Form`);
+        if (form) {
+            const dateFilterInput = form.querySelector('select[name="dateFilter"]');
+            if (dateFilterInput) {
+                dateFilterInput.value = dateFilter;
+                form.submit();
+            }
         }
     });
 });
@@ -587,12 +282,6 @@ paginationButtons.forEach(button => {
 // INITIALIZATION
 // ========================================
 console.log('✅ Librarian Archives Page Initialized Successfully!');
-console.log('📊 3-Card Stat System Active (Left: Total, Middle: Dynamic, Right: Today)');
-console.log('🔍 Dual Filter System Active (Date + User Type)');
-console.log('🎯 Dynamic Label Updates Enabled');
-
-// Initialize with "all" filters on page load
-window.addEventListener('load', () => {
-    applyFilters('successful', 'all', 'all');
-    applyFilters('cancelled', 'all', 'all');
-});
+console.log('📊 Database-driven archives system active');
+console.log('🔍 Client-side search filtering enabled');
+console.log('📝 Form-based server-side filtering implemented');

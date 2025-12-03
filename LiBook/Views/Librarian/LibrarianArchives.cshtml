@@ -1,7 +1,20 @@
-﻿
+﻿@model List<LiBook.Controllers.LibrarianController.ArchiveReservationViewModel>
 @{
-    ViewBag.Title = "LibrarianArchives";
+    ViewBag.Title = "Archives";
+    var statusFilter = ViewBag.StatusFilter as string ?? "successful";
+    var dateFilter = ViewBag.DateFilter as string ?? "all";
+    var userTypeFilter = ViewBag.UserTypeFilter as string ?? "all";
+
+    // Statistics
+    var successfulCount = ViewBag.SuccessfulCount != null ? (int)ViewBag.SuccessfulCount : 0;
+    var cancelledCount = ViewBag.CancelledCount != null ? (int)ViewBag.CancelledCount : 0;
+    var successfulToday = ViewBag.SuccessfulToday != null ? (int)ViewBag.SuccessfulToday : 0;
+    var cancelledToday = ViewBag.CancelledToday != null ? (int)ViewBag.CancelledToday : 0;
+
+    // Get reservations from Model (not ViewBag)
+    var archivedReservations = Model;
 }
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -108,327 +121,342 @@
             <!-- Tabs Navigation -->
             <div class="tabs-container">
                 <div class="tabs-nav">
-                    <button class="tab-btn active" data-tab="successful">
-                        <i class="fas fa-check-circle"></i>
-                        <span>Successful Reservations</span>
-                    </button>
-                    <button class="tab-btn" data-tab="cancelled">
-                        <i class="fas fa-times-circle"></i>
-                        <span>Cancelled Reservations</span>
-                    </button>
+                    <!-- Successful Reservations Tab Button -->
+                    @if (statusFilter == "successful")
+                    {
+                        <button class="tab-btn active" onclick="submitStatusFilter('successful')">
+                            <i class="fas fa-check-circle"></i>
+                            <span>Successful Reservations</span>
+                        </button>
+                    }
+                    else
+                    {
+                        <button class="tab-btn" onclick="submitStatusFilter('successful')">
+                            <i class="fas fa-check-circle"></i>
+                            <span>Successful Reservations</span>
+                        </button>
+                    }
+
+                    <!-- Cancelled Reservations Tab Button -->
+                    @if (statusFilter == "cancelled")
+                    {
+                        <button class="tab-btn active" onclick="submitStatusFilter('cancelled')">
+                            <i class="fas fa-times-circle"></i>
+                            <span>Cancelled Reservations</span>
+                        </button>
+                    }
+                    else
+                    {
+                        <button class="tab-btn" onclick="submitStatusFilter('cancelled')">
+                            <i class="fas fa-times-circle"></i>
+                            <span>Cancelled Reservations</span>
+                        </button>
+                    }
                 </div>
+
+                <!-- Main Filter Form -->
+                @using (Html.BeginForm("FilterArchives", "Librarian", FormMethod.Get, new { id = "mainFilterForm" }))
+                {
+                    <input type="hidden" name="statusFilter" id="statusFilterInput" value="@statusFilter" />
+                    <input type="hidden" name="dateFilter" id="dateFilterInput" value="@dateFilter" />
+                    <input type="hidden" name="userTypeFilter" id="userTypeFilterInput" value="@userTypeFilter" />
+                }
 
                 <!-- Successful Reservations Tab Content -->
-                <div class="tab-content active" id="successful-tab">
-                    <div class="table-controls">
-                        <div class="search-box">
-                            <i class="fas fa-search"></i>
-                            <input type="text" id="successfulSearch" placeholder="Search reservations...">
+                @if (statusFilter == "successful")
+                {
+                    <div class="tab-content active" id="successful-tab">
+                        <div class="table-controls">
+                            <div class="search-box">
+                                <i class="fas fa-search"></i>
+                                <input type="text" id="successfulSearch" placeholder="Search reservations..."
+                                       onkeyup="filterTable('successful', this.value)">
+                            </div>
+                            <div class="filter-group">
+                                <select class="filter-select" id="successfulUserTypeFilter" onchange="updateUserTypeFilter(this.value)">
+                                    <option value="all" @(userTypeFilter == "all" ? "selected" : "")>All Users</option>
+                                    <option value="Student" @(userTypeFilter == "Student" ? "selected" : "")>Student</option>
+                                    <option value="Faculty" @(userTypeFilter == "Faculty" ? "selected" : "")>Faculty</option>
+                                    <option value="Admin" @(userTypeFilter == "Admin" ? "selected" : "")>Admin</option>
+                                    <option value="Visitor" @(userTypeFilter == "Visitor" ? "selected" : "")>Visitor</option>
+                                </select>
+                                <select class="filter-select" id="successfulDateFilter" onchange="updateDateFilter(this.value)">
+                                    <option value="all" @(dateFilter == "all" ? "selected" : "")>All Time</option>
+                                    <option value="today" @(dateFilter == "today" ? "selected" : "")>Today</option>
+                                    <option value="week" @(dateFilter == "week" ? "selected" : "")>This Week</option>
+                                    <option value="month" @(dateFilter == "month" ? "selected" : "")>This Month</option>
+                                </select>
+                            </div>
                         </div>
-                        <div class="filter-group">
-                            <select class="filter-select" id="successfulUserTypeFilter">
-                                <option value="all">All Users</option>
-                                <option value="Student">Student</option>
-                                <option value="Faculty">Faculty</option>
-                                <option value="Admin">Admin</option>
-                                <option value="Visitor">Visitor</option>
-                            </select>
-                            <select class="filter-select" id="successfulDateFilter">
-                                <option value="all">All Time</option>
-                                <option value="today">Today</option>
-                                <option value="week">This Week</option>
-                                <option value="month">This Month</option>
-                            </select>
+
+                        <!-- 3 Stat Cards -->
+                        <div class="stats-cards">
+                            <div class="stat-card success">
+                                <div class="stat-icon">
+                                    <i class="fas fa-book-open"></i>
+                                </div>
+                                <div class="stat-info">
+                                    <h3 id="successful-total-count">@successfulCount</h3>
+                                    <p>Total Reservations</p>
+                                </div>
+                            </div>
+
+                            <div class="stat-card clickable-stat @(dateFilter == "all" ? "active-filter" : "")"
+                                 onclick="setDateFilter('all')" data-filter="all" data-tab="successful">
+                                <div class="stat-icon">
+                                    <i class="fas fa-calendar-check"></i>
+                                </div>
+                                <div class="stat-info">
+                                    <h3 id="successful-filtered-count">
+                                        @(archivedReservations != null ? archivedReservations.Count : 0)
+                                    </h3>
+                                    <p id="successful-filtered-label">
+                                        @(dateFilter == "all" ? "All Time" :
+                                          dateFilter == "today" ? "Today" :
+                                          dateFilter == "week" ? "This Week" :
+                                          dateFilter == "month" ? "This Month" : "All Time")
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="stat-card">
+                                <div class="stat-icon">
+                                    <i class="fas fa-calendar-day"></i>
+                                </div>
+                                <div class="stat-info">
+                                    <h3 id="successful-today-count">@successfulToday</h3>
+                                    <p>Completed Today</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="table-wrapper">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Name</th>
+                                        <th>User Type</th>
+                                        <th>Date</th>
+                                        <th>Time</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @if (archivedReservations != null && archivedReservations.Any())
+                                    {
+                                        foreach (var reservation in archivedReservations)
+                                        {
+                                            <tr data-user-type="@reservation.UserType" data-reservation-id="@reservation.ID">
+                                                <td>@reservation.ReservationID</td>
+                                                <td><div class="user-cell"><span>@reservation.ReserveeName</span></div></td>
+                                                <td><div class="user-type-cell"><strong>@reservation.UserType</strong></div></td>
+                                                <td>@reservation.BookingDate.ToString("MMM dd, yyyy")</td>
+                                                <td>@reservation.StartTime.ToString(@"hh\:mm") - @reservation.EndTime.ToString(@"hh\:mm")</td>
+                                                <td><span class="badge-status success">@reservation.Status</span></td>
+                                            </tr>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <tr>
+                                            <td colspan="6" style="text-align: center; padding: 2rem;">
+                                                No successful reservations found in the archives.
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="pagination">
+                            <button class="pagination-btn" disabled><i class="fas fa-chevron-left"></i></button>
+                            <button class="pagination-btn active">1</button>
+                            <button class="pagination-btn">2</button>
+                            <button class="pagination-btn"><i class="fas fa-chevron-right"></i></button>
                         </div>
                     </div>
-
-                    <!-- 3 Stat Cards -->
-                    <div class="stats-cards">
-                        <div class="stat-card success">
-                            <div class="stat-icon">
-                                <i class="fas fa-book-open"></i>
-                            </div>
-                            <div class="stat-info">
-                                <h3 id="successful-total-count">245</h3>
-                                <p>Total Reservations</p>
-                            </div>
-                        </div>
-
-                        <div class="stat-card clickable-stat active-filter" data-filter="all" data-tab="successful">
-                            <div class="stat-icon">
-                                <i class="fas fa-calendar-check"></i>
-                            </div>
-                            <div class="stat-info">
-                                <h3 id="successful-filtered-count">245</h3>
-                                <p id="successful-filtered-label">All Time</p>
-                            </div>
-                        </div>
-
-                        <div class="stat-card">
-                            <div class="stat-icon">
-                                <i class="fas fa-calendar-day"></i>
-                            </div>
-                            <div class="stat-info">
-                                <h3 id="successful-today-count">12</h3>
-                                <p>Completed Today</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="table-wrapper">
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Name</th>
-                                    <th>User Type</th>
-                                    <th>Date</th>
-                                    <th>Time</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr data-user-type="Student">
-                                    <td>RES-101</td>
-                                    <td><div class="user-cell"><span>John Smith</span></div></td>
-                                    <td><div class="user-type-cell"><strong>Student</strong></div></td>
-                                    <td>Nov 23, 2025</td>
-                                    <td>9:00 AM - 11:00 AM</td>
-                                    <td><span class="badge-status success">Complete</span></td>
-                                </tr>
-                                <tr data-user-type="Faculty">
-                                    <td>RES-102</td>
-                                    <td><div class="user-cell"><span>Sarah Johnson</span></div></td>
-                                    <td><div class="user-type-cell"><strong>Faculty</strong></div></td>
-                                    <td>Nov 23, 2025</td>
-                                    <td>1:00 PM - 3:00 PM</td>
-                                    <td><span class="badge-status success">Complete</span></td>
-                                </tr>
-                                <tr data-user-type="Student">
-                                    <td>RES-103</td>
-                                    <td><div class="user-cell"><span>Michael Lee</span></div></td>
-                                    <td><div class="user-type-cell"><strong>Student</strong></div></td>
-                                    <td>Nov 22, 2025</td>
-                                    <td>2:00 PM - 4:00 PM</td>
-                                    <td><span class="badge-status success">Complete</span></td>
-                                </tr>
-                                <tr data-user-type="Visitor">
-                                    <td>RES-104</td>
-                                    <td><div class="user-cell"><span>Emily Davis</span></div></td>
-                                    <td><div class="user-type-cell"><strong>Visitor</strong></div></td>
-                                    <td>Nov 21, 2025</td>
-                                    <td>10:00 AM - 12:00 PM</td>
-                                    <td><span class="badge-status success">Complete</span></td>
-                                </tr>
-                                <tr data-user-type="Admin">
-                                    <td>RES-105</td>
-                                    <td><div class="user-cell"><span>Robert Wilson</span></div></td>
-                                    <td><div class="user-type-cell"><strong>Admin</strong></div></td>
-                                    <td>Nov 20, 2025</td>
-                                    <td>3:00 PM - 5:00 PM</td>
-                                    <td><span class="badge-status success">Complete</span></td>
-                                </tr>
-                                <tr data-user-type="Student">
-                                    <td>RES-106</td>
-                                    <td><div class="user-cell"><span>Jessica Brown</span></div></td>
-                                    <td><div class="user-type-cell"><strong>Student</strong></div></td>
-                                    <td>Nov 19, 2025</td>
-                                    <td>8:00 AM - 10:00 AM</td>
-                                    <td><span class="badge-status success">Complete</span></td>
-                                </tr>
-                                <tr data-user-type="Faculty">
-                                    <td>RES-107</td>
-                                    <td><div class="user-cell"><span>David Martinez</span></div></td>
-                                    <td><div class="user-type-cell"><strong>Faculty</strong></div></td>
-                                    <td>Nov 18, 2025</td>
-                                    <td>11:00 AM - 1:00 PM</td>
-                                    <td><span class="badge-status success">Complete</span></td>
-                                </tr>
-                                <tr data-user-type="Student">
-                                    <td>RES-108</td>
-                                    <td><div class="user-cell"><span>Lisa Anderson</span></div></td>
-                                    <td><div class="user-type-cell"><strong>Student</strong></div></td>
-                                    <td>Nov 17, 2025</td>
-                                    <td>4:00 PM - 6:00 PM</td>
-                                    <td><span class="badge-status success">Complete</span></td>
-                                </tr>
-                                <tr data-user-type="Visitor">
-                                    <td>RES-109</td>
-                                    <td><div class="user-cell"><span>James Taylor</span></div></td>
-                                    <td><div class="user-type-cell"><strong>Visitor</strong></div></td>
-                                    <td>Nov 16, 2025</td>
-                                    <td>9:30 AM - 11:30 AM</td>
-                                    <td><span class="badge-status success">Complete</span></td>
-                                </tr>
-                                <tr data-user-type="Student">
-                                    <td>RES-110</td>
-                                    <td><div class="user-cell"><span>Maria Garcia</span></div></td>
-                                    <td><div class="user-type-cell"><strong>Student</strong></div></td>
-                                    <td>Nov 15, 2025</td>
-                                    <td>1:30 PM - 3:30 PM</td>
-                                    <td><span class="badge-status success">Complete</span></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <div class="pagination">
-                        <button class="pagination-btn" disabled><i class="fas fa-chevron-left"></i></button>
-                        <button class="pagination-btn active">1</button>
-                        <button class="pagination-btn">2</button>
-                        <button class="pagination-btn"><i class="fas fa-chevron-right"></i></button>
-                    </div>
-                </div>
+                }
 
                 <!-- Cancelled Reservations Tab Content -->
-                <div class="tab-content" id="cancelled-tab">
-                    <div class="table-controls">
-                        <div class="search-box">
-                            <i class="fas fa-search"></i>
-                            <input type="text" id="cancelledSearch" placeholder="Search reservations...">
+                @if (statusFilter == "cancelled")
+                {
+                    <div class="tab-content active" id="cancelled-tab">
+                        <div class="table-controls">
+                            <div class="search-box">
+                                <i class="fas fa-search"></i>
+                                <input type="text" id="cancelledSearch" placeholder="Search reservations..."
+                                       onkeyup="filterTable('cancelled', this.value)">
+                            </div>
+                            <div class="filter-group">
+                                <select class="filter-select" id="cancelledUserTypeFilter" onchange="updateUserTypeFilter(this.value)">
+                                    <option value="all" @(userTypeFilter == "all" ? "selected" : "")>All Users</option>
+                                    <option value="Student" @(userTypeFilter == "Student" ? "selected" : "")>Student</option>
+                                    <option value="Faculty" @(userTypeFilter == "Faculty" ? "selected" : "")>Faculty</option>
+                                    <option value="Admin" @(userTypeFilter == "Admin" ? "selected" : "")>Admin</option>
+                                    <option value="Visitor" @(userTypeFilter == "Visitor" ? "selected" : "")>Visitor</option>
+                                </select>
+                                <select class="filter-select" id="cancelledDateFilter" onchange="updateDateFilter(this.value)">
+                                    <option value="all" @(dateFilter == "all" ? "selected" : "")>All Time</option>
+                                    <option value="today" @(dateFilter == "today" ? "selected" : "")>Today</option>
+                                    <option value="week" @(dateFilter == "week" ? "selected" : "")>This Week</option>
+                                    <option value="month" @(dateFilter == "month" ? "selected" : "")>This Month</option>
+                                </select>
+                            </div>
                         </div>
-                        <div class="filter-group">
-                            <select class="filter-select" id="cancelledUserTypeFilter">
-                                <option value="all">All Users</option>
-                                <option value="Student">Student</option>
-                                <option value="Faculty">Admin/Faculty</option>
-                                <option value="Admin">Admin/Faculty</option>
-                                <option value="Visitor">Visitor</option>
-                            </select>
-                            <select class="filter-select" id="cancelledDateFilter">
-                                <option value="all">All Time</option>
-                                <option value="today">Today</option>
-                                <option value="week">This Week</option>
-                                <option value="month">This Month</option>
-                            </select>
+
+                        <!-- 3 Stat Cards -->
+                        <div class="stats-cards">
+                            <div class="stat-card danger">
+                                <div class="stat-icon">
+                                    <i class="fas fa-times-circle"></i>
+                                </div>
+                                <div class="stat-info">
+                                    <h3 id="cancelled-total-count">@cancelledCount</h3>
+                                    <p>Total Cancellations</p>
+                                </div>
+                            </div>
+
+                            <div class="stat-card clickable-stat @(dateFilter == "all" ? "active-filter" : "")"
+                                 onclick="setDateFilter('all')" data-filter="all" data-tab="cancelled">
+                                <div class="stat-icon">
+                                    <i class="fas fa-calendar-times"></i>
+                                </div>
+                                <div class="stat-info">
+                                    <h3 id="cancelled-filtered-count">
+                                        @(archivedReservations != null ? archivedReservations.Count : 0)
+                                    </h3>
+                                    <p id="cancelled-filtered-label">
+                                        @(dateFilter == "all" ? "All Time" :
+                                          dateFilter == "today" ? "Today" :
+                                          dateFilter == "week" ? "This Week" :
+                                          dateFilter == "month" ? "This Month" : "All Time")
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="stat-card">
+                                <div class="stat-icon">
+                                    <i class="fas fa-calendar-day"></i>
+                                </div>
+                                <div class="stat-info">
+                                    <h3 id="cancelled-today-count">@cancelledToday</h3>
+                                    <p>Cancelled Today</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="table-wrapper">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Name</th>
+                                        <th>User Type</th>
+                                        <th>Date</th>
+                                        <th>Time</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @if (archivedReservations != null && archivedReservations.Any())
+                                    {
+                                        foreach (var reservation in archivedReservations)
+                                        {
+                                            <tr data-user-type="@reservation.UserType" data-reservation-id="@reservation.ID">
+                                                <td>@reservation.ReservationID</td>
+                                                <td><div class="user-cell"><span>@reservation.ReserveeName</span></div></td>
+                                                <td><div class="user-type-cell"><strong>@reservation.UserType</strong></div></td>
+                                                <td>@reservation.BookingDate.ToString("MMM dd, yyyy")</td>
+                                                <td>@reservation.StartTime.ToString(@"hh\:mm") - @reservation.EndTime.ToString(@"hh\:mm")</td>
+                                                <td><span class="badge-status cancelled">@reservation.Status</span></td>
+                                            </tr>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <tr>
+                                            <td colspan="6" style="text-align: center; padding: 2rem;">
+                                                No cancelled reservations found in the archives.
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="pagination">
+                            <button class="pagination-btn" disabled><i class="fas fa-chevron-left"></i></button>
+                            <button class="pagination-btn active">1</button>
+                            <button class="pagination-btn">2</button>
+                            <button class="pagination-btn"><i class="fas fa-chevron-right"></i></button>
                         </div>
                     </div>
-
-                    <!-- 3 Stat Cards -->
-                    <div class="stats-cards">
-                        <div class="stat-card danger">
-                            <div class="stat-icon">
-                                <i class="fas fa-times-circle"></i>
-                            </div>
-                            <div class="stat-info">
-                                <h3 id="cancelled-total-count">87</h3>
-                                <p>Total Cancellations</p>
-                            </div>
-                        </div>
-
-                        <div class="stat-card clickable-stat active-filter" data-filter="all" data-tab="cancelled">
-                            <div class="stat-icon">
-                                <i class="fas fa-calendar-times"></i>
-                            </div>
-                            <div class="stat-info">
-                                <h3 id="cancelled-filtered-count">87</h3>
-                                <p id="cancelled-filtered-label">All Time</p>
-                            </div>
-                        </div>
-
-                        <div class="stat-card">
-                            <div class="stat-icon">
-                                <i class="fas fa-calendar-day"></i>
-                            </div>
-                            <div class="stat-info">
-                                <h3 id="cancelled-today-count">3</h3>
-                                <p>Cancelled Today</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="table-wrapper">
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Name</th>
-                                    <th>User Type</th>
-                                    <th>Date</th>
-                                    <th>Time</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr data-user-type="Student">
-                                    <td>RES-201</td>
-                                    <td><div class="user-cell"><span>Alex Cooper</span></div></td>
-                                    <td><div class="user-type-cell"><strong>Student</strong></div></td>
-                                    <td>Nov 22, 2025</td>
-                                    <td>2:00 PM - 4:00 PM</td>
-                                    <td><span class="badge-status cancelled">Cancelled</span></td>
-                                </tr>
-                                <tr data-user-type="Faculty">
-                                    <td>RES-202</td>
-                                    <td><div class="user-cell"><span>Michelle Turner</span></div></td>
-                                    <td><div class="user-type-cell"><strong>Faculty</strong></div></td>
-                                    <td>Nov 20, 2025</td>
-                                    <td>10:00 AM - 12:00 PM</td>
-                                    <td><span class="badge-status cancelled">Cancelled</span></td>
-                                </tr>
-                                <tr data-user-type="Student">
-                                    <td>RES-203</td>
-                                    <td><div class="user-cell"><span>Brandon Phillips</span></div></td>
-                                    <td><div class="user-type-cell"><strong>Student</strong></div></td>
-                                    <td>Nov 18, 2025</td>
-                                    <td>3:00 PM - 5:00 PM</td>
-                                    <td><span class="badge-status cancelled">Cancelled</span></td>
-                                </tr>
-                                <tr data-user-type="Visitor">
-                                    <td>RES-204</td>
-                                    <td><div class="user-cell"><span>Samantha Parker</span></div></td>
-                                    <td><div class="user-type-cell"><strong>Visitor</strong></div></td>
-                                    <td>Nov 17, 2025</td>
-                                    <td>11:00 AM - 1:00 PM</td>
-                                    <td><span class="badge-status cancelled">Cancelled</span></td>
-                                </tr>
-                                <tr data-user-type="Admin">
-                                    <td>RES-205</td>
-                                    <td><div class="user-cell"><span>Tyler Evans</span></div></td>
-                                    <td><div class="user-type-cell"><strong>Admin</strong></div></td>
-                                    <td>Nov 15, 2025</td>
-                                    <td>1:00 PM - 3:00 PM</td>
-                                    <td><span class="badge-status cancelled">Cancelled</span></td>
-                                </tr>
-                                <tr data-user-type="Student">
-                                    <td>RES-206</td>
-                                    <td><div class="user-cell"><span>Megan Collins</span></div></td>
-                                    <td><div class="user-type-cell"><strong>Student</strong></div></td>
-                                    <td>Nov 14, 2025</td>
-                                    <td>9:00 AM - 11:00 AM</td>
-                                    <td><span class="badge-status cancelled">Cancelled</span></td>
-                                </tr>
-                                <tr data-user-type="Faculty">
-                                    <td>RES-207</td>
-                                    <td><div class="user-cell"><span>Justin Stewart</span></div></td>
-                                    <td><div class="user-type-cell"><strong>Faculty</strong></div></td>
-                                    <td>Nov 12, 2025</td>
-                                    <td>4:00 PM - 6:00 PM</td>
-                                    <td><span class="badge-status cancelled">Cancelled</span></td>
-                                </tr>
-                                <tr data-user-type="Student">
-                                    <td>RES-208</td>
-                                    <td><div class="user-cell"><span>Brittany Morris</span></div></td>
-                                    <td><div class="user-type-cell"><strong>Student</strong></div></td>
-                                    <td>Nov 10, 2025</td>
-                                    <td>2:00 PM - 4:00 PM</td>
-                                    <td><span class="badge-status cancelled">Cancelled</span></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <div class="pagination">
-                        <button class="pagination-btn" disabled><i class="fas fa-chevron-left"></i></button>
-                        <button class="pagination-btn active">1</button>
-                        <button class="pagination-btn">2</button>
-                        <button class="pagination-btn"><i class="fas fa-chevron-right"></i></button>
-                    </div>
-                </div>
+                }
             </div>
         </main>
     </div>
 
     <script src="~/Scripts/librarianarchives.js"></script>
+
+    <script>
+        // Filter functions
+        function submitStatusFilter(status) {
+            document.getElementById('statusFilterInput').value = status;
+            document.getElementById('mainFilterForm').submit();
+        }
+
+        function updateDateFilter(dateFilter) {
+            document.getElementById('dateFilterInput').value = dateFilter;
+            document.getElementById('mainFilterForm').submit();
+        }
+
+        function updateUserTypeFilter(userTypeFilter) {
+            document.getElementById('userTypeFilterInput').value = userTypeFilter;
+            document.getElementById('mainFilterForm').submit();
+        }
+
+        function setDateFilter(dateFilter) {
+            document.getElementById('dateFilterInput').value = dateFilter;
+            document.getElementById('mainFilterForm').submit();
+        }
+
+        // Client-side table filtering
+        function filterTable(tabType, searchTerm) {
+            const table = document.querySelector(`#${tabType}-tab .data-table tbody`);
+
+            if (!table) return;
+
+            const rows = table.querySelectorAll('tr[data-reservation-id]');
+            const term = searchTerm.toLowerCase();
+
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                if (text.includes(term)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+        // Initialize search functionality
+        document.addEventListener('DOMContentLoaded', function () {
+            const successfulSearch = document.getElementById('successfulSearch');
+            const cancelledSearch = document.getElementById('cancelledSearch');
+
+            if (successfulSearch) {
+                successfulSearch.addEventListener('input', function (e) {
+                    filterTable('successful', e.target.value);
+                });
+            }
+
+            if (cancelledSearch) {
+                cancelledSearch.addEventListener('input', function (e) {
+                    filterTable('cancelled', e.target.value);
+                });
+            }
+        });
+    </script>
 </body>
 </html>

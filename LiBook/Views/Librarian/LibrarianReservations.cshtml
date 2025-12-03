@@ -1,4 +1,4 @@
-﻿<!-- Views/Librarian/LibrarianReservations.cshtml -->
+﻿@model IEnumerable<LiBook.Controllers.LibrarianController.ReservationViewModel>
 @{
     ViewBag.Title = "Reservations Management";
     var acceptedReservations = ViewBag.AcceptedReservations as List<LiBook.ViewModels.ReservationViewModel> ?? new List<LiBook.ViewModels.ReservationViewModel>();
