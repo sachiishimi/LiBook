@@ -1,5 +1,7 @@
-﻿@{
-    ViewBag.Title = "RoomManagement";
+﻿@model IEnumerable<LiBook.Controllers.RoomManagementViewModel>
+
+@{
+    ViewBag.Title = "Room Management";
 }
 <!DOCTYPE html>
 <html lang="en">
@@ -112,14 +114,18 @@
                         <input type="text" placeholder="Search rooms..." id="searchRoomInput">
                     </div>
                     <div class="filter-group">
-                        <label>User Type:</label>
-                        <select class="filter-select" id="userTypeFilter">
+                        <label>Room Type:</label>
+                        <select class="filter-select" id="roomTypeFilter">
                             <option value="all">All Types</option>
-                            <option value="academic">Academic</option>
-                            <option value="faculty">Faculty</option>
-                            <option value="public">Public</option>
+                            <option value="Academic">Academic</option>
+                            <option value="Faculty">Faculty</option>
+                            <option value="Public">Public</option>
                         </select>
                     </div>
+                    <button class="btn btn-primary" id="refreshRoomsBtn">
+                        <i class="fas fa-sync-alt"></i>
+                        Refresh
+                    </button>
                 </div>
             </div>
 
@@ -130,7 +136,7 @@
                         <i class="fas fa-th"></i>
                     </div>
                     <div class="stat-info">
-                        <h3 id="allCount">23</h3>
+                        <h3 id="allCount">@(ViewBag.AllCount ?? 0)</h3>
                         <p>All Rooms</p>
                     </div>
                 </div>
@@ -139,7 +145,7 @@
                         <i class="fas fa-door-open"></i>
                     </div>
                     <div class="stat-info">
-                        <h3 id="availableCount">12</h3>
+                        <h3 id="availableCount">@(ViewBag.AvailableCount ?? 0)</h3>
                         <p>Available</p>
                     </div>
                 </div>
@@ -148,7 +154,7 @@
                         <i class="fas fa-ban"></i>
                     </div>
                     <div class="stat-info">
-                        <h3 id="unavailableCount">8</h3>
+                        <h3 id="unavailableCount">@(ViewBag.UnavailableCount ?? 0)</h3>
                         <p>Unavailable</p>
                     </div>
                 </div>
@@ -157,7 +163,7 @@
                         <i class="fas fa-wrench"></i>
                     </div>
                     <div class="stat-info">
-                        <h3 id="maintenanceCount">2</h3>
+                        <h3 id="maintenanceCount">@(ViewBag.MaintenanceCount ?? 0)</h3>
                         <p>Maintenance</p>
                     </div>
                 </div>
@@ -165,480 +171,363 @@
 
             <!-- Rooms Container -->
             <div class="rooms-container" id="roomsContainer">
-                <!-- Room Card 1: Available -->
-                <div class="room-card available" data-room-id="1" data-status="available" data-user-type="academic" data-capacity="8">
-                    <div class="room-card-header">
-                        <div class="room-info">
-                            <h3 class="room-name">Study Room A</h3>
-                            <p class="room-type-label">Study Room</p>
-                        </div>
-                        <span class="status-badge status-available">Available</span>
-                    </div>
-                    <div class="room-card-body">
-                        <div class="room-tag room-tag-academic">
-                            <i class="fas fa-graduation-cap"></i>
-                            <span>For: Academic</span>
-                        </div>
-                        <div class="room-details">
-                            <div class="room-detail">
-                                <i class="fas fa-users"></i>
-                                <span>8 people</span>
-                            </div>
-                            <div class="room-detail">
-                                <i class="fas fa-tv"></i>
-                                <span>Smart TV, Whiteboard</span>
-                            </div>
-                        </div>
-                        <div class="reservation-info">
-                            <div class="next-reservation">
-                                <i class="fas fa-clock"></i>
-                                <span><strong>Next:</strong> Jane Smith at 4:30 PM</span>
-                            </div>
-                        </div>
-                        <div class="room-actions">
-                            <button class="room-btn room-btn-primary" onclick="openRoomDetails(1)">
-                                <i class="fas fa-info-circle"></i>
-                                <span>Details</span>
-                            </button>
-                            <button class="room-btn room-btn-success" onclick="createWalkIn(1)">
-                                <i class="fas fa-user-plus"></i>
-                                <span>Walk-In</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                @if (Model != null && Model.Any())
+                {
+                    foreach (var room in Model)
+                    {
+                        // Get actual database values
+                        var roomName = room.RoomName ?? "Unknown Room";
+                        var roomType = room.RoomType ?? "Academic"; // Academic, Public, or Faculty
+                        var capacity = room.Capacity;
+                        var availability = room.Status ?? "Available";
 
-                <!-- Room Card 2: Unavailable (CANCEL BUTTON REMOVED) -->
-                <div class="room-card unavailable" data-room-id="2" data-status="unavailable" data-user-type="faculty" data-capacity="10">
-                    <div class="room-card-header">
-                        <div class="room-info">
-                            <h3 class="room-name">Collaboration Room B</h3>
-                            <p class="room-type-label">Collaboration Room</p>
-                        </div>
-                        <span class="status-badge status-unavailable">Unavailable</span>
-                    </div>
-                    <div class="room-card-body">
-                        <div class="room-tag room-tag-faculty">
-                            <i class="fas fa-chalkboard-teacher"></i>
-                            <span>For: Faculty</span>
-                        </div>
-                        <div class="room-details">
-                            <div class="room-detail">
-                                <i class="fas fa-users"></i>
-                                <span>10 people</span>
-                            </div>
-                            <div class="room-detail">
-                                <i class="fas fa-tv"></i>
-                                <span>Projector, Conference Phone</span>
-                            </div>
-                        </div>
-                        <div class="reservation-info">
-                            <div class="current-reservation">
-                                <i class="fas fa-user-clock"></i>
-                                <span><strong>Current:</strong> Dr. Johnson until 5:00 PM</span>
-                            </div>
-                        </div>
-                        <div class="room-actions">
-                            <button class="room-btn room-btn-primary" onclick="openRoomDetails(2)">
-                                <i class="fas fa-info-circle"></i>
-                                <span>Details</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                        // Determine availability status class for card styling
+                        var statusClass = availability.ToLower();
 
-                <!-- Room Card 3: Available -->
-                <div class="room-card available" data-room-id="3" data-status="available" data-user-type="public" data-capacity="6">
-                    <div class="room-card-header">
-                        <div class="room-info">
-                            <h3 class="room-name">Study Room C</h3>
-                            <p class="room-type-label">Study Room</p>
-                        </div>
-                        <span class="status-badge status-available">Available</span>
-                    </div>
-                    <div class="room-card-body">
-                        <div class="room-tag room-tag-public">
-                            <i class="fas fa-users"></i>
-                            <span>For: Public</span>
-                        </div>
-                        <div class="room-details">
-                            <div class="room-detail">
-                                <i class="fas fa-users"></i>
-                                <span>6 people</span>
-                            </div>
-                            <div class="room-detail">
-                                <i class="fas fa-wifi"></i>
-                                <span>Whiteboard, WiFi</span>
-                            </div>
-                        </div>
-                        <div class="reservation-info">
-                            <div class="next-reservation">
-                                <i class="fas fa-clock"></i>
-                                <span><strong>Available all day</strong></span>
-                            </div>
-                        </div>
-                        <div class="room-actions">
-                            <button class="room-btn room-btn-primary" onclick="openRoomDetails(3)">
-                                <i class="fas fa-info-circle"></i>
-                                <span>Details</span>
-                            </button>
-                            <button class="room-btn room-btn-success" onclick="createWalkIn(3)">
-                                <i class="fas fa-user-plus"></i>
-                                <span>Walk-In</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                        // Determine room type styling and icon
+                        var roomTypeClass = roomType.ToLower();
+                        var roomTypeIcon = "fa-graduation-cap"; // Default Academic
 
-                <!-- Room Card 4: Maintenance -->
-                <div class="room-card maintenance" data-room-id="4" data-status="maintenance" data-user-type="academic" data-capacity="10">
-                    <div class="room-card-header">
-                        <div class="room-info">
-                            <h3 class="room-name">Meeting Room D</h3>
-                            <p class="room-type-label">Meeting Room</p>
-                        </div>
-                        <span class="status-badge status-maintenance">Under Maintenance</span>
-                    </div>
-                    <div class="room-card-body">
-                        <div class="room-tag room-tag-academic">
-                            <i class="fas fa-graduation-cap"></i>
-                            <span>For: Academic</span>
-                        </div>
-                        <div class="room-details">
-                            <div class="room-detail">
-                                <i class="fas fa-users"></i>
-                                <span>10 people</span>
+                        if (roomTypeClass == "faculty")
+                        {
+                            roomTypeIcon = "fa-chalkboard-teacher";
+                        }
+                        else if (roomTypeClass == "public")
+                        {
+                            roomTypeIcon = "fa-users";
+                        }
+
+                        <div class="room-card @statusClass"
+                             data-room-id="@room.RoomID"
+                             data-status="@statusClass"
+                             data-room-type="@roomTypeClass"
+                             data-capacity="@capacity">
+
+                            <!-- Room Card Header -->
+                            <div class="room-card-header">
+                                <div class="room-info">
+                                    <h3 class="room-name">@roomName</h3>
+                                    <p class="room-availability">@availability</p>
+                                </div>
+                                <span class="status-badge status-@statusClass">@availability</span>
                             </div>
-                            <div class="room-detail">
-                                <i class="fas fa-tv"></i>
-                                <span>Projector, Conference Phone</span>
+
+                            <!-- Room Card Body -->
+                            <div class="room-card-body">
+                                <!-- SIMPLE ELEGANT ROOM TYPE BADGE -->
+                                <div class="room-tag room-tag-@roomTypeClass">
+                                    <i class="fas @roomTypeIcon"></i>
+                                    <span>For: @roomType</span>
+                                </div>
+
+                                <!-- Room Details -->
+                                <div class="room-details">
+                                    <div class="room-detail">
+                                        <i class="fas fa-users"></i>
+                                        <span>Capacity: @capacity</span>
+                                    </div>
+                                    <div class="room-detail">
+                                        <i class="fas fa-door-open"></i>
+                                        <span>@availability</span>
+                                    </div>
+                                </div>
+
+                                <!-- Action Buttons -->
+                                <div class="room-actions">
+                                    <button class="room-btn room-btn-primary btn-details" data-room-id="@room.RoomID">
+                                        <i class="fas fa-info-circle"></i>
+                                        <span>Details</span>
+                                    </button>
+                                    @if (statusClass == "available")
+                                    {
+                                        <button class="room-btn room-btn-success btn-walkin" data-room-id="@room.RoomID">
+                                            <i class="fas fa-user-plus"></i>
+                                            <span>Walk-In</span>
+                                        </button>
+                                    }
+                                </div>
                             </div>
                         </div>
-                        <div class="maintenance-status">
-                            <i class="fas fa-wrench"></i>
-                            <strong>Maintenance:</strong> Electrical work in progress
-                        </div>
-                        <div class="room-actions">
-                            <button class="room-btn room-btn-primary" onclick="openRoomDetails(4)">
-                                <i class="fas fa-info-circle"></i>
-                                <span>Details</span>
-                            </button>
-                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="empty-state">
+                        <i class="fas fa-door-closed"></i>
+                        <h3>No Rooms Available</h3>
+                        <p>There are no rooms in the system yet. Contact your administrator to add rooms.</p>
                     </div>
-                </div>
+                }
             </div>
         </main>
     </div>
 
+
     <!-- Room Details Modal -->
-    <div class="modal" id="roomDetailsModal">
-        <div class="modal-content modal-with-sidebar">
+    <div class="modal-overlay" id="roomDetailsModal">
+        <div class="modal-container">
             <div class="modal-header">
-                <h2 class="modal-title">
+                <div class="modal-title">
                     <i class="fas fa-door-open"></i>
-                    <span id="detailRoomName">Room Details</span>
-                </h2>
-                <button class="modal-close" onclick="closeModal('roomDetailsModal')">
+                    <h2 id="modalRoomName">Study Room A</h2>
+                </div>
+                <button class="modal-close" id="closeRoomModal">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-            <div class="modal-body modal-body-with-sidebar">
-                <!-- Schedule Sidebar -->
-                <div class="schedule-sidebar">
-                    <h3 class="schedule-sidebar-title">
-                        <i class="fas fa-calendar-alt"></i>
-                        Reservations
-                    </h3>
-                    <div class="schedule-list" id="scheduleList">
-                        <!-- Schedule items will be inserted here by JavaScript -->
-                    </div>
-                    <div class="no-schedules" id="noSchedules" style="display: none;">
-                        <i class="fas fa-calendar-times"></i>
-                        <p>No reservations scheduled</p>
+
+            <div class="modal-body">
+                <!-- Left Section: Reservations -->
+                <div class="modal-left">
+                    <div class="reservations-section">
+                        <h3><i class="fas fa-calendar-check"></i> Reservations</h3>
+                        <div class="reservations-list" id="reservationsList">
+                            <!-- Reservations will be dynamically loaded here -->
+                        </div>
                     </div>
                 </div>
 
-                <!-- Main Content -->
-                <div class="modal-main-content" id="roomDetailsContent">
-                    <div class="room-details-grid">
-                        <div class="detail-item">
-                            <label>Current Status:</label>
-                            <select id="detailStatus" class="status-select" disabled>
-                                <option value="available">Available</option>
-                                <option value="unavailable">Unavailable</option>
-                                <option value="maintenance">Under Maintenance</option>
-                            </select>
+                <!-- Right Section: Room Details -->
+                <div class="modal-right">
+                    <div class="room-info-grid">
+                        <div class="info-row">
+                            <div class="info-group">
+                                <label>CURRENT STATUS:</label>
+                                <p class="info-value" id="modalRoomStatus">Available</p>
+                            </div>
+                            <div class="info-group">
+                                <label>ROOM TYPE:</label>
+                                <p class="info-value" id="modalRoomType">Study Room</p>
+                            </div>
                         </div>
-                        <div class="detail-item">
-                            <label>Room Type:</label>
-                            <span id="detailRoomType" class="detail-value">Study Room</span>
-                        </div>
-                        <div class="detail-item">
-                            <label>Capacity:</label>
-                            <span id="detailCapacity" class="detail-value">8 people</span>
-                        </div>
-                        <div class="detail-item">
-                            <label>User Type:</label>
-                            <span id="detailUserType" class="detail-value">Academic</span>
-                        </div>
-                    </div>
-                    <div class="equipment-section">
-                        <label>Equipment & Amenities:</label>
-                        <div class="equipment-list" id="detailEquipment">
-                            <!-- Equipment tags will be inserted here by JavaScript -->
+
+                        <div class="info-row">
+                            <div class="info-group">
+                                <label>CAPACITY:</label>
+                                <p class="info-value" id="modalRoomCapacity">8 people</p>
+                            </div>
+                            <div class="info-group">
+                                <label>USER TYPE:</label>
+                                <p class="info-value" id="modalUserType">Academic</p>
+                            </div>
                         </div>
                     </div>
-                    <div class="modal-actions-list">
-                        <button class="modal-action-item" onclick="viewFullSchedule()">
-                            <div class="action-icon action-icon-info">
+
+                    <!-- Action Buttons -->
+                    <div class="modal-actions">
+                        <button class="modal-action-btn" id="viewScheduleBtn">
+                            <div class="action-icon blue">
                                 <i class="fas fa-calendar-alt"></i>
                             </div>
-                            <div class="action-content">
+                            <div class="action-text">
                                 <h4>View Full Schedule</h4>
                                 <p>See complete reservation calendar</p>
                             </div>
                         </button>
-                        <button class="modal-action-item" onclick="createWalkInFromModal()">
-                            <div class="action-icon action-icon-success">
+
+                        <button class="modal-action-btn" id="createWalkInBtn">
+                            <div class="action-icon green">
                                 <i class="fas fa-user-plus"></i>
                             </div>
-                            <div class="action-content">
+                            <div class="action-text">
                                 <h4>Create Walk-In</h4>
                                 <p>Register a walk-in reservation now</p>
                             </div>
                         </button>
-                        <button class="modal-action-item" onclick="reportIssueFromModal()">
-                            <div class="action-icon action-icon-warning">
+
+                        <button class="modal-action-btn" id="reportIssueBtn">
+                            <div class="action-icon yellow">
                                 <i class="fas fa-exclamation-triangle"></i>
                             </div>
-                            <div class="action-content">
+                            <div class="action-text">
                                 <h4>Report an Issue</h4>
                                 <p>Report maintenance or other issues</p>
                             </div>
                         </button>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
 
-                <!-- Full Schedule Content (Hidden by default) -->
-                <div class="full-schedule-content" id="fullScheduleContent" style="display: none;">
-                    <div class="full-schedule-header">
-                        <button class="back-btn" onclick="closeFullSchedule()">
-                            <i class="fas fa-arrow-left"></i>
-                            <span>Back to Details</span>
-                        </button>
-                        <h3 class="full-schedule-title">
-                            <i class="fas fa-calendar-alt"></i>
-                            Full Schedule - <span id="scheduleRoomTitle">Room Name</span>
-                        </h3>
-                    </div>
-                    <div class="schedule-table-container">
-                        <table class="schedule-table">
-                            <thead>
-                                <tr>
-                                    <th>Room Name</th>
-                                    <th>User Name</th>
-                                    <th>Date</th>
-                                    <th>Time</th>
-                                    <th>Number of Members</th>
-                                </tr>
-                            </thead>
-                            <tbody id="scheduleTableBody">
-                                <!-- Schedule data will be inserted here by JavaScript -->
-                            </tbody>
-                        </table>
-                        <div class="no-schedule-data" id="noScheduleData" style="display: none;">
-                            <i class="fas fa-calendar-times"></i>
-                            <p>No schedule data available</p>
-                        </div>
-                    </div>
+    <!-- View Full Schedule Modal -->
+    <div class="modal-overlay" id="scheduleModal">
+        <div class="modal-container modal-schedule">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <i class="fas fa-calendar-alt"></i>
+                    <h2 id="scheduleModalRoomName">Room Schedule</h2>
+                </div>
+                <button class="modal-close" id="closeScheduleModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div class="modal-body-schedule">
+                <div class="schedule-list" id="scheduleList">
+                    <!-- Schedule items will be dynamically loaded here -->
+                </div>
+
+                <div class="empty-schedule" id="emptySchedule" style="display: none;">
+                    <i class="fas fa-inbox"></i>
+                    <p>No reservations found</p>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Walk-In Reservation Modal -->
-    <div class="modal" id="walkInModal">
-        <div class="modal-content">
+    <div class="modal-overlay" id="walkInModal">
+        <div class="modal-container modal-walkin">
             <div class="modal-header">
-                <h2 class="modal-title">
+                <div class="modal-title">
                     <i class="fas fa-user-plus"></i>
-                    Create Walk-In Reservation
-                </h2>
-                <button class="modal-close" onclick="closeModal('walkInModal')">
+                    <h2>Create Walk-In Reservation</h2>
+                </div>
+                <button class="modal-close" id="closeWalkInModal">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-            <div class="modal-body">
-                <form id="walkInForm" class="walk-in-form">
-                    <div class="form-group">
-                        <label for="walkInRoomName">Room:</label>
-                        <input type="text" id="walkInRoomName" class="form-input" readonly>
+
+            <div class="modal-body-walkin">
+                <div class="walkin-info-banner">
+                    <i class="fas fa-door-open"></i>
+                    <span><strong id="walkInRoomName">-</strong> • <strong id="walkInRoomTypeDisplay">-</strong></span>
+                </div>
+
+                <form id="walkInForm">
+                    <div class="walkin-form-grid">
+                        <div class="form-group">
+                            <label for="walkInName">
+                                <i class="fas fa-user"></i>
+                                Full Name
+                            </label>
+                            <input type="text" id="walkInName" class="form-input" placeholder="Juan Dela Cruz" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="walkInEmail">
+                                <i class="fas fa-envelope"></i>
+                                Email Address
+                            </label>
+                            <input type="email" id="walkInEmail" class="form-input" placeholder="juan@example.com" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="walkInUserType">
+                                <i class="fas fa-id-card"></i>
+                                User Type
+                            </label>
+                            <select id="walkInUserType" class="form-select" required>
+                                <option value="">Select type</option>
+                                <option value="Student">Student</option>
+                                <option value="Faculty">Faculty</option>
+                                <option value="Admin">Admin</option>
+                                <option value="Visitor">Visitor</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="walkInMembers">
+                                <i class="fas fa-users"></i>
+                                Number of People
+                            </label>
+                            <input type="number" id="walkInMembers" class="form-input" placeholder="1 - 10" min="1" max="10" value="1" required>
+                        </div>
+
+                        <div class="form-group form-group-full" id="memberNamesGroup" style="display: none;">
+                            <label for="walkInMemberNames">
+                                <i class="fas fa-list"></i>
+                                Member Names <span class="optional-badge">Optional</span>
+                            </label>
+                            <textarea id="walkInMemberNames" class="form-textarea" placeholder="Enter names (one per line)" rows="3"></textarea>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label for="walkInUserName">User Name: <span class="required">*</span></label>
-                        <input type="text" id="walkInUserName" class="form-input" placeholder="Enter user name" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="walkInUserType">User Type: <span class="required">*</span></label>
-                        <select id="walkInUserType" class="form-input" required>
-                            <option value="">Select user type</option>
-                            <option value="academic">Academic</option>
-                            <option value="faculty">Faculty</option>
-                            <option value="public">Public</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="walkInDuration">Duration (hours):</label>
-                        <input type="number" id="walkInDuration" class="form-input" min="1" max="4" value="2" placeholder="2">
-                    </div>
-                    <div class="form-group">
-                        <label for="walkInPurpose">Purpose:</label>
-                        <textarea id="walkInPurpose" class="form-input" rows="3" placeholder="Brief description of the purpose"></textarea>
-                    </div>
+
                     <div class="form-actions">
-                        <button type="button" class="btn btn-secondary" onclick="closeModal('walkInModal')">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Create Reservation</button>
+                        <button type="button" class="btn-walkin btn-cancel" id="cancelWalkInBtn">
+                            Cancel
+                        </button>
+                        <button type="submit" class="btn-walkin btn-submit">
+                            <i class="fas fa-check"></i>
+                            Create Reservation
+                        </button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
 
-    <!-- Schedule Details Modal -->
-    <div class="modal" id="scheduleDetailsModal">
-        <div class="modal-content modal-schedule-details">
-            <div class="modal-header">
-                <h2 class="modal-title">
-                    <i class="fas fa-calendar-alt"></i>
-                    Reservation Details
-                </h2>
-                <button class="modal-close" onclick="closeModal('scheduleDetailsModal')">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="modal-body">
-                <div class="schedule-details-layout">
-                    <div class="reservee-header">
-                        <div class="reservee-avatar-large">
-                            <i class="fas fa-user"></i>
-                        </div>
-                        <div class="reservee-info">
-                            <h3 id="scheduleReserveeName">John Doe</h3>
-                            <span class="user-type-badge" id="scheduleReserveeType">Academic</span>
-                        </div>
-                    </div>
-
-                    <div class="reservation-details-grid">
-                        <div class="detail-item">
-                            <label><i class="fas fa-clock"></i> Time Slot</label>
-                            <span class="detail-value" id="scheduleTimeSlot">2:00 PM - 4:00 PM</span>
-                        </div>
-                        <div class="detail-item">
-                            <label><i class="fas fa-calendar-day"></i> Date</label>
-                            <span class="detail-value" id="scheduleDate">November 19, 2025</span>
-                        </div>
-                        <div class="detail-item">
-                            <label><i class="fas fa-hourglass-half"></i> Duration</label>
-                            <span class="detail-value" id="scheduleDuration">2 hours</span>
-                        </div>
-                        <div class="detail-item">
-                            <label><i class="fas fa-door-open"></i> Room</label>
-                            <span class="detail-value" id="scheduleRoomName">Study Room A</span>
-                        </div>
-                        <div class="detail-item full-width">
-                            <label><i class="fas fa-bullseye"></i> Purpose</label>
-                            <span class="detail-value" id="schedulePurpose">Group study session for finals</span>
-                        </div>
-                    </div>
-
-                    <div class="schedule-details-actions">
-                        <button class="cancel-reservation-btn" onclick="cancelScheduleReservation()">
-                            <i class="fas fa-times-circle"></i>
-                            Cancel Reservation
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Confirmation Modal for Cancel Reservation -->
-    <div class="modal" id="confirmCancelModal">
-        <div class="modal-content modal-confirmation">
-            <div class="confirmation-header">
-                <div class="confirmation-icon">
-                    <i class="fas fa-exclamation-circle"></i>
-                </div>
-                <h2>Cancel Reservation?</h2>
-                <p>Are you sure you want to cancel this reservation?</p>
-            </div>
-            <div class="confirmation-body">
-                <div class="reservee-highlight">
-                    <i class="fas fa-user"></i>
-                    <span id="confirmReserveeName">John Doe</span>
-                </div>
-                <div class="confirmation-warning">
-                    <i class="fas fa-info-circle"></i>
-                    <span>This action cannot be undone. The user will be notified of the cancellation.</span>
-                </div>
-            </div>
-            <div class="confirmation-actions">
-                <button class="btn-confirm-cancel btn-keep" onclick="closeModal('confirmCancelModal')">
-                    <i class="fas fa-arrow-left"></i>
-                    <span>Keep Reservation</span>
-                </button>
-                <button class="btn-confirm-cancel btn-cancel-confirm" onclick="handleConfirmedCancellation()">
-                    <i class="fas fa-times-circle"></i>
-                    <span>Yes, Cancel</span>
-                </button>
-            </div>
-        </div>
-    </div>
-
     <!-- Report Issue Modal -->
-    <div class="modal" id="reportIssueModal">
-        <div class="modal-content">
+    <div class="modal-overlay" id="reportIssueModal">
+        <div class="modal-container modal-report-issue">
             <div class="modal-header">
-                <h2 class="modal-title">
+                <div class="modal-title">
                     <i class="fas fa-exclamation-triangle"></i>
-                    Report an Issue
-                </h2>
-                <button class="modal-close" onclick="closeModal('reportIssueModal')">
+                    <h2>Report an Issue</h2>
+                </div>
+                <button class="modal-close" id="closeReportIssueModal">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
+
             <div class="modal-body">
-                <form id="reportIssueForm" class="walk-in-form">
-                    <div class="form-group">
-                        <label for="issueRoomName">Room:</label>
-                        <input type="text" id="issueRoomName" class="form-input" readonly>
+                <div class="report-issue-info-banner">
+                    <i class="fas fa-info-circle"></i>
+                    <div>
+                        <strong id="reportIssueRoomName">Room Name</strong>
+                        <span class="room-type-badge" id="reportIssueRoomType">Room Type</span>
                     </div>
-                    <div class="form-group">
-                        <label for="issueType">Issue Type: <span class="required">*</span></label>
-                        <select id="issueType" class="form-input" required>
-                            <option value="">Select issue type</option>
-                            <option value="equipment">Equipment Malfunction</option>
-                            <option value="cleanliness">Cleanliness Issue</option>
-                            <option value="furniture">Furniture Damage</option>
-                            <option value="temperature">Temperature Control</option>
-                            <option value="other">Other</option>
-                        </select>
+                </div>
+
+                <form id="reportIssueForm">
+                    <div class="form-grid">
+                        <div class="form-group full-width">
+                            <label for="issueReason">
+                                <i class="fas fa-list"></i>
+                                Issue Reason
+                                <span class="required">*</span>
+                            </label>
+                            <select id="issueReason" required>
+                                <option value="">Select a reason...</option>
+                                <option value="equipment-malfunction">Equipment Malfunction</option>
+                                <option value="cleanliness">Cleanliness Issue</option>
+                                <option value="maintenance">Maintenance Required</option>
+                                <option value="hvac">HVAC Problem (Temperature/Ventilation)</option>
+                                <option value="lighting">Lighting Issue</option>
+                                <option value="furniture">Furniture Damage</option>
+                                <option value="technology">Technology/AV Equipment Issue</option>
+                                <option value="security">Security Concern</option>
+                                <option value="noise">Noise Complaint</option>
+                                <option value="accessibility">Accessibility Issue</option>
+                                <option value="safety">Safety Hazard</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+
+
+                        <div class="form-group full-width">
+                            <label for="issueDescription">
+                                <i class="fas fa-align-left"></i>
+                                Description
+                                <span class="required">*</span>
+                            </label>
+                            <textarea id="issueDescription"
+                                      rows="6"
+                                      placeholder="Please provide detailed information about the issue..."
+                                      required></textarea>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label for="issueDescription">Description: <span class="required">*</span></label>
-                        <textarea id="issueDescription" class="form-input" rows="4" placeholder="Please describe the issue in detail..." required></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label for="issueUrgency">Urgency Level:</label>
-                        <select id="issueUrgency" class="form-input">
-                            <option value="low">Low - Can wait</option>
-                            <option value="medium" selected>Medium - Should be addressed soon</option>
-                            <option value="high">High - Needs immediate attention</option>
-                        </select>
-                    </div>
-                    <div class="form-actions">
-                        <button type="button" class="btn btn-secondary" onclick="closeModal('reportIssueModal')">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Submit Report</button>
+
+                    <div class="modal-actions">
+                        <button type="button" class="btn-secondary" id="cancelReportIssue">
+                            <i class="fas fa-times"></i>
+                            Cancel
+                        </button>
+                        <button type="submit" class="btn-primary">
+                            <i class="fas fa-paper-plane"></i>
+                            Submit Report
+                        </button>
                     </div>
                 </form>
             </div>
@@ -646,6 +535,29 @@
     </div>
 
     <!-- Scripts -->
+    <!-- Scripts -->
     <script src="~/Scripts/roommanagement.js"></script>
+    <script>
+        // Add event listeners for buttons using data attributes
+        document.addEventListener('DOMContentLoaded', function() {
+            // Details buttons
+            var detailsBtns = document.querySelectorAll('.btn-details');
+            detailsBtns.forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    var roomId = parseInt(this.getAttribute('data-room-id'));
+                    openRoomDetails(roomId);
+                });
+            });
+
+            // Walk-in buttons
+            var walkinBtns = document.querySelectorAll('.btn-walkin');
+            walkinBtns.forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    var roomId = parseInt(this.getAttribute('data-room-id'));
+                    createWalkIn(roomId);
+                });
+            });
+        });
+    </script>
 </body>
 </html>

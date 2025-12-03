@@ -1,0 +1,1019 @@
+﻿﻿@{
+    ViewData["Title"] = "Book a Room - QCU LiBook";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"]</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@400;500;600;700;800&family=Kumbh+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="~/Content/booklanding.css" rel="stylesheet" />
+</head>
+<body>
+    <!-- Main Container -->
+    <div class="landing-container">
+
+        <!-- Left Panel - Content -->
+        <div class="content-panel">
+            <div class="content-wrapper">
+
+                <!-- Logo & Branding -->
+                <div class="brand-header">
+                    <div class="brand-icon">
+                        <i class="fas fa-book-open"></i>
+                    </div>
+                    <div class="brand-text">
+                        <h1 class="brand-name">QCU <span class="brand-accent">LiBook</span></h1>
+                        <p class="brand-subtitle">Quezon City University Library Collaboration Room</p>
+                    </div>
+                </div>
+
+                <!-- Main Headline -->
+                <div class="headline-section">
+                    <h2 class="main-headline">Transform Your Study Experience</h2>
+                    <p class="main-description">
+                        Book dedicated study spaces designed for productivity and collaboration.
+                        Reserve your ideal environment in just a few clicks.
+                    </p>
+                </div>
+
+                <!-- Features List -->
+                <div class="features-list">
+                    <div class="feature-item">
+                        <div class="feature-icon">
+                            <i class="fas fa-rocket"></i>
+                        </div>
+                        <div class="feature-content">
+                            <h3>Boost Your Productivity</h3>
+                            <p>Dedicated study spaces designed for focused work</p>
+                        </div>
+                    </div>
+
+                    <div class="feature-item">
+                        <div class="feature-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="feature-content">
+                            <h3>Collaborate Better</h3>
+                            <p>Perfect environment for team projects and group study</p>
+                        </div>
+                    </div>
+
+                    <div class="feature-item">
+                        <div class="feature-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="feature-content">
+                            <h3>Book Anytime, Anywhere</h3>
+                            <p>Reserve your space in seconds</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CTA Section -->
+                <div class="cta-section">
+                    <button class="btn-primary" id="bookRoomBtn">
+                        <span>Book Your Room</span>
+                        <i class="fas fa-arrow-right"></i>
+                    </button>
+
+                    <div class="terms-checkbox">
+                        <label class="checkbox-container">
+                            <input type="checkbox" id="agreeTerms" checked>
+                            <span class="checkmark"></span>
+                            <span class="checkbox-label">I agree to the <a href="#" class="terms-link" id="privacyPolicyLink">Privacy Policy</a> and <a href="#" class="terms-link" id="termsOfUseLink">Terms of Use</a></span>
+                        </label>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Footer -->
+            <div class="content-footer">
+                <p>&copy; 2024 Quezon City University. All rights reserved.</p>
+            </div>
+        </div>
+
+        <!-- Right Panel - Visual -->
+        <div class="visual-panel">
+            <div class="visual-overlay"></div>
+            <div class="visual-content">
+
+                <!-- Decorative Elements -->
+                <div class="floating-card card-1">
+                    <div class="card-icon">
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
+                    <div class="card-text">
+                        <div class="card-number">1,234+</div>
+                        <div class="card-label">Bookings This Month</div>
+                    </div>
+                </div>
+
+                <div class="floating-card card-2">
+                    <div class="card-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="card-text">
+                        <div class="card-number">98%</div>
+                        <div class="card-label">Student Satisfaction</div>
+                    </div>
+                </div>
+
+                <div class="floating-card card-3">
+                    <div class="card-icon">
+                        <i class="fas fa-door-open"></i>
+                    </div>
+                    <div class="card-text">
+                        <div class="card-number">12</div>
+                        <div class="card-label">Available Rooms</div>
+                    </div>
+                </div>
+
+                <!-- Circulation Badge -->
+                <div class="circulation-badge">
+                    <div class="badge-number">1</div>
+                    <div class="badge-text">
+                        <div class="badge-title">Circulation</div>
+                        <div class="badge-subtitle">Room 300-350</div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <!-- User Type Selection Modal -->
+    <div id="userTypeModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Select Your User Type</h2>
+                <p class="modal-subtitle">Please identify yourself to continue with your booking</p>
+            </div>
+
+            <div class="modal-body">
+                <div class="user-type-grid">
+                    <button class="user-type-card" data-usertype="visitor">
+                        <div class="user-type-icon">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <h3 class="user-type-title">Visitor</h3>
+                        <p class="user-type-description">External guests and visitors</p>
+                    </button>
+
+                    <button class="user-type-card" data-usertype="student">
+                        <div class="user-type-icon">
+                            <i class="fas fa-graduation-cap"></i>
+                        </div>
+                        <h3 class="user-type-title">Student</h3>
+                        <p class="user-type-description">Currently enrolled students</p>
+                    </button>
+
+                    <button class="user-type-card" data-usertype="faculty">
+                        <div class="user-type-icon">
+                            <i class="fas fa-chalkboard-teacher"></i>
+                        </div>
+                        <h3 class="user-type-title">Faculty</h3>
+                        <p class="user-type-description">Teaching staff and instructors</p>
+                    </button>
+
+                    <button class="user-type-card" data-usertype="admin">
+                        <div class="user-type-icon">
+                            <i class="fas fa-user-shield"></i>
+                        </div>
+                        <h3 class="user-type-title">Admin</h3>
+                        <p class="user-type-description">Administrative personnel</p>
+                    </button>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn-cancel" id="cancelModal">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Visitor Form Modal -->
+    <div id="visitorFormModal" class="modal">
+        <div class="modal-content visitor-form-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Visitor Booking Form</h2>
+                <p class="modal-subtitle">Please fill out all required fields to book a room</p>
+            </div>
+
+            <div class="modal-body">
+                <form id="visitorBookingForm">
+                    <div class="form-grid">
+                        <!-- Name Fields Row -->
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="lastName">Last Name <span class="required">*</span></label>
+                                <input type="text" id="lastName" name="lastName" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="firstName">First Name <span class="required">*</span></label>
+                                <input type="text" id="firstName" name="firstName" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="middleInitial">Middle Initial</label>
+                                <input type="text" id="middleInitial" name="middleInitial" maxlength="1">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="suffix">Suffix</label>
+                                <select id="suffix" name="suffix">
+                                    <option value="">None</option>
+                                    <option value="Jr.">Jr.</option>
+                                    <option value="Sr.">Sr.</option>
+                                    <option value="II">II</option>
+                                    <option value="III">III</option>
+                                    <option value="IV">IV</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Contact Info Row -->
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="email">Email Address <span class="required">*</span></label>
+                                <input type="email" id="email" name="email" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="program">Program/Organization <span class="required">*</span></label>
+                                <input type="text" id="program" name="program" required>
+                            </div>
+                        </div>
+
+                        <!-- Purpose and Date/Time Row -->
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="purpose">Purpose <span class="required">*</span></label>
+                                <select id="purpose" name="purpose" required>
+                                    <option value="">Select Purpose</option>
+                                    <option value="groupMeeting">Group Meeting</option>
+                                    <option value="presentation">Presentation</option>
+                                    <option value="research">Research</option>
+                                    <option value="workshop">Workshop</option>
+                                    <option value="studySession">Study Session</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="visitorBookingDate">Date <span class="required">*</span></label>
+                                <input type="date" id="visitorBookingDate" name="bookingDate" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="visitorBookingTime">Time <span class="required">*</span></label>
+                                <select id="visitorBookingTime" name="bookingTime" required>
+                                    <option value="">Select Time</option>
+                                    <!-- Times will be populated by JavaScript -->
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Members Section -->
+                        <div class="members-section">
+                            <div class="members-header">
+                                <h3>Group Members</h3>
+                                <span class="members-count">1 member</span>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="visitorMemberCount">Number of Members (including you) <span class="required">*</span></label>
+                                    <div class="number-input-wrapper">
+                                        <button type="button" class="number-btn" id="visitorDecreaseMembers">−</button>
+                                        <input type="number" id="visitorMemberCount" name="memberCount" min="1" max="10" value="1" readonly>
+                                        <button type="button" class="number-btn" id="visitorIncreaseMembers">+</button>
+                                    </div>
+                                    <div class="helper-text">Maximum: 10 members total</div>
+                                </div>
+                            </div>
+
+                            <div class="members-list" id="visitorMembersList">
+                                <!-- Member fields will be dynamically generated here -->
+                                <div class="member-item">
+                                    <label>Member 1 (You)</label>
+                                    <input type="text" name="memberName[]" value="You (Main Contact)" readonly>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Terms Agreement -->
+                        <div class="form-row">
+                            <div class="form-group full-width">
+                                <div class="terms-agreement">
+                                    <label class="checkbox-container">
+                                        <input type="checkbox" id="visitorTerms" name="visitorTerms" required>
+                                        <span class="checkmark"></span>
+                                        <span class="checkbox-label">I agree to the <a href="#" class="terms-link privacy-policy-link">Room Booking Policy</a> and confirm that all information provided is accurate.</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn-cancel" id="cancelVisitorForm">Cancel</button>
+                <button class="btn-submit" id="submitVisitorForm">Submit Booking</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Student Form Modal -->
+    <div id="studentFormModal" class="modal">
+        <div class="modal-content student-form-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Student Booking Form</h2>
+                <p class="modal-subtitle">Please fill out all required fields to book a room</p>
+            </div>
+
+            <div class="modal-body">
+                <form id="studentBookingForm">
+                    <div class="form-grid">
+                        <!-- Student Info Row -->
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="studentLastName">Last Name <span class="required">*</span></label>
+                                <input type="text" id="studentLastName" name="lastName" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="studentFirstName">First Name <span class="required">*</span></label>
+                                <input type="text" id="studentFirstName" name="firstName" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="studentMiddleInitial">Middle Initial</label>
+                                <input type="text" id="studentMiddleInitial" name="middleInitial" maxlength="1">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="studentSuffix">Suffix</label>
+                                <select id="studentSuffix" name="suffix">
+                                    <option value="">None</option>
+                                    <option value="Jr.">Jr.</option>
+                                    <option value="Sr.">Sr.</option>
+                                    <option value="II">II</option>
+                                    <option value="III">III</option>
+                                    <option value="IV">IV</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Student Details Row -->
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="studentId">Student ID <span class="required">*</span></label>
+                                <input type="text" id="studentId" name="studentId" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="studentEmail">QCU Email <span class="required">*</span></label>
+                                <input type="email" id="studentEmail" name="email" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="studentProgram">Program <span class="required">*</span></label>
+                                <select id="studentProgram" name="program" required>
+                                    <option value="">Select Program</option>
+                                    <option value="BSIT">BS Information Technology</option>
+                                    <option value="BSCS">BS Computer Science</option>
+                                    <option value="BSBA">BS Business Administration</option>
+                                    <option value="BSE">BS Education</option>
+                                    <option value="BSC">BS Criminology</option>
+                                    <option value="BSN">BS Nursing</option>
+                                    <option value="BSA">BS Accountancy</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="studentYear">Year Level <span class="required">*</span></label>
+                                <select id="studentYear" name="yearLevel" required>
+                                    <option value="">Select Year</option>
+                                    <option value="1">1st Year</option>
+                                    <option value="2">2nd Year</option>
+                                    <option value="3">3rd Year</option>
+                                    <option value="4">4th Year</option>
+                                    <option value="5">5th Year</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Purpose and Date/Time Row -->
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="studentPurpose">Purpose <span class="required">*</span></label>
+                                <select id="studentPurpose" name="purpose" required>
+                                    <option value="">Select Purpose</option>
+                                    <option value="groupStudy">Group Study</option>
+                                    <option value="projectMeeting">Project Meeting</option>
+                                    <option value="thesis">Thesis Discussion</option>
+                                    <option value="presentation">Presentation Practice</option>
+                                    <option value="research">Research Collaboration</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="studentBookingDate">Date <span class="required">*</span></label>
+                                <input type="date" id="studentBookingDate" name="bookingDate" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="studentBookingTime">Time <span class="required">*</span></label>
+                                <select id="studentBookingTime" name="bookingTime" required>
+                                    <option value="">Select Time</option>
+                                    <!-- Times will be populated by JavaScript -->
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Members Section -->
+                        <div class="members-section">
+                            <div class="members-header">
+                                <h3>Group Members</h3>
+                                <span class="members-count">1 member</span>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="studentMemberCount">Number of Members (including you) <span class="required">*</span></label>
+                                    <div class="number-input-wrapper">
+                                        <button type="button" class="number-btn" id="studentDecreaseMembers">−</button>
+                                        <input type="number" id="studentMemberCount" name="memberCount" min="1" max="10" value="1" readonly>
+                                        <button type="button" class="number-btn" id="studentIncreaseMembers">+</button>
+                                    </div>
+                                    <div class="helper-text">Maximum: 10 members total</div>
+                                </div>
+                            </div>
+
+                            <div class="members-list" id="studentMembersList">
+                                <!-- Member fields will be dynamically generated here -->
+                                <div class="member-item">
+                                    <label>Member 1 (You)</label>
+                                    <input type="text" name="memberName[]" value="You (Main Contact)" readonly>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Course/Subject Section -->
+                        <div class="form-row">
+                            <div class="form-group full-width">
+                                <label for="courseCode">Related Course/Subject (Optional)</label>
+                                <input type="text" id="courseCode" name="courseCode" placeholder="e.g., IT 101 - Introduction to Programming">
+                            </div>
+                        </div>
+
+                        <!-- Terms Agreement -->
+                        <div class="form-row">
+                            <div class="form-group full-width">
+                                <div class="terms-agreement">
+                                    <label class="checkbox-container">
+                                        <input type="checkbox" id="studentTerms" name="studentTerms" required>
+                                        <span class="checkmark"></span>
+                                        <span class="checkbox-label">I agree to the <a href="#" class="terms-link privacy-policy-link">Room Booking Policy</a> and confirm that all information provided is accurate.</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn-cancel" id="cancelStudentForm">Cancel</button>
+                <button class="btn-submit" id="submitStudentForm">Submit Booking</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Form Modal -->
+    <div id="adminFormModal" class="modal">
+        <div class="modal-content admin-form-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Admin Booking Form</h2>
+                <p class="modal-subtitle">Please fill out all required fields to book a room</p>
+            </div>
+
+            <div class="modal-body">
+                <form id="adminBookingForm">
+                    <div class="form-grid">
+                        <!-- Name Fields Row -->
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="adminLastName">Last Name <span class="required">*</span></label>
+                                <input type="text" id="adminLastName" name="lastName" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="adminFirstName">First Name <span class="required">*</span></label>
+                                <input type="text" id="adminFirstName" name="firstName" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="adminMiddleInitial">Middle Initial</label>
+                                <input type="text" id="adminMiddleInitial" name="middleInitial" maxlength="1">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="adminSuffix">Suffix</label>
+                                <select id="adminSuffix" name="suffix">
+                                    <option value="">None</option>
+                                    <option value="Jr.">Jr.</option>
+                                    <option value="Sr.">Sr.</option>
+                                    <option value="II">II</option>
+                                    <option value="III">III</option>
+                                    <option value="IV">IV</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Contact Info Row -->
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="adminEmail">Email Address <span class="required">*</span></label>
+                                <input type="email" id="adminEmail" name="email" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="adminOffice">Office/Unit <span class="required">*</span></label>
+                                <input type="text" id="adminOffice" name="office" required placeholder="e.g., Registrar's Office, Library">
+                            </div>
+                        </div>
+
+                        <!-- Purpose and Date/Time Row -->
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="adminPurpose">Purpose <span class="required">*</span></label>
+                                <select id="adminPurpose" name="purpose" required>
+                                    <option value="">Select Purpose</option>
+                                    <option value="staffMeeting">Staff Meeting</option>
+                                    <option value="training">Training Session</option>
+                                    <option value="workshop">Workshop</option>
+                                    <option value="planning">Planning Session</option>
+                                    <option value="presentation">Presentation</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="adminBookingDate">Date <span class="required">*</span></label>
+                                <input type="date" id="adminBookingDate" name="bookingDate" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="adminBookingTime">Time <span class="required">*</span></label>
+                                <select id="adminBookingTime" name="bookingTime" required>
+                                    <option value="">Select Time</option>
+                                    <!-- Times will be populated by JavaScript -->
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Attendees Section -->
+                        <div class="members-section">
+                            <div class="members-header">
+                                <h3>Attendees</h3>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group full-width">
+                                    <label for="adminAttendees">List of Attendees (Optional)</label>
+                                    <textarea id="adminAttendees" name="attendees" rows="3" placeholder="Enter names of attendees, separated by commas"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Special Requirements -->
+                        <div class="form-row">
+                            <div class="form-group full-width">
+                                <label for="adminRequirements">Special Requirements (Optional)</label>
+                                <textarea id="adminRequirements" name="requirements" rows="2" placeholder="Any special equipment or setup needed"></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Terms Agreement -->
+                        <div class="form-row">
+                            <div class="form-group full-width">
+                                <div class="terms-agreement">
+                                    <label class="checkbox-container">
+                                        <input type="checkbox" id="adminTerms" name="adminTerms" required>
+                                        <span class="checkmark"></span>
+                                        <span class="checkbox-label">I agree to the <a href="#" class="terms-link privacy-policy-link">Room Booking Policy</a> and confirm that all information provided is accurate.</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn-cancel" id="cancelAdminForm">Cancel</button>
+                <button class="btn-submit" id="submitAdminForm">Submit Booking</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Faculty Form Modal -->
+    <div id="facultyFormModal" class="modal">
+        <div class="modal-content faculty-form-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Faculty Booking Form</h2>
+                <p class="modal-subtitle">Please fill out all required fields to book a room</p>
+            </div>
+
+            <div class="modal-body">
+                <form id="facultyBookingForm">
+                    <div class="form-grid">
+                        <!-- Name Fields Row -->
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="facultyLastName">Last Name <span class="required">*</span></label>
+                                <input type="text" id="facultyLastName" name="lastName" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="facultyFirstName">First Name <span class="required">*</span></label>
+                                <input type="text" id="facultyFirstName" name="firstName" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="facultyMiddleInitial">Middle Initial</label>
+                                <input type="text" id="facultyMiddleInitial" name="middleInitial" maxlength="1">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="facultySuffix">Suffix</label>
+                                <select id="facultySuffix" name="suffix">
+                                    <option value="">None</option>
+                                    <option value="Jr.">Jr.</option>
+                                    <option value="Sr.">Sr.</option>
+                                    <option value="II">II</option>
+                                    <option value="III">III</option>
+                                    <option value="IV">IV</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Contact Info Row -->
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="facultyEmail">Email Address <span class="required">*</span></label>
+                                <input type="email" id="facultyEmail" name="email" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="facultyDepartment">Department <span class="required">*</span></label>
+                                <select id="facultyDepartment" name="department" required>
+                                    <option value="">Select Department</option>
+                                    <option value="ComputerScience">Computer Science</option>
+                                    <option value="InformationTechnology">Information Technology</option>
+                                    <option value="BusinessAdministration">Business Administration</option>
+                                    <option value="Education">Education</option>
+                                    <option value="Criminology">Criminology</option>
+                                    <option value="Nursing">Nursing</option>
+                                    <option value="Accountancy">Accountancy</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Purpose and Date/Time Row -->
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="facultyPurpose">Purpose <span class="required">*</span></label>
+                                <select id="facultyPurpose" name="purpose" required>
+                                    <option value="">Select Purpose</option>
+                                    <option value="classSession">Class Session</option>
+                                    <option value="thesisAdvisory">Thesis Advisory</option>
+                                    <option value="facultyMeeting">Faculty Meeting</option>
+                                    <option value="workshop">Workshop</option>
+                                    <option value="research">Research Meeting</option>
+                                    <option value="presentation">Presentation</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="facultyBookingDate">Date <span class="required">*</span></label>
+                                <input type="date" id="facultyBookingDate" name="bookingDate" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="facultyBookingTime">Time <span class="required">*</span></label>
+                                <select id="facultyBookingTime" name="bookingTime" required>
+                                    <option value="">Select Time</option>
+                                    <!-- Times will be populated by JavaScript -->
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Members Section -->
+                        <div class="members-section">
+                            <div class="members-header">
+                                <h3>Group Members</h3>
+                                <span class="members-count">1 member</span>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="facultyMemberCount">Number of Members (including you) <span class="required">*</span></label>
+                                    <div class="number-input-wrapper">
+                                        <button type="button" class="number-btn" id="facultyDecreaseMembers">−</button>
+                                        <input type="number" id="facultyMemberCount" name="memberCount" min="1" max="10" value="1" readonly>
+                                        <button type="button" class="number-btn" id="facultyIncreaseMembers">+</button>
+                                    </div>
+                                    <div class="helper-text">Maximum: 10 members total</div>
+                                </div>
+                            </div>
+
+                            <div class="members-list" id="facultyMembersList">
+                                <!-- Member fields will be dynamically generated here -->
+                                <div class="member-item">
+                                    <label>Member 1 (You)</label>
+                                    <input type="text" name="memberName[]" value="You (Main Contact)" readonly>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Course/Subject Section -->
+                        <div class="form-row">
+                            <div class="form-group full-width">
+                                <label for="facultyCourseCode">Related Course/Subject (Optional)</label>
+                                <input type="text" id="facultyCourseCode" name="courseCode" placeholder="e.g., IT 101 - Introduction to Programming">
+                            </div>
+                        </div>
+
+                        <!-- Terms Agreement -->
+                        <div class="form-row">
+                            <div class="form-group full-width">
+                                <div class="terms-agreement">
+                                    <label class="checkbox-container">
+                                        <input type="checkbox" id="facultyTerms" name="facultyTerms" required>
+                                        <span class="checkmark"></span>
+                                        <span class="checkbox-label">I agree to the <a href="#" class="terms-link privacy-policy-link">Room Booking Policy</a> and confirm that all information provided is accurate.</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn-cancel" id="cancelFacultyForm">Cancel</button>
+                <button class="btn-submit" id="submitFacultyForm">Submit Booking</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Privacy Policy Modal -->
+    <div id="privacyPolicyModal" class="modal">
+        <div class="modal-content policy-modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Privacy Policy</h2>
+                <p class="modal-subtitle">Effective Date: <span id="currentDate"></span></p>
+            </div>
+
+            <div class="modal-body">
+                <div class="policy-content">
+                    <p class="policy-intro">Welcome to QCU Library Meeting Room Reservation System (“we”, “our”, “us”).</p>
+                    <p>We respect your privacy and are committed to protecting your personal information. This Privacy Policy explains how we collect, use, and protect your data when you use our system for reserving library meeting rooms.</p>
+                    <p>By using this system, you agree to this Privacy Policy and understand that all personal information will be handled according to the Data Privacy Act of 2012 (Republic Act No. 10173) and the guidelines set by the National Privacy Commission (NPC) of the Philippines.</p>
+
+                    <div class="policy-section">
+                        <h3><span class="section-number">1.</span> Information We Collect</h3>
+                        <p>Our system collects only the information needed to manage and confirm meeting room reservations. This may include:</p>
+
+                        <div class="subsection">
+                            <h4>A. Personal Information</h4>
+                            <ul>
+                                <li>Full name, student or employee ID, and contact information</li>
+                                <li>Email address or mobile number for notifications</li>
+                                <li>Department or course (for verification purposes)</li>
+                            </ul>
+                        </div>
+
+                        <div class="subsection">
+                            <h4>B. Reservation Information</h4>
+                            <ul>
+                                <li>Room details, booking date and time</li>
+                                <li>Purpose of reservation</li>
+                                <li>Number of attendees</li>
+                                <li>QR code or check-in details</li>
+                            </ul>
+                        </div>
+
+                        <div class="subsection">
+                            <h4>C. System Information</h4>
+                            <ul>
+                                <li>Login credentials and account role (student, faculty, or staff)</li>
+                                <li>IP address, device type, and activity logs during system use</li>
+                            </ul>
+                        </div>
+                        <p class="note">We only collect the data necessary for proper room booking and management.</p>
+                    </div>
+
+                    <div class="policy-section">
+                        <h3><span class="section-number">2.</span> Purpose of Collecting Your Data</h3>
+                        <p>We collect your information to:</p>
+                        <ul>
+                            <li>Process and confirm your meeting room reservations</li>
+                            <li>Notify you of booking approvals, reminders, or cancellations</li>
+                            <li>Manage user access and maintain accurate reservation records</li>
+                            <li>Prevent double-booking or conflicts in schedule</li>
+                            <li>Improve the efficiency of the library’s room reservation process</li>
+                            <li>Generate reports for usage and system analytics</li>
+                        </ul>
+                        <p class="note">Your personal information will not be used for marketing or shared for commercial purposes.</p>
+                    </div>
+
+                    <div class="policy-section">
+                        <h3><span class="section-number">3.</span> Legal Basis for Processing</h3>
+                        <p>Data collection and processing in this system are based on:</p>
+                        <ul>
+                            <li><strong>Consent:</strong> You agree to share your data when you register or make a reservation.</li>
+                            <li><strong>Contractual Obligation:</strong> Data is required to process and manage your booking.</li>
+                            <li><strong>Legal Obligation:</strong> Compliance with university or government data protection rules.</li>
+                            <li><strong>Legitimate Interest:</strong> To ensure fair access, accurate records, and system security.</li>
+                        </ul>
+                    </div>
+
+                    <div class="policy-section">
+                        <h3><span class="section-number">4.</span> Sharing of Information</h3>
+                        <p>Your information may only be shared under the following cases:</p>
+                        <ul>
+                            <li>With authorized QCU library staff and administrators who manage reservations.</li>
+                            <li>With IT personnel responsible for maintaining the system.</li>
+                            <li>With third-party service providers under confidentiality agreements.</li>
+                        </ul>
+                        <p class="note">We will never sell, trade, or disclose your data for profit.</p>
+                    </div>
+
+                    <div class="policy-section">
+                        <h3><span class="section-number">5.</span> Data Protection and Security</h3>
+                        <p>We use several security measures to protect your data, including:</p>
+                        <ul>
+                            <li>Secure login credentials and password protection</li>
+                            <li>QR code check-ins to verify user identity</li>
+                            <li>Encryption for stored and transmitted data</li>
+                            <li>Regular backups and system updates</li>
+                            <li>Access control based on user roles (Admin, Faculty, Student)</li>
+                        </ul>
+                        <p>If a data breach occurs, affected users will be informed as required by NPC rules.</p>
+                    </div>
+
+                    <div class="policy-section">
+                        <h3><span class="section-number">6.</span> Data Retention</h3>
+                        <p>Your personal and reservation data will only be kept as long as necessary for school or library operations. After that, data will be deleted or anonymized based on university policy.</p>
+                    </div>
+
+                    <div class="policy-section">
+                        <h3><span class="section-number">7.</span> Your Rights as a Data Subject</h3>
+                        <p>Under the Data Privacy Act of 2012 (Republic Act No. 10173), you have the right to:</p>
+                        <ul>
+                            <li>Be informed about how your data is used</li>
+                            <li>Access your stored information</li>
+                            <li>Correct inaccurate or outdated information</li>
+                            <li>Delete or block data that's no longer needed</li>
+                            <li>Object to processing activities not required by law</li>
+                            <li>Complain to the National Privacy Commission (NPC) if your data rights are violated</li>
+                        </ul>
+                    </div>
+
+                    <div class="policy-section">
+                        <h3><span class="section-number">8.</span> Consent and Withdrawal</h3>
+                        <p>By using the QCU Library Reservation System, you give consent to collect and process your data for booking and system use.</p>
+                        <p>You may withdraw your consent by contacting the system administrator, but doing so may limit your access to some system features.</p>
+                    </div>
+
+                    <div class="policy-section">
+                        <h3><span class="section-number">9.</span> Cookies and Tracking</h3>
+                        <p>The system may use cookies to help remember your login and improve functionality. These cookies do not collect sensitive or unnecessary information and are used only within the QCU domain.</p>
+                    </div>
+
+                    <div class="policy-section">
+                        <h3><span class="section-number">10.</span> Contact Information</h3>
+                        <p>For any questions or privacy concerns, you may contact:</p>
+                        <div class="contact-info">
+                            <h4>Quezon City University (QCU) – Library Department</h4>
+                            <p><i class="fas fa-envelope"></i> Email: <a href="mailto:library@qcu.edu.ph">library@qcu.edu.ph</a></p>
+                        </div>
+                        <p>If no library staff is available, you may reach out to the Library Office for assistance.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn-cancel" id="closePrivacyPolicy">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Terms of Use Modal -->
+    <div id="termsOfUseModal" class="modal">
+        <div class="modal-content policy-modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Terms of Use</h2>
+                <p class="modal-subtitle">Effective Date: <span id="currentDateTerms"></span></p>
+            </div>
+
+            <div class="modal-body">
+                <div class="policy-content">
+                    <p class="policy-intro">Welcome to the QCU Library Meeting Room Reservation System. This system was made to help students, teachers, and staff easily book meeting rooms in the library without needing to do it manually. By using this system, you agree to follow the rules and conditions written here.</p>
+
+                    <div class="policy-section">
+                        <h3><span class="section-number">1.</span> Purpose</h3>
+                        <p>The system is created mainly for booking and managing library meeting rooms. It helps avoid schedule conflicts and makes the reservation process faster and more organized. The system is only for school use and should not be used for other purposes outside the QCU Library.</p>
+                    </div>
+
+                    <div class="policy-section">
+                        <h3><span class="section-number">2.</span> User Responsibility</h3>
+                        <p>When using the system, users should:</p>
+                        <ul>
+                            <li>Give correct and honest information when booking.</li>
+                            <li>Use their official QCU account.</li>
+                            <li>Follow the rules and schedule set by the library.</li>
+                            <li>Avoid double-booking or canceling at the last minute without reason.</li>
+                            <li>Keep login details private and not share them with others.</li>
+                        </ul>
+                        <p class="note">Any misuse of the system may cause your access to be limited or blocked by the admin.</p>
+                    </div>
+
+                    <div class="policy-section">
+                        <h3><span class="section-number">3.</span> Booking and Check-In</h3>
+                        <ul>
+                            <li>Reservations can be made through the website or mobile app.</li>
+                            <li>Each booking needs to be confirmed before it becomes official.</li>
+                            <li>Users are required to check in by scanning the QR code before using the room.</li>
+                            <li>If the user fails to check in on time, the reservation might be canceled automatically so others can use the room.</li>
+                        </ul>
+                    </div>
+
+                    <div class="policy-section">
+                        <h3><span class="section-number">4.</span> Data Privacy</h3>
+                        <p>The system may collect personal data like your name, student ID, and contact info. These will only be used for booking and record purposes. We follow the Data Privacy Act of 2012 (RA 10173) to make sure all data is safe and protected.</p>
+                    </div>
+
+                    <div class="policy-section">
+                        <h3><span class="section-number">5.</span> System Rules</h3>
+                        <ul>
+                            <li>The system is only for library meeting room reservations.</li>
+                            <li>It won't work without an internet connection.</li>
+                            <li>Users should not copy, edit, or share the system's code.</li>
+                            <li>The library staff can cancel or edit bookings if needed for official reasons.</li>
+                        </ul>
+                    </div>
+
+                    <div class="policy-section">
+                        <h3><span class="section-number">6.</span> Violations</h3>
+                        <p>If a user breaks any of these rules, the admin has the right to cancel their reservation or suspend their access. Serious violations may also be reported to the school authorities.</p>
+                    </div>
+
+                    <div class="policy-section">
+                        <h3><span class="section-number">7.</span> Changes to the Terms</h3>
+                        <p>These terms may be updated or changed anytime if needed. Users will be informed when there are important updates.</p>
+                    </div>
+
+                    <div class="policy-section">
+                        <h3><span class="section-number">8.</span> Contact</h3>
+                        <p>For questions, errors, or concerns, you may contact the QCU Library Staff or the System Developer Team through the official school email.</p>
+                        <div class="contact-info">
+                            <h4>Quezon City University (QCU) – Library Department</h4>
+                            <p><i class="fas fa-envelope"></i> Email: <a href="mailto:library@qcu.edu.ph">library@qcu.edu.ph</a></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn-cancel" id="closeTermsOfUse">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="~/Scripts/booklanding.js"></script>
+</body>
+</html>

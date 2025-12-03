@@ -319,6 +319,8 @@ namespace LiBook.Controllers
             base.Dispose(disposing);
         }
         // POST: AdminDashboard/CreateUser
+        // In your AdminDashboardController, update the CreateUser method to ensure proper role assignment:
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult CreateUser([Bind(Include = "ID,FirstName,LastName,MiddleName,Suffix,Email,UserPassword,AccountStatus,DateArchived")] User user, int roleId)
@@ -332,7 +334,7 @@ namespace LiBook.Controllers
                     user.DateArchived = null;
 
                     // Generate simple random password
-                    user.UserPassword = GeneratePassword(); 
+                    user.UserPassword = GeneratePassword();
 
                     // Add user
                     db.Users.Add(user);
@@ -353,25 +355,21 @@ namespace LiBook.Controllers
                     {
                         string subject = "Your LiBook account has been created";
                         string body = $@"
-                    <p>Hi {System.Web.HttpUtility.HtmlEncode(user.FirstName)},</p>
-                    <p>Your account was created. Here are your login details:</p>
-                    <ul>
-                      <li><strong>Email:</strong> {System.Web.HttpUtility.HtmlEncode(user.Email)}</li>
-                      <li><strong>Password:</strong> {System.Web.HttpUtility.HtmlEncode(user.UserPassword)}</li>
-                    </ul>
-                    <p>Thanks,<br/>Your Team</p>";
+            <p>Hi {System.Web.HttpUtility.HtmlEncode(user.FirstName)},</p>
+            <p>Your account was created. Here are your login details:</p>
+            <ul>
+              <li><strong>Email:</strong> {System.Web.HttpUtility.HtmlEncode(user.Email)}</li>
+              <li><strong>Password:</strong> {System.Web.HttpUtility.HtmlEncode(user.UserPassword)}</li>
+            </ul>
+            <p>Thanks,<br/>Your Team</p>";
 
                         // Synchronous send:
                         LiBook.Helpers.EmailHelper.SendEmail(user.Email, subject, body);
-
-                        // OR asynchronous (fire-and-forget pattern — be careful)
-                        // var _ = YourNamespace.Helpers.EmailHelper.SendEmailAsync(user.Email, subject, body);
                     }
                     catch (Exception mailEx)
                     {
-                        // handle email errors (log them); do NOT necessarily fail the entire user creation
-                        // Example: log to file/DB or add a ModelState warning
-                        ModelState.AddModelError("", "User created but failed to send email: " + mailEx.Message);
+                        // Log email error but don't fail user creation
+                        System.Diagnostics.Debug.WriteLine("Email sending failed: " + mailEx.Message);
                     }
 
                     return RedirectToAction("Librarian");
@@ -382,7 +380,9 @@ namespace LiBook.Controllers
                 }
             }
 
-            return View(user);
+            // If we got here, something went wrong - reload the page with users
+            var usersWithRoles = GetUsersWithRoles();
+            return View("Librarian", usersWithRoles);
         }
         private string GeneratePassword()
         {
