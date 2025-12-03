@@ -233,7 +233,149 @@ namespace LiBook.Controllers
         {
             return View(db.Rooms.Where(r => !r.DateArchived.HasValue).ToList());
         }
+        // Add this method to AdminDashboardController.cs
+        // Replace the GetRoomBookings method with this corrected version
+        public ActionResult GetRoomBookings(int roomId)
+        {
+            var bookings = db.Bookings
+                .Where(b => b.RoomID == roomId)
+                .OrderByDescending(b => b.BookingDate)
+                .Select(b => new
+                {
+                    Id = b.ID,
+                    RoomID = b.RoomID,
+                    RoomName = b.Room.RoomName,
+                    ReserveeFirstName = b.ReserveeFirstName,
+                    ReserveeMiddleName = b.ReserveeMiddleName,
+                    ReserveeLastName = b.ReserveeLastName,
+                    ReserveeEmail = b.ReserveeEmail,
+                    StudentNumber = b.StudentNumber,
+                    Program = b.Program,
+                    Purpose = b.Purpose,
+                    BookingDate = b.BookingDate,
+                    SubmittedAt = b.SubmittedAt,
+                    ApprovedAt = b.ApprovedAt,
+                    CancelledAt = b.CancelledAt,
+                    ScheduleStartTime = b.Schedule.StartTime,
+                    ScheduleEndTime = b.Schedule.EndTime,
+                    Members = b.Members.Select(m => m.FullName).ToList()
+                })
+                .ToList()
+                .Select(b => new BookingViewModel
+                {
+                    Id = b.Id,
+                    BookingId = b.Id.ToString("D4"), // Format after materialization
+                    RoomId = b.RoomID,
+                    RoomName = b.RoomName,
+                    ReserveeName = FormatName(b.ReserveeLastName, b.ReserveeFirstName, b.ReserveeMiddleName),
+                    ReserveeEmail = b.ReserveeEmail,
+                    StudentNumber = b.StudentNumber,
+                    Program = b.Program,
+                    Purpose = b.Purpose,
+                    BookingDate = b.BookingDate,
+                    SubmittedAt = b.SubmittedAt,
+                    ApprovedAt = b.ApprovedAt,
+                    CancelledAt = b.CancelledAt,
+                    Status = GetBookingStatus(b.SubmittedAt, b.ApprovedAt, b.CancelledAt),
+                    Schedule = FormatSchedule(b.ScheduleStartTime, b.ScheduleEndTime),
+                    Members = b.Members
+                })
+                .ToList();
 
+            return Json(bookings, JsonRequestBehavior.AllowGet);
+        }
+
+        // Helper method to format name
+        private string FormatName(string lastName, string firstName, string middleName)
+        {
+            var nameParts = new List<string>();
+
+            if (!string.IsNullOrEmpty(lastName))
+                nameParts.Add(lastName);
+
+            if (!string.IsNullOrEmpty(firstName))
+                nameParts.Add(firstName);
+
+            if (!string.IsNullOrEmpty(middleName))
+                nameParts.Add(middleName);
+
+            return nameParts.Count > 0 ? string.Join(", ", nameParts) : "Unknown";
+        }
+
+        // Helper method to determine booking status
+        private string GetBookingStatus(DateTime? submittedAt, DateTime? approvedAt, DateTime? cancelledAt)
+        {
+            if (cancelledAt.HasValue)
+                return "Cancelled";
+            if (approvedAt.HasValue)
+                return "Approved";
+            if (submittedAt.HasValue)
+                return "Pending";
+            return "Draft";
+        }
+
+        // Helper method to format schedule
+        private string FormatSchedule(TimeSpan? startTime, TimeSpan? endTime)
+        {
+            if (!startTime.HasValue || !endTime.HasValue)
+                return "No schedule";
+
+            return $"{startTime.Value:hh\\:mm} - {endTime.Value:hh\\:mm}";
+        }
+        // Add this method to get a single booking's details
+        public ActionResult GetBookingDetails(int id)
+        {
+            var booking = db.Bookings
+                .Where(b => b.ID == id)
+                .Select(b => new
+                {
+                    Id = b.ID,
+                    RoomID = b.RoomID,
+                    RoomName = b.Room.RoomName,
+                    ReserveeFirstName = b.ReserveeFirstName,
+                    ReserveeMiddleName = b.ReserveeMiddleName,
+                    ReserveeLastName = b.ReserveeLastName,
+                    ReserveeEmail = b.ReserveeEmail,
+                    StudentNumber = b.StudentNumber,
+                    Program = b.Program,
+                    Purpose = b.Purpose,
+                    BookingDate = b.BookingDate,
+                    SubmittedAt = b.SubmittedAt,
+                    ApprovedAt = b.ApprovedAt,
+                    CancelledAt = b.CancelledAt,
+                    ScheduleStartTime = b.Schedule.StartTime,
+                    ScheduleEndTime = b.Schedule.EndTime,
+                    Members = b.Members.Select(m => m.FullName).ToList()
+                })
+                .FirstOrDefault();
+
+            if (booking == null)
+            {
+                return Json(new { error = "Booking not found" }, JsonRequestBehavior.AllowGet);
+            }
+
+            var bookingViewModel = new BookingViewModel
+            {
+                Id = booking.Id,
+                BookingId = booking.Id.ToString("D4"),
+                RoomId = booking.RoomID,
+                RoomName = booking.RoomName,
+                ReserveeName = FormatName(booking.ReserveeLastName, booking.ReserveeFirstName, booking.ReserveeMiddleName),
+                ReserveeEmail = booking.ReserveeEmail,
+                StudentNumber = booking.StudentNumber,
+                Program = booking.Program,
+                Purpose = booking.Purpose,
+                BookingDate = booking.BookingDate,
+                SubmittedAt = booking.SubmittedAt,
+                ApprovedAt = booking.ApprovedAt,
+                CancelledAt = booking.CancelledAt,
+                Status = GetBookingStatus(booking.SubmittedAt, booking.ApprovedAt, booking.CancelledAt),
+                Schedule = FormatSchedule(booking.ScheduleStartTime, booking.ScheduleEndTime),
+                Members = booking.Members
+            };
+
+            return Json(bookingViewModel, JsonRequestBehavior.AllowGet);
+        }
 
 
         // R00MS
