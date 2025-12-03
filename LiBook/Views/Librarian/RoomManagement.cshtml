@@ -262,6 +262,279 @@
         </main>
     </div>
 
+
+    <!-- Room Details Modal -->
+    <div class="modal-overlay" id="roomDetailsModal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <i class="fas fa-door-open"></i>
+                    <h2 id="modalRoomName">Study Room A</h2>
+                </div>
+                <button class="modal-close" id="closeRoomModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div class="modal-body">
+                <!-- Left Section: Reservations -->
+                <div class="modal-left">
+                    <div class="reservations-section">
+                        <h3><i class="fas fa-calendar-check"></i> Reservations</h3>
+                        <div class="reservations-list" id="reservationsList">
+                            <!-- Reservations will be dynamically loaded here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Section: Room Details -->
+                <div class="modal-right">
+                    <div class="room-info-grid">
+                        <div class="info-row">
+                            <div class="info-group">
+                                <label>CURRENT STATUS:</label>
+                                <p class="info-value" id="modalRoomStatus">Available</p>
+                            </div>
+                            <div class="info-group">
+                                <label>ROOM TYPE:</label>
+                                <p class="info-value" id="modalRoomType">Study Room</p>
+                            </div>
+                        </div>
+
+                        <div class="info-row">
+                            <div class="info-group">
+                                <label>CAPACITY:</label>
+                                <p class="info-value" id="modalRoomCapacity">8 people</p>
+                            </div>
+                            <div class="info-group">
+                                <label>USER TYPE:</label>
+                                <p class="info-value" id="modalUserType">Academic</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="modal-actions">
+                        <button class="modal-action-btn" id="viewScheduleBtn">
+                            <div class="action-icon blue">
+                                <i class="fas fa-calendar-alt"></i>
+                            </div>
+                            <div class="action-text">
+                                <h4>View Full Schedule</h4>
+                                <p>See complete reservation calendar</p>
+                            </div>
+                        </button>
+
+                        <button class="modal-action-btn" id="createWalkInBtn">
+                            <div class="action-icon green">
+                                <i class="fas fa-user-plus"></i>
+                            </div>
+                            <div class="action-text">
+                                <h4>Create Walk-In</h4>
+                                <p>Register a walk-in reservation now</p>
+                            </div>
+                        </button>
+
+                        <button class="modal-action-btn" id="reportIssueBtn">
+                            <div class="action-icon yellow">
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </div>
+                            <div class="action-text">
+                                <h4>Report an Issue</h4>
+                                <p>Report maintenance or other issues</p>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Full Schedule Modal -->
+    <div class="modal-overlay" id="scheduleModal">
+        <div class="modal-container modal-schedule">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <i class="fas fa-calendar-alt"></i>
+                    <h2 id="scheduleModalRoomName">Room Schedule</h2>
+                </div>
+                <button class="modal-close" id="closeScheduleModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div class="modal-body-schedule">
+                <div class="schedule-list" id="scheduleList">
+                    <!-- Schedule items will be dynamically loaded here -->
+                </div>
+
+                <div class="empty-schedule" id="emptySchedule" style="display: none;">
+                    <i class="fas fa-inbox"></i>
+                    <p>No reservations found</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Walk-In Reservation Modal -->
+    <div class="modal-overlay" id="walkInModal">
+        <div class="modal-container modal-walkin">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <i class="fas fa-user-plus"></i>
+                    <h2>Create Walk-In Reservation</h2>
+                </div>
+                <button class="modal-close" id="closeWalkInModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div class="modal-body-walkin">
+                <div class="walkin-info-banner">
+                    <i class="fas fa-door-open"></i>
+                    <span><strong id="walkInRoomName">-</strong> • <strong id="walkInRoomTypeDisplay">-</strong></span>
+                </div>
+
+                <form id="walkInForm">
+                    <div class="walkin-form-grid">
+                        <div class="form-group">
+                            <label for="walkInName">
+                                <i class="fas fa-user"></i>
+                                Full Name
+                            </label>
+                            <input type="text" id="walkInName" class="form-input" placeholder="Juan Dela Cruz" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="walkInEmail">
+                                <i class="fas fa-envelope"></i>
+                                Email Address
+                            </label>
+                            <input type="email" id="walkInEmail" class="form-input" placeholder="juan@example.com" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="walkInUserType">
+                                <i class="fas fa-id-card"></i>
+                                User Type
+                            </label>
+                            <select id="walkInUserType" class="form-select" required>
+                                <option value="">Select type</option>
+                                <option value="Student">Student</option>
+                                <option value="Faculty">Faculty</option>
+                                <option value="Admin">Admin</option>
+                                <option value="Visitor">Visitor</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="walkInMembers">
+                                <i class="fas fa-users"></i>
+                                Number of People
+                            </label>
+                            <input type="number" id="walkInMembers" class="form-input" placeholder="1 - 10" min="1" max="10" value="1" required>
+                        </div>
+
+                        <div class="form-group form-group-full" id="memberNamesGroup" style="display: none;">
+                            <label for="walkInMemberNames">
+                                <i class="fas fa-list"></i>
+                                Member Names <span class="optional-badge">Optional</span>
+                            </label>
+                            <textarea id="walkInMemberNames" class="form-textarea" placeholder="Enter names (one per line)" rows="3"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn-walkin btn-cancel" id="cancelWalkInBtn">
+                            Cancel
+                        </button>
+                        <button type="submit" class="btn-walkin btn-submit">
+                            <i class="fas fa-check"></i>
+                            Create Reservation
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Report Issue Modal -->
+    <div class="modal-overlay" id="reportIssueModal">
+        <div class="modal-container modal-report-issue">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <h2>Report an Issue</h2>
+                </div>
+                <button class="modal-close" id="closeReportIssueModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div class="modal-body">
+                <div class="report-issue-info-banner">
+                    <i class="fas fa-info-circle"></i>
+                    <div>
+                        <strong id="reportIssueRoomName">Room Name</strong>
+                        <span class="room-type-badge" id="reportIssueRoomType">Room Type</span>
+                    </div>
+                </div>
+
+                <form id="reportIssueForm">
+                    <div class="form-grid">
+                        <div class="form-group full-width">
+                            <label for="issueReason">
+                                <i class="fas fa-list"></i>
+                                Issue Reason
+                                <span class="required">*</span>
+                            </label>
+                            <select id="issueReason" required>
+                                <option value="">Select a reason...</option>
+                                <option value="equipment-malfunction">Equipment Malfunction</option>
+                                <option value="cleanliness">Cleanliness Issue</option>
+                                <option value="maintenance">Maintenance Required</option>
+                                <option value="hvac">HVAC Problem (Temperature/Ventilation)</option>
+                                <option value="lighting">Lighting Issue</option>
+                                <option value="furniture">Furniture Damage</option>
+                                <option value="technology">Technology/AV Equipment Issue</option>
+                                <option value="security">Security Concern</option>
+                                <option value="noise">Noise Complaint</option>
+                                <option value="accessibility">Accessibility Issue</option>
+                                <option value="safety">Safety Hazard</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+
+
+                        <div class="form-group full-width">
+                            <label for="issueDescription">
+                                <i class="fas fa-align-left"></i>
+                                Description
+                                <span class="required">*</span>
+                            </label>
+                            <textarea id="issueDescription"
+                                      rows="6"
+                                      placeholder="Please provide detailed information about the issue..."
+                                      required></textarea>
+                        </div>
+                    </div>
+
+                    <div class="modal-actions">
+                        <button type="button" class="btn-secondary" id="cancelReportIssue">
+                            <i class="fas fa-times"></i>
+                            Cancel
+                        </button>
+                        <button type="submit" class="btn-primary">
+                            <i class="fas fa-paper-plane"></i>
+                            Submit Report
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
     <!-- Scripts -->
     <script src="~/Scripts/roommanagement.js"></script>
     <script>
