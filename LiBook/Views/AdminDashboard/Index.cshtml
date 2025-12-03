@@ -117,11 +117,11 @@
                         <i class="fas fa-calendar-check"></i>
                     </div>
                     <div class="stat-details">
-                        <h3 id="totalReservations">0</h3>
+                        <h3 id="totalReservations">@ViewBag.TotalReservations</h3>
                         <p>Total Reservations</p>
                     </div>
                     <div class="stat-change positive">
-                        <i class="fas fa-arrow-up"></i> <span id="reservationsChange">0%</span>
+                        <i class="fas fa-arrow-up"></i> <span id="reservationsChange">@ViewBag.ReservationsChange%</span>
                     </div>
                 </div>
 
@@ -130,24 +130,24 @@
                         <i class="fas fa-door-open"></i>
                     </div>
                     <div class="stat-details">
-                        <h3 id="availableRooms">0</h3>
+                        <h3 id="availableRooms">@ViewBag.AvailableRooms</h3>
                         <p>Available Rooms</p>
                     </div>
                     <div class="stat-change negative">
-                        <i class="fas fa-arrow-down"></i> <span id="roomsChange">0%</span>
+                        <i class="fas fa-arrow-down"></i> <span id="roomsChange">@ViewBag.RoomsChange%</span>
                     </div>
                 </div>
 
                 <div class="stat-card dark">
                     <div class="stat-icon">
-                        <i class="fas fa-clock"></i>
+                        <i class="fas fa-users"></i>
                     </div>
                     <div class="stat-details">
-                        <h3 id="pendingApprovals">0</h3>
-                        <p>Pending Approvals</p>
+                        <h3 id="userCount">@ViewBag.TotalUsers</h3>
+                        <p>Total Users</p>
                     </div>
                     <div class="stat-change positive">
-                        <i class="fas fa-arrow-up"></i> <span id="approvalsChange">0%</span>
+                        <i class="fas fa-arrow-up"></i> <span id="userChange">@ViewBag.UserChange%</span>
                     </div>
                 </div>
             </div>
@@ -276,6 +276,14 @@
             </div>
         </main>
     </div>
+    <!-- Add these scripts after Chart.js but before your Admindashboard.js -->
+    <script>
+    // Pass server-side data to JavaScript
+    window.reservationTrendsWeek = @Html.Raw(ViewBag.ReservationTrendsWeekJson ?? "[]");
+    window.reservationTrendsMonth = @Html.Raw(ViewBag.ReservationTrendsMonthJson ?? "[]");
+    window.reservationTrendsYear = @Html.Raw(ViewBag.ReservationTrendsYearJson ?? "[]");
+    window.roomUtilization = @Html.Raw(ViewBag.RoomUtilizationJson ?? "[]");
+    </script>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="~/Scripts/Admindashboard.js"></script>

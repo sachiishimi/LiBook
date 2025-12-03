@@ -102,18 +102,17 @@ function initializeDashboardData() {
         // Update stats
         const totalReservations = document.getElementById('totalReservations');
         const availableRooms = document.getElementById('availableRooms');
-        const pendingApprovals = document.getElementById('pendingApprovals');
+        const userCount = document.getElementById('userCount');
         const reservationsChange = document.getElementById('reservationsChange');
         const roomsChange = document.getElementById('roomsChange');
-        const approvalsChange = document.getElementById('approvalsChange');
+        const userChange = document.getElementById('userChange');
 
-        if (totalReservations) totalReservations.textContent = '47';
-        if (availableRooms) availableRooms.textContent = '12';
-        if (pendingApprovals) pendingApprovals.textContent = '5';
-        if (reservationsChange) reservationsChange.textContent = '12%';
-        if (roomsChange) roomsChange.textContent = '3%';
-        if (approvalsChange) approvalsChange.textContent = '25%';
-
+        //if (totalReservations) totalReservations.textContent = '47';
+        //if (availableRooms) availableRooms.textContent = '12';
+        //if (userCount) userCount.textContent = '125';
+        //if (reservationsChange) reservationsChange.textContent = '12%';
+        //if (roomsChange) roomsChange.textContent = '3%';
+        //if (userChange) userChange.textContent = '8%';
         // Initialize charts
         initializeCharts();
     }
@@ -132,6 +131,22 @@ function initializeCharts() {
         return;
     }
 
+    // Use week data by default for initial chart
+    const trendLabels = window.reservationTrendsWeek ?
+        window.reservationTrendsWeek.map(item => item.Period) :
+        ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const trendData = window.reservationTrendsWeek ?
+        window.reservationTrendsWeek.map(item => item.Count) :
+        [0, 0, 0, 0, 0, 0, 0];
+
+    // Process room utilization data
+    const roomLabels = window.roomUtilization ?
+        window.roomUtilization.map(item => item.Status) :
+        ['Available', 'Occupied', 'Maintenance', 'Reserved'];
+    const roomData = window.roomUtilization ?
+        window.roomUtilization.map(item => item.Count) :
+        [0, 0, 0, 0];
+
     // Reservations Chart
     const reservationsCanvas = document.getElementById('reservationsChart');
     if (reservationsCanvas) {
@@ -145,10 +160,10 @@ function initializeCharts() {
         reservationsChart = new Chart(ctx, {
             type: 'line',
             data: {
-                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                labels: trendLabels,
                 datasets: [{
                     label: 'Reservations',
-                    data: [12, 19, 15, 25, 22, 18, 24],
+                    data: trendData,
                     borderColor: '#2c3e50',
                     backgroundColor: 'rgba(44, 62, 80, 0.1)',
                     borderWidth: 3,
@@ -228,14 +243,16 @@ function initializeCharts() {
         roomUtilizationChart = new Chart(ctx, {
             type: 'doughnut',
             data: {
-                labels: ['Available', 'Occupied', 'Maintenance', 'Reserved'],
+                labels: roomLabels,
                 datasets: [{
-                    data: [35, 25, 10, 30],
+                    data: roomData,
                     backgroundColor: [
-                        '#27ae60',
-                        '#e74c3c',
-                        '#f39c12',
-                        '#2c3e50'
+                        '#27ae60', // Available - Green
+                        '#e74c3c', // Occupied - Red
+                        '#f39c12', // Maintenance - Orange
+                        '#2c3e50', // Reserved - Dark
+                        '#3498db', // Other - Blue
+                        '#9b59b6'  // Other - Purple
                     ],
                     borderWidth: 0,
                     hoverOffset: 10
@@ -275,8 +292,8 @@ function initializeCharts() {
                                 let label = context.label || '';
                                 let value = context.parsed || 0;
                                 let total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                let percentage = ((value / total) * 100).toFixed(1);
-                                return label + ': ' + percentage + '%';
+                                let percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                                return label + ': ' + value + ' (' + percentage + '%)';
                             }
                         }
                     }
@@ -304,22 +321,36 @@ function updateReservationsChart(period) {
 
     switch (period) {
         case 'week':
-            labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-            data = [12, 19, 15, 25, 22, 18, 24];
+            // Use server-side data
+            labels = window.reservationTrendsWeek ?
+                window.reservationTrendsWeek.map(item => item.Period) :
+                ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+            data = window.reservationTrendsWeek ?
+                window.reservationTrendsWeek.map(item => item.Count) :
+                [0, 0, 0, 0, 0, 0, 0];
             break;
         case 'month':
-            labels = ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
-            data = [65, 78, 82, 71];
+            labels = window.reservationTrendsMonth ?
+                window.reservationTrendsMonth.map(item => item.Period) :
+                ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
+            data = window.reservationTrendsMonth ?
+                window.reservationTrendsMonth.map(item => item.Count) :
+                [0, 0, 0, 0];
             break;
         case 'year':
-            labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-            data = [245, 289, 312, 267, 298, 275, 256, 241, 289, 312, 298, 276];
+            labels = window.reservationTrendsYear ?
+                window.reservationTrendsYear.map(item => item.Period) :
+                ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            data = window.reservationTrendsYear ?
+                window.reservationTrendsYear.map(item => item.Count) :
+                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
             break;
         default:
             labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-            data = [12, 19, 15, 25, 22, 18, 24];
+            data = [0, 0, 0, 0, 0, 0, 0];
     }
 
+    // Smooth transition
     reservationsChart.data.labels = labels;
     reservationsChart.data.datasets[0].data = data;
     reservationsChart.update();

@@ -184,6 +184,7 @@
     </Compile>
     <Compile Include="Models\UsersRoleProvider.cs" />
     <Compile Include="Models\UserWithRolesViewModel.cs" />
+    <Compile Include="Models\ViewModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Startup.cs" />
   </ItemGroup>
