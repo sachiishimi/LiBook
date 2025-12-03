@@ -1808,3 +1808,23 @@ select:focus-visible {
         padding: 1rem;
     }
 }
+
+/* Add to your existing librarianreservations.css file */
+.alert {
+    padding: 1rem 1.5rem;
+    margin: 1rem 2rem;
+    border-radius: 0.5rem;
+    border-left: 4px solid;
+}
+
+.alert-success {
+    background: rgba(39, 174, 96, 0.1);
+    border-left-color: var(--success);
+    color: var(--text-dark);
+}
+
+.alert-danger {
+    background: rgba(231, 76, 60, 0.1);
+    border-left-color: var(--danger);
+    color: var(--text-dark);
+}

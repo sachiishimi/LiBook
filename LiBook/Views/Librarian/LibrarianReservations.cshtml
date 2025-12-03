@@ -1,5 +1,34 @@
-﻿﻿@{
+﻿<!-- Views/Librarian/LibrarianReservations.cshtml -->
+@{
     ViewBag.Title = "Reservations Management";
+    var acceptedReservations = ViewBag.AcceptedReservations as List<LiBook.ViewModels.ReservationViewModel> ?? new List<LiBook.ViewModels.ReservationViewModel>();
+    var cancelledReservations = ViewBag.CancelledReservations as List<LiBook.ViewModels.ReservationViewModel> ?? new List<LiBook.ViewModels.ReservationViewModel>();
+    var acceptedCount = ViewBag.AcceptedCount ?? 0;
+    var cancelledCount = ViewBag.CancelledCount ?? 0;
+
+    // Convert times to AM/PM format
+    Func<string, string> FormatTime = (time) =>
+    {
+        if (string.IsNullOrEmpty(time)) return "N/A";
+        if (time.Contains(":"))
+        {
+            try
+            {
+                var parts = time.Split(':');
+                if (parts.Length >= 2)
+                {
+                    int hour = int.Parse(parts[0]);
+                    int minute = int.Parse(parts[1]);
+                    var ampm = hour >= 12 ? "PM" : "AM";
+                    var displayHour = hour % 12;
+                    if (displayHour == 0) displayHour = 12;
+                    return $"{displayHour}:{minute:D2} {ampm}";
+                }
+            }
+            catch { }
+        }
+        return time;
+    };
 }
 
 <!DOCTYPE html>
@@ -17,6 +46,7 @@
 <body>
     <!-- Sidebar -->
     <aside class="sidebar" id="sidebar">
+        <!-- Your existing sidebar code remains the same -->
         <div class="sidebar-header">
             <div class="logo-container">
                 <svg class="logo-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 15 15">
@@ -104,6 +134,20 @@
             @Html.AntiForgeryToken()
         }
 
+        <!-- Display Success/Error Messages -->
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success">
+                <i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]
+            </div>
+        }
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger">
+                <i class="fas fa-exclamation-circle"></i> @TempData["ErrorMessage"]
+            </div>
+        }
+
         <!-- Reservations Content -->
         <main class="content">
             <!-- Tabs -->
@@ -112,12 +156,12 @@
                     <button class="tab active" data-tab="accepted">
                         <i class="fas fa-check-circle"></i>
                         Accepted
-                        <span class="tab-badge">4</span>
+                        <span class="tab-badge">@acceptedCount</span>
                     </button>
                     <button class="tab" data-tab="cancelled">
                         <i class="fas fa-ban"></i>
                         Cancelled
-                        <span class="tab-badge">4</span>
+                        <span class="tab-badge">@cancelledCount</span>
                     </button>
                 </div>
             </div>
@@ -150,7 +194,125 @@
                     </div>
 
                     <div id="tableContent">
-                        <!-- Table will be rendered here by JavaScript -->
+                        <!-- Accepted Reservations Table -->
+                        <div class="table-wrapper" id="acceptedTable" style="display: block;">
+                            @if (acceptedReservations.Any())
+                            {
+                                <table class="reservations-table">
+                                    <thead>
+                                        <tr>
+                                            <th>User</th>
+                                            <th>Room</th>
+                                            <th>Date</th>
+                                            <th>Time</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var reservation in acceptedReservations)
+                                        {
+                                            <tr data-reservation-id="@reservation.ID"
+                                                data-name="@reservation.ReserveeName"
+                                                data-email="@reservation.Email"
+                                                data-user-type="@reservation.UserType"
+                                                data-room="@reservation.RoomName"
+                                                data-date="@reservation.FormattedDate"
+                                                data-time="@reservation.FormattedTime"
+                                                data-purpose="@reservation.Purpose"
+                                                data-program="@reservation.Program"
+                                                data-student-number="@reservation.StudentNumber">
+                                                <td>
+                                                    <div class="user-cell">
+                                                        <img src="https://ui-avatars.com/api/?name=@Uri.EscapeDataString(reservation.ReserveeName)&background=random"
+                                                             alt="@reservation.ReserveeName"
+                                                             class="user-avatar">
+                                                        <div class="user-details">
+                                                            <strong>@reservation.ReserveeName</strong>
+                                                            <small>@reservation.Email</small>
+                                                            <span class="user-type">@reservation.UserType</span>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td>@reservation.RoomName</td>
+                                                <td>@reservation.FormattedDate</td>
+                                                <td>@FormatTime(reservation.StartTime) - @FormatTime(reservation.EndTime)</td>
+                                                <td>
+                                                    <span class="status-badge status-accepted">Accepted</span>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            }
+                            else
+                            {
+                                <div class="empty-state">
+                                    <i class="fas fa-inbox"></i>
+                                    <h3>No accepted reservations</h3>
+                                    <p>All accepted reservations will appear here</p>
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Cancelled Reservations Table -->
+                        <div class="table-wrapper" id="cancelledTable" style="display: none;">
+                            @if (cancelledReservations.Any())
+                            {
+                                <table class="reservations-table">
+                                    <thead>
+                                        <tr>
+                                            <th>User</th>
+                                            <th>Room</th>
+                                            <th>Date</th>
+                                            <th>Time</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var reservation in cancelledReservations)
+                                        {
+                                            <tr data-reservation-id="@reservation.ID"
+                                                data-name="@reservation.ReserveeName"
+                                                data-email="@reservation.Email"
+                                                data-user-type="@reservation.UserType"
+                                                data-room="@reservation.RoomName"
+                                                data-date="@reservation.FormattedDate"
+                                                data-time="@reservation.FormattedTime"
+                                                data-purpose="@reservation.Purpose"
+                                                data-program="@reservation.Program"
+                                                data-student-number="@reservation.StudentNumber">
+                                                <td>
+                                                    <div class="user-cell">
+                                                        <img src="https://ui-avatars.com/api/?name=@Uri.EscapeDataString(reservation.ReserveeName)&background=random"
+                                                             alt="@reservation.ReserveeName"
+                                                             class="user-avatar">
+                                                        <div class="user-details">
+                                                            <strong>@reservation.ReserveeName</strong>
+                                                            <small>@reservation.Email</small>
+                                                            <span class="user-type">@reservation.UserType</span>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td>@reservation.RoomName</td>
+                                                <td>@reservation.FormattedDate</td>
+                                                <td>@FormatTime(reservation.StartTime) - @FormatTime(reservation.EndTime)</td>
+                                                <td>
+                                                    <span class="status-badge status-cancelled">Cancelled</span>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            }
+                            else
+                            {
+                                <div class="empty-state">
+                                    <i class="fas fa-inbox"></i>
+                                    <h3>No cancelled reservations</h3>
+                                    <p>All cancelled reservations will appear here</p>
+                                </div>
+                            }
+                        </div>
                     </div>
 
                     <div class="table-footer">
@@ -165,8 +327,15 @@
                                 <i class="fas fa-chevron-right"></i>
                             </button>
                         </div>
-                        <div class="table-info">
-                            Showing 1-8 of 8 reservations
+                        <div class="table-info" id="tableInfo">
+                            @if (acceptedReservations.Any())
+                            {
+                                <text>Showing 1-@acceptedReservations.Count of @acceptedReservations.Count reservations</text>
+                            }
+                            else
+                            {
+                                <text>Showing 0-0 of 0 reservations</text>
+                            }
                         </div>
                     </div>
                 </div>
@@ -194,53 +363,63 @@
     <!-- Archive Confirmation Modal -->
     <div class="modal-overlay" id="archiveModalOverlay"></div>
     <div class="modal" id="archiveModal">
-        <div class="modal-header warning">
-            <div class="modal-icon warning">
-                <i class="fas fa-archive"></i>
+        @using (Html.BeginForm("ArchiveReservation", "Librarian", FormMethod.Post, new { id = "archiveForm" }))
+        {
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="id" id="archiveReservationId" value="" />
+            <div class="modal-header warning">
+                <div class="modal-icon warning">
+                    <i class="fas fa-archive"></i>
+                </div>
+                <h2 class="modal-title">Archive Reservation</h2>
             </div>
-            <h2 class="modal-title">Archive Reservation</h2>
-        </div>
-        <div class="modal-body">
-            <p class="modal-message" id="archiveModalMessage">
-                Are you sure you want to archive this reservation?
-            </p>
-        </div>
-        <div class="modal-footer">
-            <button class="btn btn-cancel" id="cancelArchiveBtn">
-                <i class="fas fa-times"></i>
-                Cancel
-            </button>
-            <button class="btn btn-confirm" id="confirmArchiveBtn">
-                <i class="fas fa-check"></i>
-                Archive
-            </button>
-        </div>
+            <div class="modal-body">
+                <p class="modal-message" id="archiveModalMessage">
+                    Are you sure you want to archive this reservation?
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-cancel" id="cancelArchiveBtn">
+                    <i class="fas fa-times"></i>
+                    Cancel
+                </button>
+                <button type="submit" class="btn btn-confirm" id="confirmArchiveBtn">
+                    <i class="fas fa-check"></i>
+                    Archive
+                </button>
+            </div>
+        }
     </div>
 
     <!-- Cancel Confirmation Modal -->
     <div class="modal-overlay" id="cancelModalOverlay"></div>
     <div class="modal" id="cancelModal">
-        <div class="modal-header danger">
-            <div class="modal-icon danger">
-                <i class="fas fa-ban"></i>
+        @using (Html.BeginForm("CancelReservation", "Librarian", FormMethod.Post, new { id = "cancelForm" }))
+        {
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="id" id="cancelReservationId" value="" />
+            <div class="modal-header danger">
+                <div class="modal-icon danger">
+                    <i class="fas fa-ban"></i>
+                </div>
+                <h2 class="modal-title">Cancel Reservation</h2>
             </div>
-            <h2 class="modal-title">Cancel Reservation</h2>
-        </div>
-        <div class="modal-body">
-            <p class="modal-message" id="cancelModalMessage">
-                Are you sure you want to cancel this reservation?
-            </p>
-        </div>
-        <div class="modal-footer">
-            <button class="btn btn-cancel" id="cancelCancelBtn">
-                <i class="fas fa-times"></i>
-                Cancel
-            </button>
-            <button class="btn btn-confirm danger" id="confirmCancelBtn">
-                <i class="fas fa-check"></i>
-                Cancel Reservation
-            </button>
-        </div>
+            <div class="modal-body">
+                <p class="modal-message" id="cancelModalMessage">
+                    Are you sure you want to cancel this reservation?
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-cancel" id="cancelCancelBtn">
+                    <i class="fas fa-times"></i>
+                    Cancel
+                </button>
+                <button type="submit" class="btn btn-confirm danger" id="confirmCancelBtn">
+                    <i class="fas fa-check"></i>
+                    Cancel Reservation
+                </button>
+            </div>
+        }
     </div>
 
     <script src="~/Scripts/librarianreservations.js"></script>

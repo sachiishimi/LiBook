@@ -1,4 +1,5 @@
-﻿// ========================================
+﻿// Scripts/librarianreservations.js
+// ========================================
 // SIDEBAR & DROPDOWN FUNCTIONALITY
 // ========================================
 
@@ -21,14 +22,10 @@ class NavigationManager {
         const closeSidebar = document.getElementById('closeSidebar');
         const mainContent = document.querySelector('.main-content');
 
-        // Mobile sidebar toggle
         if (menuToggle && sidebar) {
-            menuToggle.addEventListener('click', () => {
-                sidebar.classList.add('active');
-            });
+            menuToggle.addEventListener('click', () => sidebar.classList.add('active'));
         }
 
-        // Desktop sidebar toggle
         if (sidebarToggleDesktop && sidebar && mainContent) {
             sidebarToggleDesktop.addEventListener('click', () => {
                 sidebar.classList.toggle('collapsed');
@@ -36,14 +33,10 @@ class NavigationManager {
             });
         }
 
-        // Close sidebar
         if (closeSidebar && sidebar) {
-            closeSidebar.addEventListener('click', () => {
-                sidebar.classList.remove('active');
-            });
+            closeSidebar.addEventListener('click', () => sidebar.classList.remove('active'));
         }
 
-        // Close sidebar when clicking on nav items (mobile)
         if (sidebar) {
             document.querySelectorAll('.nav-item').forEach(item => {
                 item.addEventListener('click', () => {
@@ -60,24 +53,18 @@ class NavigationManager {
         const userDropdown = document.getElementById('userDropdown');
 
         if (userProfile && userDropdown) {
-            // Toggle dropdown on click
             userProfile.addEventListener('click', (e) => {
                 e.stopPropagation();
                 userProfile.classList.toggle('active');
             });
 
-            // Close dropdown when clicking outside
             document.addEventListener('click', (e) => {
-                const target = e.target;
-                if (target && target instanceof Node && !userProfile.contains(target)) {
+                if (!userProfile.contains(e.target)) {
                     userProfile.classList.remove('active');
                 }
             });
 
-            // Prevent dropdown from closing when clicking inside it
-            userDropdown.addEventListener('click', (e) => {
-                e.stopPropagation();
-            });
+            userDropdown.addEventListener('click', (e) => e.stopPropagation());
         }
     }
 
@@ -88,15 +75,12 @@ class NavigationManager {
         if (logoutLink && logoutForm) {
             logoutLink.addEventListener('click', (e) => {
                 e.preventDefault();
-                if (logoutForm instanceof HTMLFormElement) {
-                    logoutForm.submit();
-                }
+                logoutForm.submit();
             });
         }
     }
 
     setupResponsiveMenu() {
-        // Handle window resize
         window.addEventListener('resize', () => {
             const sidebar = document.getElementById('sidebar');
             if (sidebar && window.innerWidth > 768) {
@@ -107,39 +91,12 @@ class NavigationManager {
 }
 
 // ========================================
-// RESERVATIONS MANAGEMENT WITH SIDE PANEL
+// RESERVATIONS MANAGEMENT
 // ========================================
 
 class ReservationsManager {
-    data;
-    currentTab;
-    currentFilter;
-    selectedReservation;
-    reservationToArchive;
-    reservationToCancel;
-
     constructor() {
-        this.data = {
-            accepted: [
-                { id: 1, name: "Sarah Wilson", email: "sarah.w@example.com", userType: "Student", room: "Study Room C", date: "2025-11-14", time: "1:00 PM - 3:00 PM", status: "accepted" },
-                { id: 2, name: "David Brown", email: "david.b@example.com", userType: "Faculty", room: "Meeting Room", date: "2025-11-13", time: "3:00 PM - 5:00 PM", status: "accepted" },
-                { id: 3, name: "Michael Chen", email: "michael.c@example.com", userType: "Student", room: "Study Room A", date: "2025-11-15", time: "9:00 AM - 11:00 AM", status: "accepted" },
-                { id: 4, name: "Jennifer Lopez", email: "jennifer.l@example.com", userType: "Admin", room: "Conference Room", date: "2025-11-16", time: "2:00 PM - 4:00 PM", status: "accepted" },
-            ],
-            cancelled: [
-                { id: 8, name: "Robert Miller", email: "robert.m@example.com", userType: "Student", room: "Conference Room", date: "2025-11-11", time: "4:00 PM - 6:00 PM", status: "cancelled" },
-                { id: 9, name: "Amanda Johnson", email: "amanda.j@example.com", userType: "Admin", room: "Study Room B", date: "2025-11-09", time: "10:00 AM - 12:00 PM", status: "cancelled" },
-                { id: 10, name: "Kevin Wilson", email: "kevin.w@example.com", userType: "Visitor", room: "Meeting Room", date: "2025-11-08", time: "3:00 PM - 5:00 PM", status: "cancelled" },
-                { id: 11, name: "Maria Rodriguez", email: "maria.r@example.com", userType: "Faculty", room: "Study Room C", date: "2025-11-07", time: "11:00 AM - 1:00 PM", status: "cancelled" },
-            ]
-        };
-
         this.currentTab = 'accepted';
-        this.currentFilter = 'all';
-        this.selectedReservation = null;
-        this.reservationToArchive = null;
-        this.reservationToCancel = null;
-
         this.init();
     }
 
@@ -148,10 +105,9 @@ class ReservationsManager {
         this.setupSearch();
         this.setupFilter();
         this.setupPanel();
-        this.setupArchiveModal();
-        this.setupCancelModal();
-        this.renderTable();
-        this.updateTabBadges();
+        this.setupModals();
+        this.setupTableRowClick();
+        this.updateTableInfo();
     }
 
     setupTabSwitching() {
@@ -161,157 +117,323 @@ class ReservationsManager {
                 tabs.forEach(t => t.classList.remove('active'));
                 tab.classList.add('active');
 
-                if (tab instanceof HTMLElement && tab.dataset.tab) {
+                if (tab.dataset.tab) {
                     this.currentTab = tab.dataset.tab;
+                    this.showTableForTab(this.currentTab);
                 }
                 this.closePanel();
-                this.renderTable();
             });
         });
     }
 
+    showTableForTab(tabName) {
+        const acceptedTable = document.getElementById('acceptedTable');
+        const cancelledTable = document.getElementById('cancelledTable');
+        const tableInfo = document.getElementById('tableInfo');
+
+        if (tabName === 'accepted') {
+            if (acceptedTable) acceptedTable.style.display = 'block';
+            if (cancelledTable) cancelledTable.style.display = 'none';
+            const rows = acceptedTable ? acceptedTable.querySelectorAll('tbody tr').length : 0;
+            if (tableInfo) tableInfo.textContent = `Showing 1-${rows} of ${rows} reservations`;
+        } else {
+            if (acceptedTable) acceptedTable.style.display = 'none';
+            if (cancelledTable) cancelledTable.style.display = 'block';
+            const rows = cancelledTable ? cancelledTable.querySelectorAll('tbody tr').length : 0;
+            if (tableInfo) tableInfo.textContent = `Showing 1-${rows} of ${rows} reservations`;
+        }
+    }
+
     setupSearch() {
         const searchInput = document.getElementById('searchInput');
-        if (searchInput instanceof HTMLInputElement) {
+        if (searchInput) {
             searchInput.addEventListener('input', (e) => {
-                const target = e.target;
-                if (target instanceof HTMLInputElement) {
-                    this.filterTable(target.value.toLowerCase());
-                }
+                this.filterTable(e.target.value.toLowerCase());
             });
         }
+    }
+
+    filterTable(searchTerm) {
+        const visibleTable = this.currentTab === 'accepted' ? 'acceptedTable' : 'cancelledTable';
+        const table = document.getElementById(visibleTable);
+        if (!table) return;
+
+        const rows = table.querySelectorAll('tbody tr');
+        let visibleCount = 0;
+
+        rows.forEach(row => {
+            const text = row.textContent.toLowerCase();
+            const isVisible = text.includes(searchTerm);
+            row.style.display = isVisible ? '' : 'none';
+            if (isVisible) visibleCount++;
+        });
+
+        this.updateTableCount(visibleCount);
     }
 
     setupFilter() {
         const filterSelect = document.getElementById('filterSelect');
-        if (filterSelect instanceof HTMLSelectElement) {
+        if (filterSelect) {
             filterSelect.addEventListener('change', (e) => {
-                const target = e.target;
-                if (target instanceof HTMLSelectElement) {
-                    this.currentFilter = target.value;
-                    this.renderTable();
-                }
+                this.applyFilter(e.target.value);
             });
         }
     }
 
-    setupArchiveModal() {
-        const overlay = document.getElementById('archiveModalOverlay');
-        const modal = document.getElementById('archiveModal');
-        const cancelBtn = document.getElementById('cancelArchiveBtn');
-        const confirmBtn = document.getElementById('confirmArchiveBtn');
+    applyFilter(filterValue) {
+        const visibleTable = this.currentTab === 'accepted' ? 'acceptedTable' : 'cancelledTable';
+        const table = document.getElementById(visibleTable);
+        if (!table) return;
 
-        if (cancelBtn) {
-            cancelBtn.addEventListener('click', () => {
-                this.closeArchiveModal();
-            });
-        }
+        const rows = table.querySelectorAll('tbody tr');
+        let visibleCount = 0;
 
-        if (confirmBtn) {
-            confirmBtn.addEventListener('click', () => {
-                if (this.reservationToArchive) {
-                    this.archiveReservation(this.reservationToArchive);
+        rows.forEach(row => {
+            const userType = row.dataset.userType?.toLowerCase() || '';
+            let shouldShow = true;
+
+            switch (filterValue) {
+                case 'student':
+                    shouldShow = userType.includes('student');
+                    break;
+                case 'faculty':
+                    shouldShow = userType.includes('faculty');
+                    break;
+                case 'admin':
+                    shouldShow = userType.includes('admin');
+                    break;
+                case 'visitor':
+                    shouldShow = userType.includes('visitor');
+                    break;
+                case 'az':
+                    // For sorting, we would need to sort the table
+                    break;
+                case 'za':
+                    // For sorting, we would need to sort the table
+                    break;
+            }
+
+            row.style.display = shouldShow ? '' : 'none';
+            if (shouldShow) visibleCount++;
+        });
+
+        this.updateTableCount(visibleCount);
+    }
+
+    setupTableRowClick() {
+        document.addEventListener('click', (e) => {
+            const row = e.target.closest('tr[data-reservation-id]');
+            if (row) {
+                const table = row.closest('table');
+                if (table) {
+                    table.querySelectorAll('tr').forEach(r => r.classList.remove('selected'));
                 }
-            });
+                row.classList.add('selected');
+                this.showReservationDetails(row);
+            }
+        });
+    }
+
+    showReservationDetails(row) {
+        const reservationId = row.dataset.reservationId;
+        const userName = row.dataset.name || '';
+        const userEmail = row.dataset.email || '';
+        const userType = row.dataset.userType || '';
+        const roomName = row.dataset.room || '';
+        const date = row.dataset.date || '';
+        const time = row.dataset.time || '';
+        const purpose = row.dataset.purpose || '';
+        const program = row.dataset.program || '';
+        const studentNumber = row.dataset.studentNumber || '';
+
+        const panelBody = document.getElementById('panelBody');
+        if (!panelBody) return;
+
+        const contentWrapper = document.querySelector('.content-wrapper');
+        if (contentWrapper) {
+            contentWrapper.classList.add('panel-open');
         }
 
-        if (overlay) {
-            overlay.addEventListener('click', () => {
-                this.closeArchiveModal();
-            });
+        panelBody.innerHTML = `
+            <div class="details-section user-section">
+                <div class="user-header">
+                    <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=random" 
+                         alt="${userName}" 
+                         class="user-avatar-large">
+                    <div class="user-info-large">
+                        <h4>${userName}</h4>
+                        <p>${userEmail}</p>
+                        <span class="user-type-badge">${userType}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="details-section">
+                <h5 class="section-title">Reservation Information</h5>
+                <div class="detail-row">
+                    <div class="detail-label">
+                        <i class="fas fa-door-open"></i>
+                        Room
+                    </div>
+                    <div class="detail-value">${roomName}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">
+                        <i class="fas fa-calendar"></i>
+                        Date
+                    </div>
+                    <div class="detail-value">${date}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">
+                        <i class="fas fa-clock"></i>
+                        Time
+                    </div>
+                    <div class="detail-value">${time}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">
+                        <i class="fas fa-info-circle"></i>
+                        Purpose
+                    </div>
+                    <div class="detail-value">${purpose}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">
+                        <i class="fas fa-graduation-cap"></i>
+                        Program
+                    </div>
+                    <div class="detail-value">${program}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">
+                        <i class="fas fa-id-card"></i>
+                        Student Number
+                    </div>
+                    <div class="detail-value">${studentNumber}</div>
+                </div>
+            </div>
+
+            <div class="panel-actions">
+                ${this.currentTab === 'accepted' ?
+                `<button class="btn btn-cancel" id="cancelBtn" data-reservation-id="${reservationId}">
+                        <i class="fas fa-ban"></i>
+                        Cancel Reservation
+                    </button>` :
+                `<button class="btn btn-archive" id="archiveBtn" data-reservation-id="${reservationId}">
+                        <i class="fas fa-archive"></i>
+                        Archive Reservation
+                    </button>`
+            }
+            </div>
+        `;
+
+        this.setupPanelActions();
+    }
+
+    setupPanelActions() {
+        setTimeout(() => {
+            const archiveBtn = document.getElementById("archiveBtn");
+            const cancelBtn = document.getElementById("cancelBtn");
+
+            if (archiveBtn) {
+                archiveBtn.addEventListener("click", (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const reservationId = archiveBtn.dataset.reservationId;
+                    const userName = archiveBtn.closest('.panel-actions')?.previousElementSibling?.querySelector('h4')?.textContent || '';
+                    this.openArchiveModal(reservationId, userName);
+                });
+            }
+
+            if (cancelBtn) {
+                cancelBtn.addEventListener("click", (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const reservationId = cancelBtn.dataset.reservationId;
+                    const userName = cancelBtn.closest('.panel-actions')?.previousElementSibling?.querySelector('h4')?.textContent || '';
+                    this.openCancelModal(reservationId, userName);
+                });
+            }
+        }, 100);
+    }
+
+    setupModals() {
+        // Archive modal
+        const archiveOverlay = document.getElementById('archiveModalOverlay');
+        const archiveCancelBtn = document.getElementById('cancelArchiveBtn');
+
+        if (archiveCancelBtn) {
+            archiveCancelBtn.addEventListener('click', () => this.closeArchiveModal());
+        }
+
+        if (archiveOverlay) {
+            archiveOverlay.addEventListener('click', () => this.closeArchiveModal());
+        }
+
+        // Cancel modal
+        const cancelOverlay = document.getElementById('cancelModalOverlay');
+        const cancelCancelBtn = document.getElementById('cancelCancelBtn');
+
+        if (cancelCancelBtn) {
+            cancelCancelBtn.addEventListener('click', () => this.closeCancelModal());
+        }
+
+        if (cancelOverlay) {
+            cancelOverlay.addEventListener('click', () => this.closeCancelModal());
         }
     }
 
-    setupCancelModal() {
-        const overlay = document.getElementById('cancelModalOverlay');
-        const modal = document.getElementById('cancelModal');
-        const cancelBtn = document.getElementById('cancelCancelBtn');
-        const confirmBtn = document.getElementById('confirmCancelBtn');
-
-        if (cancelBtn) {
-            cancelBtn.addEventListener('click', () => {
-                this.closeCancelModal();
-            });
-        }
-
-        if (confirmBtn) {
-            confirmBtn.addEventListener('click', () => {
-                if (this.reservationToCancel) {
-                    this.cancelReservation(this.reservationToCancel);
-                }
-            });
-        }
-
-        if (overlay) {
-            overlay.addEventListener('click', () => {
-                this.closeCancelModal();
-            });
-        }
-    }
-
-    openArchiveModal(reservation) {
-        this.reservationToArchive = reservation;
-
+    openArchiveModal(reservationId, userName) {
         const overlay = document.getElementById('archiveModalOverlay');
         const modal = document.getElementById('archiveModal');
         const message = document.getElementById('archiveModalMessage');
+        const reservationIdInput = document.getElementById('archiveReservationId');
 
         if (message) {
-            message.textContent = `Are you sure you want to archive the reservation for ${reservation.name}? This action will archive the reservation.`;
+            message.textContent = `Are you sure you want to archive the reservation for ${userName}?`;
         }
 
-        if (overlay) {
-            overlay.classList.add('active');
+        if (reservationIdInput) {
+            reservationIdInput.value = reservationId;
         }
-        if (modal) {
-            modal.classList.add('active');
-        }
+
+        if (overlay) overlay.classList.add('active');
+        if (modal) modal.classList.add('active');
     }
 
     closeArchiveModal() {
         const overlay = document.getElementById('archiveModalOverlay');
         const modal = document.getElementById('archiveModal');
 
-        if (overlay) {
-            overlay.classList.remove('active');
-        }
-        if (modal) {
-            modal.classList.remove('active');
-        }
-        this.reservationToArchive = null;
+        if (overlay) overlay.classList.remove('active');
+        if (modal) modal.classList.remove('active');
     }
 
-    openCancelModal(reservation) {
-        console.log('Opening cancel modal for:', reservation.name);
-        this.reservationToCancel = reservation;
-
+    openCancelModal(reservationId, userName) {
         const overlay = document.getElementById('cancelModalOverlay');
         const modal = document.getElementById('cancelModal');
         const message = document.getElementById('cancelModalMessage');
+        const reservationIdInput = document.getElementById('cancelReservationId');
 
         if (message) {
-            message.textContent = `Are you sure you want to cancel the reservation for ${reservation.name}? This action cannot be undone.`;
+            message.textContent = `Are you sure you want to cancel the reservation for ${userName}?`;
         }
 
-        if (overlay) {
-            overlay.classList.add('active');
+        if (reservationIdInput) {
+            reservationIdInput.value = reservationId;
         }
-        if (modal) {
-            modal.classList.add('active');
-        }
+
+        if (overlay) overlay.classList.add('active');
+        if (modal) modal.classList.add('active');
     }
 
     closeCancelModal() {
         const overlay = document.getElementById('cancelModalOverlay');
         const modal = document.getElementById('cancelModal');
 
-        if (overlay) {
-            overlay.classList.remove('active');
-        }
-        if (modal) {
-            modal.classList.remove('active');
-        }
-        this.reservationToCancel = null;
+        if (overlay) overlay.classList.remove('active');
+        if (modal) modal.classList.remove('active');
     }
 
     setupPanel() {
@@ -319,106 +441,11 @@ class ReservationsManager {
         const panelBackdrop = document.getElementById('panelBackdrop');
 
         if (closePanelBtn) {
-            closePanelBtn.addEventListener('click', () => {
-                const archiveModal = document.getElementById('archiveModal');
-                const cancelModal = document.getElementById('cancelModal');
-                if ((archiveModal && archiveModal.classList.contains('active')) ||
-                    (cancelModal && cancelModal.classList.contains('active'))) {
-                    return;
-                }
-                this.closePanel();
-            });
+            closePanelBtn.addEventListener('click', () => this.closePanel());
         }
 
         if (panelBackdrop) {
-            panelBackdrop.addEventListener('click', () => {
-                const archiveModal = document.getElementById('archiveModal');
-                const cancelModal = document.getElementById('cancelModal');
-                if ((archiveModal && archiveModal.classList.contains('active')) ||
-                    (cancelModal && cancelModal.classList.contains('active'))) {
-                    return;
-                }
-                this.closePanel();
-            });
-        }
-    }
-
-    openPanel(reservation) {
-        this.selectedReservation = reservation;
-        const contentWrapper = document.querySelector('.content-wrapper');
-        const panelBody = document.getElementById('panelBody');
-
-        if (contentWrapper) {
-            contentWrapper.classList.add('panel-open');
-        }
-
-        // Populate panel with reservation details
-        if (panelBody) {
-            panelBody.innerHTML = `
-                <div class="details-section user-section">
-                    <div class="user-header">
-                        <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(reservation.name)}&background=random" 
-                             alt="${reservation.name}" 
-                             class="user-avatar-large">
-                        <div class="user-info-large">
-                            <h4>${reservation.name}</h4>
-                            <p>${reservation.email}</p>
-                            <span class="user-type-badge">${reservation.userType}</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="details-section">
-                    <h5 class="section-title">Reservation Information</h5>
-                    <div class="detail-row">
-                        <div class="detail-label">
-                            <i class="fas fa-door-open"></i>
-                            Room
-                        </div>
-                        <div class="detail-value">${reservation.room}</div>
-                    </div>
-                    <div class="detail-row">
-                        <div class="detail-label">
-                            <i class="fas fa-calendar"></i>
-                            Date
-                        </div>
-                        <div class="detail-value">${reservation.date}</div>
-                    </div>
-                    <div class="detail-row">
-                        <div class="detail-label">
-                            <i class="fas fa-clock"></i>
-                            Time
-                        </div>
-                        <div class="detail-value">${reservation.time}</div>
-                    </div>
-                    <div class="detail-row">
-                        <div class="detail-label">
-                            <i class="fas fa-info-circle"></i>
-                            Status
-                        </div>
-                        <div class="detail-value">
-                            <span class="status-badge status-${reservation.status}">
-                                ${reservation.status.charAt(0).toUpperCase() + reservation.status.slice(1)}
-                            </span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="panel-actions">
-                    ${this.currentTab === 'accepted' ?
-                    `<button class="btn btn-cancel" id="cancelBtn">
-                            <i class="fas fa-ban"></i>
-                            Cancel Reservation
-                        </button>` :
-                    `<button class="btn btn-archive" id="archiveBtn">
-                            <i class="fas fa-archive"></i>
-                            Archive Reservation
-                        </button>`
-                }
-                </div>
-            `;
-
-            this.setupPanelActions();
+            panelBackdrop.addEventListener('click', () => this.closePanel());
         }
     }
 
@@ -444,263 +471,25 @@ class ReservationsManager {
         document.querySelectorAll('.reservations-table tbody tr').forEach(row => {
             row.classList.remove('selected');
         });
-
-        this.selectedReservation = null;
     }
 
-    archiveReservation(reservation) {
-        // Find and remove from current tab
-        const currentData = this.data[this.currentTab];
-        if (!currentData) return;
+    updateTableInfo() {
+        const visibleTable = this.currentTab === 'accepted' ? 'acceptedTable' : 'cancelledTable';
+        const table = document.getElementById(visibleTable);
+        const tableInfo = document.getElementById('tableInfo');
 
-        const index = currentData.findIndex(r => r.id === reservation.id);
-        if (index !== -1) {
-            currentData.splice(index, 1);
+        if (table && tableInfo) {
+            const rows = table.querySelectorAll('tbody tr');
+            const visibleRows = Array.from(rows).filter(r => r.style.display !== 'none').length;
+            tableInfo.textContent = `Showing 1-${visibleRows} of ${visibleRows} reservations`;
         }
-
-        // Close both the modal and the panel after archiving
-        this.closeArchiveModal();
-        this.closePanel();
-        this.renderTable();
-        this.updateTabBadges();
-        this.showNotification(`Reservation for ${reservation.name} archived successfully!`, "success");
     }
 
-    cancelReservation(reservation) {
-        // Find and remove from accepted tab
-        const acceptedData = this.data['accepted'];
-        if (!acceptedData) return;
-
-        const index = acceptedData.findIndex(r => r.id === reservation.id);
-        if (index !== -1) {
-            // Move to cancelled tab
-            const cancelledReservation = { ...acceptedData[index], status: 'cancelled' };
-            this.data['cancelled'].push(cancelledReservation);
-            acceptedData.splice(index, 1);
-        }
-
-        // Close both the modal and the panel after cancelling
-        this.closeCancelModal();
-        this.closePanel();
-        this.renderTable();
-        this.updateTabBadges();
-        this.showNotification(`Reservation for ${reservation.name} cancelled successfully!`, "success");
-    }
-
-    setupPanelActions() {
-        setTimeout(() => {
-            const archiveBtn = document.getElementById("archiveBtn");
-            const cancelBtn = document.getElementById("cancelBtn");
-
-            if (archiveBtn) {
-                archiveBtn.addEventListener("click", (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    if (this.selectedReservation) {
-                        this.openArchiveModal(this.selectedReservation);
-                    }
-                });
-            }
-
-            if (cancelBtn) {
-                cancelBtn.addEventListener("click", (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    if (this.selectedReservation) {
-                        this.openCancelModal(this.selectedReservation);
-                    }
-                });
-            }
-        }, 100);
-    }
-
-    getFilteredData() {
-        const currentData = this.data[this.currentTab];
-        if (!currentData) return [];
-
-        let data = [...currentData];
-
-        if (this.currentFilter !== 'all') {
-            if (this.currentFilter === 'az') {
-                data.sort((a, b) => a.name.localeCompare(b.name));
-            } else if (this.currentFilter === 'za') {
-                data.sort((a, b) => b.name.localeCompare(a.name));
-            } else {
-                data = data.filter(r => r.userType.toLowerCase() === this.currentFilter);
-            }
-        }
-
-        return data;
-    }
-
-    renderTable() {
-        const tableContent = document.getElementById('tableContent');
-        if (!tableContent) return;
-
-        const data = this.getFilteredData();
-
-        if (data.length === 0) {
-            tableContent.innerHTML = this.createEmptyState();
-            return;
-        }
-
-        const table = document.createElement('table');
-        table.className = 'reservations-table';
-        table.appendChild(this.createTableHeader());
-        table.appendChild(this.createTableBody(data));
-
-        const wrapper = document.createElement('div');
-        wrapper.className = 'table-wrapper';
-        wrapper.appendChild(table);
-
-        tableContent.innerHTML = '';
-        tableContent.appendChild(wrapper);
-        this.updateTableInfo(data.length);
-    }
-
-    createEmptyState() {
-        return `
-            <div class="empty-state">
-                <i class="fas fa-inbox"></i>
-                <h3>No reservations found</h3>
-                <p>Try adjusting your filters or search term</p>
-            </div>
-        `;
-    }
-
-    createTableHeader() {
-        const thead = document.createElement('thead');
-        const headerRow = document.createElement('tr');
-        ['User', 'Room', 'Date', 'Time', 'Status'].forEach(text => {
-            const th = document.createElement('th');
-            th.textContent = text;
-            headerRow.appendChild(th);
-        });
-        thead.appendChild(headerRow);
-        return thead;
-    }
-
-    createTableBody(data) {
-        const tbody = document.createElement('tbody');
-        data.forEach(reservation => {
-            tbody.appendChild(this.createTableRow(reservation));
-        });
-        return tbody;
-    }
-
-    createTableRow(reservation) {
-        const row = document.createElement('tr');
-
-        if (row instanceof HTMLElement) {
-            row.dataset.reservationId = String(reservation.id);
-        }
-
-        row.appendChild(this.createUserCell(reservation));
-
-        ['room', 'date', 'time'].forEach(field => {
-            const cell = document.createElement('td');
-            cell.textContent = reservation[field];
-            row.appendChild(cell);
-        });
-
-        row.appendChild(this.createStatusCell(reservation));
-
-        row.addEventListener('click', () => {
-            document.querySelectorAll('.reservations-table tbody tr').forEach(r => r.classList.remove('selected'));
-            row.classList.add('selected');
-            this.openPanel(reservation);
-        });
-
-        return row;
-    }
-
-    createUserCell(reservation) {
-        const userCell = document.createElement('td');
-        const userDiv = document.createElement('div');
-        userDiv.className = 'user-cell';
-
-        const avatar = document.createElement('img');
-        avatar.className = 'user-avatar';
-        avatar.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(reservation.name)}&background=random`;
-        avatar.alt = reservation.name;
-
-        const userDetails = document.createElement('div');
-        userDetails.className = 'user-details';
-
-        const name = document.createElement('strong');
-        name.textContent = reservation.name;
-
-        const email = document.createElement('small');
-        email.textContent = reservation.email;
-
-        const userType = document.createElement('span');
-        userType.className = 'user-type';
-        userType.textContent = reservation.userType;
-
-        userDetails.appendChild(name);
-        userDetails.appendChild(email);
-        userDetails.appendChild(userType);
-        userDiv.appendChild(avatar);
-        userDiv.appendChild(userDetails);
-        userCell.appendChild(userDiv);
-
-        return userCell;
-    }
-
-    createStatusCell(reservation) {
-        const statusCell = document.createElement('td');
-        const statusBadge = document.createElement('span');
-        statusBadge.className = `status-badge status-${reservation.status}`;
-        statusBadge.textContent = reservation.status.charAt(0).toUpperCase() + reservation.status.slice(1);
-        statusCell.appendChild(statusBadge);
-        return statusCell;
-    }
-
-    filterTable(searchTerm) {
-        document.querySelectorAll('.reservations-table tbody tr').forEach(row => {
-            if (row instanceof HTMLElement) {
-                const text = (row.textContent || '').toLowerCase();
-                row.style.display = text.includes(searchTerm) ? '' : 'none';
-            }
-        });
-    }
-
-    updateTabBadges() {
-        document.querySelectorAll('.tab').forEach(tab => {
-            if (tab instanceof HTMLElement && tab.dataset.tab) {
-                const badge = tab.querySelector('.tab-badge');
-                const tabData = this.data[tab.dataset.tab];
-                if (badge && tabData) {
-                    badge.textContent = String(tabData.length);
-                }
-            }
-        });
-    }
-
-    updateTableInfo(count) {
-        const tableInfo = document.querySelector('.table-info');
+    updateTableCount(visibleCount) {
+        const tableInfo = document.getElementById('tableInfo');
         if (tableInfo) {
-            tableInfo.textContent = `Showing ${count} of ${count} reservations`;
+            tableInfo.textContent = `Showing 1-${visibleCount} of ${visibleCount} reservations`;
         }
-    }
-
-    showNotification(message, type) {
-        type = type || 'success';
-        const notification = document.createElement('div');
-        notification.className = `notification notification-${type}`;
-
-        const icon = type === 'success' ? 'fa-check-circle' :
-            type === 'error' ? 'fa-times-circle' :
-                type === 'warning' ? 'fa-exclamation-triangle' :
-                    'fa-info-circle';
-
-        notification.innerHTML = `<i class="fas ${icon}"></i><span>${message}</span>`;
-        document.body.appendChild(notification);
-
-        setTimeout(() => {
-            notification.classList.add('notification-exit');
-            setTimeout(() => notification.remove(), 300);
-        }, 3000);
     }
 }
 

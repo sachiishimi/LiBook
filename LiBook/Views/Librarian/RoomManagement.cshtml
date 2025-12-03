@@ -1,7 +1,11 @@
-﻿﻿@model IEnumerable<LiBook.Controllers.RoomManagementViewModel>
+﻿@model IEnumerable<LiBook.Controllers.RoomManagementViewModel>
 
 @{
     ViewBag.Title = "Room Management";
+
+    // Get current filter values from ViewBag
+    var currentStatus = ViewBag.CurrentStatus as string ?? "all";
+    var currentUserType = ViewBag.CurrentUserType as string ?? "all";
 }
 <!DOCTYPE html>
 <html lang="en">
@@ -106,6 +110,14 @@
 
         <!-- Dashboard Content -->
         <main class="content">
+            <!-- Display error message if present -->
+            @if (!string.IsNullOrEmpty(ViewBag.ErrorMessage as string))
+            {
+                <div class="alert alert-danger">
+                    @ViewBag.ErrorMessage
+                </div>
+            }
+
             <!-- Top Actions Bar -->
             <div class="actions-bar">
                 <div class="actions-left">
@@ -114,24 +126,26 @@
                         <input type="text" placeholder="Search rooms..." id="searchRoomInput">
                     </div>
                     <div class="filter-group">
-                        <label>User Type:</label>
+                        <label>Room Type:</label>
                         <select class="filter-select" id="userTypeFilter">
-                            <option value="all">All Types</option>
-                            <option value="Academic">Academic</option>
-                            <option value="Faculty">Faculty</option>
-                            <option value="Public">Public</option>
+                            <option value="all" @(currentUserType == "all" ? "selected" : "")>All Types</option>
+                            <option value="Academic" @(currentUserType == "Academic" ? "selected" : "")>Academic</option>
+                            <option value="Faculty" @(currentUserType == "Faculty" ? "selected" : "")>Faculty</option>
+                            <option value="Public" @(currentUserType == "Public" ? "selected" : "")>Public</option>
                         </select>
                     </div>
-                    <button class="btn btn-primary" id="refreshRoomsBtn">
+                    <a href="@Url.Action("RefreshRooms", "Librarian", new { status = currentStatus, userType = currentUserType })" class="btn btn-primary" id="refreshRoomsBtn">
                         <i class="fas fa-sync-alt"></i>
                         Refresh
-                    </button>
+                    </a>
                 </div>
             </div>
 
             <!-- Quick Stats Overview -->
             <div class="quick-stats">
-                <div class="stat-card stat-all active" data-filter="all" role="button" tabindex="0">
+                <div class="stat-card stat-all @(currentStatus == "all" ? "active" : "")"
+                     data-filter="all" role="button" tabindex="0"
+                     onclick="filterRooms('all')">
                     <div class="stat-icon">
                         <i class="fas fa-th"></i>
                     </div>
@@ -140,7 +154,9 @@
                         <p>All Rooms</p>
                     </div>
                 </div>
-                <div class="stat-card stat-available" data-filter="available" role="button" tabindex="0">
+                <div class="stat-card stat-available @(currentStatus == "available" ? "active" : "")"
+                     data-filter="available" role="button" tabindex="0"
+                     onclick="filterRooms('available')">
                     <div class="stat-icon">
                         <i class="fas fa-door-open"></i>
                     </div>
@@ -149,7 +165,9 @@
                         <p>Available</p>
                     </div>
                 </div>
-                <div class="stat-card stat-unavailable" data-filter="unavailable" role="button" tabindex="0">
+                <div class="stat-card stat-unavailable @(currentStatus == "unavailable" ? "active" : "")"
+                     data-filter="unavailable" role="button" tabindex="0"
+                     onclick="filterRooms('unavailable')">
                     <div class="stat-icon">
                         <i class="fas fa-ban"></i>
                     </div>
@@ -158,7 +176,9 @@
                         <p>Unavailable</p>
                     </div>
                 </div>
-                <div class="stat-card stat-maintenance" data-filter="maintenance" role="button" tabindex="0">
+                <div class="stat-card stat-maintenance @(currentStatus == "maintenance" ? "active" : "")"
+                     data-filter="maintenance" role="button" tabindex="0"
+                     onclick="filterRooms('maintenance')">
                     <div class="stat-icon">
                         <i class="fas fa-wrench"></i>
                     </div>
@@ -175,29 +195,25 @@
                 {
                     foreach (var room in Model)
                     {
+                        // Determine status class
                         var statusClass = "available";
                         var statusText = "Available";
-                        var userTypeClass = "academic";
-                        var userTypeIcon = "fa-graduation-cap";
 
                         if (!string.IsNullOrEmpty(room.Status))
                         {
-                            statusClass = room.Status.ToLower();
+                            statusClass = room.Status.ToLower().Replace(" ", "-");
                             statusText = room.Status;
                         }
+
+                        // Determine user type class and icon
+                        var userTypeClass = "academic";
+                        var userTypeIcon = "fa-graduation-cap";
 
                         if (!string.IsNullOrEmpty(room.UserType))
                         {
                             userTypeClass = room.UserType.ToLower();
-
-                            if (userTypeClass == "faculty")
-                            {
-                                userTypeIcon = "fa-chalkboard-teacher";
-                            }
-                            else if (userTypeClass == "public")
-                            {
-                                userTypeIcon = "fa-users";
-                            }
+                            userTypeIcon = userTypeClass == "faculty" ? "fa-chalkboard-teacher" :
+                                          userTypeClass == "public" ? "fa-users" : "fa-graduation-cap";
                         }
 
                         var roomName = room.RoomName ?? "Unknown Room";
@@ -206,10 +222,7 @@
                         var userType = room.UserType ?? "Academic";
                         var equipment = room.Equipment ?? "Smart TV, Whiteboard";
 
-                        // IMPORTANT: Convert RoomID to string to ensure it's always rendered
-                        var roomIdStr = room.RoomID.ToString();
-
-                        <div class="room-card @statusClass" data-room-id="@roomIdStr" data-status="@statusClass" data-user-type="@userTypeClass" data-capacity="@capacity">
+                        <div class="room-card @statusClass" data-room-id="@room.RoomID" data-status="@statusClass" data-user-type="@userTypeClass" data-capacity="@capacity">
                             <div class="room-card-header">
                                 <div class="room-info">
                                     <h3 class="room-name">@roomName</h3>
@@ -253,13 +266,13 @@
                                 }
 
                                 <div class="room-actions">
-                                    <button class="room-btn room-btn-primary" onclick="openRoomDetails(@roomIdStr)">
+                                    <button class="room-btn room-btn-primary" onclick="openRoomDetails(@room.RoomID)">
                                         <i class="fas fa-info-circle"></i>
                                         <span>Details</span>
                                     </button>
                                     @if (statusClass == "available")
                                     {
-                                        <button class="room-btn room-btn-success" onclick="createWalkIn(@roomIdStr)">
+                                        <button class="room-btn room-btn-success" onclick="createWalkIn(@room.RoomID)">
                                             <i class="fas fa-user-plus"></i>
                                             <span>Walk-In</span>
                                         </button>
@@ -273,8 +286,8 @@
                 {
                     <div class="empty-state">
                         <i class="fas fa-door-closed"></i>
-                        <h3>No Rooms Available</h3>
-                        <p>There are no rooms in the system yet. Contact your administrator to add rooms.</p>
+                        <h3>No Rooms Found</h3>
+                        <p>No rooms match your current filter criteria.</p>
                     </div>
                 }
             </div>

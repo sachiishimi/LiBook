@@ -166,6 +166,7 @@
     <Compile Include="Models\Member.cs">
       <DependentUpon>LiBookContext.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\ReservationViewModel.cs" />
     <Compile Include="Models\RoleMaster.cs">
       <DependentUpon>LiBookContext.tt</DependentUpon>
     </Compile>

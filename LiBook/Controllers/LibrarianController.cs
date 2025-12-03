@@ -1,9 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Web.Mvc;
+﻿// Controllers/LibrarianController.cs
 using LiBook.Models;
+using LiBook.ViewModels;
+using System;
+using System.Collections.Generic;
+using System.Data.Entity;
+using System.Linq;
+using System.Web.Mvc;
 
 namespace LiBook.Controllers
 {
@@ -13,125 +15,74 @@ namespace LiBook.Controllers
         private LiBookEntities db = new LiBookEntities();
 
         // ============================================
-        // DIAGNOSTIC: SHOW ROOM FIELDS
+        // ROOM MANAGEMENT PAGE - Main Entry Point
         // ============================================
-        // ADD THIS TEMPORARY METHOD TO SEE YOUR FIELD NAMES
-        public ActionResult DiagnosticRoomFields()
-        {
-            var roomType = typeof(Room);
-            var properties = roomType.GetProperties();
-
-            var fieldInfo = properties.Select(p => new
-            {
-                Name = p.Name,
-                Type = p.PropertyType.Name
-            }).ToList();
-
-            // Return as JSON so you can see all field names
-            return Json(fieldInfo, JsonRequestBehavior.AllowGet);
-        }
-
-        // ============================================
-        // DASHBOARD
-        // ============================================
-        public ActionResult LibrarianDashboard()
-        {
-            return View();
-        }
-
-        // ============================================
-        // RESERVATIONS PAGE
-        // ============================================
-        public ActionResult LibrarianReservations()
-        {
-            return View();
-        }
-
-        // ============================================
-        // ROOM MANAGEMENT PAGE - SAFE VERSION
-        // ============================================
-        public ActionResult RoomManagement()
+        public ActionResult RoomManagement(string status = "all", string userType = "all")
         {
             try
             {
-                // Get all rooms without filtering
-                var allRooms = db.Rooms.ToList();
-
-                // Create view models using safe navigation
+                // Get all non-archived rooms from database
+                var allRooms = db.Rooms.Where(r => !r.DateArchived.HasValue).ToList();
                 var rooms = new List<RoomManagementViewModel>();
 
+                // Transform database rooms to view models
                 foreach (var r in allRooms)
                 {
-                    try
+                    var vm = new RoomManagementViewModel
                     {
-                        var vm = new RoomManagementViewModel();
+                        RoomID = r.ID,
+                        RoomName = r.RoomName,
+                        RoomType = r.RoomType,
+                        Capacity = r.Capacity,
+                        Status = r.Availability,
+                        UserType = r.RoomType,
+                        Equipment = "Smart TV, Whiteboard",
+                        CurrentReservation = GetCurrentReservation(r.ID),
+                        NextReservation = GetNextReservation(r.ID)
+                    };
+                    rooms.Add(vm);
+                }
 
-                        // Try to get ID - adjust property name as needed
-                        try { vm.RoomID = (int)r.GetType().GetProperty("ID")?.GetValue(r, null); } catch { }
-                        if (vm.RoomID == 0)
-                        {
-                            try { vm.RoomID = (int)r.GetType().GetProperty("RoomID")?.GetValue(r, null); } catch { }
-                        }
-                        if (vm.RoomID == 0)
-                        {
-                            try { vm.RoomID = (int)r.GetType().GetProperty("RoomId")?.GetValue(r, null); } catch { }
-                        }
+                // Calculate statistics from ALL rooms (before filtering)
+                ViewBag.AllCount = allRooms.Count;
+                ViewBag.AvailableCount = allRooms.Count(r => r.Availability == "Available");
+                ViewBag.UnavailableCount = allRooms.Count(r => r.Availability == "Unavailable");
+                ViewBag.MaintenanceCount = allRooms.Count(r => r.Availability == "Under Maintenance");
 
-                        // Try to get RoomName
-                        try { vm.RoomName = r.GetType().GetProperty("RoomName")?.GetValue(r, null)?.ToString() ?? "Unknown"; } catch { vm.RoomName = "Unknown"; }
-
-                        // Try to get RoomType
-                        try { vm.RoomType = r.GetType().GetProperty("RoomType")?.GetValue(r, null)?.ToString(); } catch { }
-                        if (string.IsNullOrEmpty(vm.RoomType))
-                        {
-                            try { vm.RoomType = r.GetType().GetProperty("RoomType1")?.GetValue(r, null)?.ToString(); } catch { }
-                        }
-                        if (string.IsNullOrEmpty(vm.RoomType))
-                        {
-                            try { vm.RoomType = r.GetType().GetProperty("Type")?.GetValue(r, null)?.ToString(); } catch { }
-                        }
-                        if (string.IsNullOrEmpty(vm.RoomType)) vm.RoomType = "Unknown";
-
-                        // Try to get Capacity
-                        try
-                        {
-                            var cap = r.GetType().GetProperty("Capacity")?.GetValue(r, null);
-                            vm.Capacity = cap != null ? Convert.ToInt32(cap) : 0;
-                        }
-                        catch { vm.Capacity = 0; }
-
-                        // Try to get Status
-                        try { vm.Status = r.GetType().GetProperty("Status")?.GetValue(r, null)?.ToString() ?? "Available"; } catch { vm.Status = "Available"; }
-
-                        // Try to get UserType
-                        try { vm.UserType = r.GetType().GetProperty("UserType")?.GetValue(r, null)?.ToString(); } catch { }
-                        if (string.IsNullOrEmpty(vm.UserType))
-                        {
-                            try { vm.UserType = r.GetType().GetProperty("UserType1")?.GetValue(r, null)?.ToString(); } catch { }
-                        }
-                        if (string.IsNullOrEmpty(vm.UserType)) vm.UserType = "Academic";
-
-                        vm.Equipment = "Smart TV, Whiteboard";
-
-                        rooms.Add(vm);
-                    }
-                    catch (Exception ex)
+                // Apply status filter
+                if (!string.IsNullOrEmpty(status) && status.ToLower() != "all")
+                {
+                    // Map status parameter to database Availability values
+                    string availabilityFilter = status.ToLower();
+                    switch (availabilityFilter)
                     {
-                        // Skip this room if there's an error
-                        System.Diagnostics.Debug.WriteLine("Error processing room: " + ex.Message);
+                        case "available":
+                            rooms = rooms.Where(r => r.Status == "Available").ToList();
+                            break;
+                        case "unavailable":
+                            rooms = rooms.Where(r => r.Status == "Unavailable").ToList();
+                            break;
+                        case "maintenance":
+                            rooms = rooms.Where(r => r.Status == "Under Maintenance").ToList();
+                            break;
                     }
                 }
 
-                // Calculate stats
-                ViewBag.AllCount = rooms.Count;
-                ViewBag.AvailableCount = rooms.Count(r => r.Status == "Available");
-                ViewBag.UnavailableCount = rooms.Count(r => r.Status == "Unavailable");
-                ViewBag.MaintenanceCount = rooms.Count(r => r.Status == "Maintenance");
+                // Apply user type (room type) filter
+                if (!string.IsNullOrEmpty(userType) && userType.ToLower() != "all")
+                {
+                    rooms = rooms.Where(r => r.UserType.Equals(userType, StringComparison.OrdinalIgnoreCase)).ToList();
+                }
+
+                // Store current filter values for view
+                ViewBag.CurrentStatus = status;
+                ViewBag.CurrentUserType = userType;
 
                 return View(rooms);
             }
             catch (Exception ex)
             {
+                // Handle errors gracefully
                 ViewBag.ErrorMessage = "Error loading rooms: " + ex.Message;
                 ViewBag.AllCount = 0;
                 ViewBag.AvailableCount = 0;
@@ -142,141 +93,297 @@ namespace LiBook.Controllers
         }
 
         // ============================================
-        // AJAX: GET ALL ROOMS - SAFE VERSION
+        // FILTER ROOMS - Redirect to main action with filters
         // ============================================
-        [HttpGet]
-        public JsonResult GetAllRooms()
+        public ActionResult FilterRooms(string status, string userType)
         {
-            try
-            {
-                var allRooms = db.Rooms.ToList();
-                var rooms = new List<dynamic>();
-
-                foreach (var r in allRooms)
-                {
-                    try
-                    {
-                        var id = 0;
-                        try { id = (int)r.GetType().GetProperty("ID")?.GetValue(r, null); } catch { }
-                        if (id == 0)
-                        {
-                            try { id = (int)r.GetType().GetProperty("RoomID")?.GetValue(r, null); } catch { }
-                        }
-
-                        var name = "";
-                        try { name = r.GetType().GetProperty("RoomName")?.GetValue(r, null)?.ToString() ?? "Unknown"; } catch { name = "Unknown"; }
-
-                        var type = "";
-                        try { type = r.GetType().GetProperty("RoomType")?.GetValue(r, null)?.ToString(); } catch { }
-                        if (string.IsNullOrEmpty(type))
-                        {
-                            try { type = r.GetType().GetProperty("RoomType1")?.GetValue(r, null)?.ToString(); } catch { }
-                        }
-                        if (string.IsNullOrEmpty(type)) type = "Unknown";
-
-                        var capacity = 0;
-                        try
-                        {
-                            var cap = r.GetType().GetProperty("Capacity")?.GetValue(r, null);
-                            capacity = cap != null ? Convert.ToInt32(cap) : 0;
-                        }
-                        catch { capacity = 0; }
-
-                        var status = "";
-                        try { status = r.GetType().GetProperty("Status")?.GetValue(r, null)?.ToString() ?? "Available"; } catch { status = "Available"; }
-
-                        var userType = "";
-                        try { userType = r.GetType().GetProperty("UserType")?.GetValue(r, null)?.ToString(); } catch { }
-                        if (string.IsNullOrEmpty(userType))
-                        {
-                            try { userType = r.GetType().GetProperty("UserType1")?.GetValue(r, null)?.ToString(); } catch { }
-                        }
-                        if (string.IsNullOrEmpty(userType)) userType = "Academic";
-
-                        rooms.Add(new
-                        {
-                            id = id,
-                            name = name,
-                            type = type,
-                            capacity = capacity,
-                            status = status,
-                            userType = userType,
-                            equipment = "Smart TV, Whiteboard"
-                        });
-                    }
-                    catch (Exception)
-                    {
-                        // Skip this room
-                    }
-                }
-
-                var stats = new
-                {
-                    allCount = rooms.Count,
-                    availableCount = rooms.Count(r => r.status == "Available"),
-                    unavailableCount = rooms.Count(r => r.status == "Unavailable"),
-                    maintenanceCount = rooms.Count(r => r.status == "Maintenance")
-                };
-
-                return Json(new { success = true, data = rooms, stats = stats }, JsonRequestBehavior.AllowGet);
-            }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, message = ex.Message }, JsonRequestBehavior.AllowGet);
-            }
+            return RedirectToAction("RoomManagement", new { status = status, userType = userType });
         }
 
         // ============================================
-        // AJAX: GET ROOM DATA - SAFE VERSION
+        // REFRESH ROOMS - Reload page with current filters
         // ============================================
-        [HttpGet]
-        public JsonResult GetRoomData(int roomId)
+        public ActionResult RefreshRooms(string status = "all", string userType = "all")
+        {
+            return RedirectToAction("RoomManagement", new { status = status, userType = userType });
+        }
+
+        // ============================================
+        // GET ROOM DETAILS - For modal viewing
+        // ============================================
+        public ActionResult GetRoomDetails(int roomId)
         {
             try
             {
-                var allRooms = db.Rooms.ToList();
-                var room = allRooms.FirstOrDefault(r =>
-                {
-                    try
-                    {
-                        var id = 0;
-                        try { id = (int)r.GetType().GetProperty("ID")?.GetValue(r, null); } catch { }
-                        if (id == 0)
-                        {
-                            try { id = (int)r.GetType().GetProperty("RoomID")?.GetValue(r, null); } catch { }
-                        }
-                        return id == roomId;
-                    }
-                    catch
-                    {
-                        return false;
-                    }
-                });
-
+                var room = db.Rooms.Find(roomId);
                 if (room == null)
                 {
-                    return Json(new { success = false, message = "Room not found" }, JsonRequestBehavior.AllowGet);
+                    TempData["ErrorMessage"] = "Room not found";
+                    return RedirectToAction("RoomManagement");
                 }
 
-                return Json(new { success = true, data = new { name = "Room data loaded" } }, JsonRequestBehavior.AllowGet);
+                // Get upcoming bookings for this room
+                var bookings = db.Bookings
+                    .Where(b => b.RoomID == roomId && !b.CancelledAt.HasValue)
+                    .OrderBy(b => b.BookingDate)
+                    .ThenBy(b => b.Schedule.StartTime)
+                    .Take(5)
+                    .ToList();
+
+                // Create view model with room details
+                var viewModel = new RoomDetailsViewModel
+                {
+                    RoomID = room.ID,
+                    RoomName = room.RoomName,
+                    RoomType = room.RoomType,
+                    Capacity = room.Capacity,
+                    Status = room.Availability,
+                    Equipment = "Smart TV, Whiteboard, Projector",
+                    Bookings = bookings.Select(b => new BookingInfoViewModel
+                    {
+                        ReserveeName = $"{b.ReserveeFirstName} {b.ReserveeLastName}",
+                        BookingDate = b.BookingDate,
+                        StartTime = b.Schedule?.StartTime ?? TimeSpan.Zero,
+                        EndTime = b.Schedule?.EndTime ?? TimeSpan.Zero
+                    }).ToList()
+                };
+
+                return View("RoomDetails", viewModel);
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = ex.Message }, JsonRequestBehavior.AllowGet);
+                TempData["ErrorMessage"] = "Error loading room details: " + ex.Message;
+                return RedirectToAction("RoomManagement");
             }
         }
 
         // ============================================
-        // ARCHIVES PAGE
+        // HELPER: Get current day's reservation
         // ============================================
+        private string GetCurrentReservation(int roomId)
+        {
+            var now = DateTime.Now;
+            var today = DateTime.Today;
+
+            // Get all bookings for today, then filter in memory
+            var currentBooking = db.Bookings
+                .Where(b => b.RoomID == roomId &&
+                           DbFunctions.TruncateTime(b.BookingDate) == today &&
+                           !b.CancelledAt.HasValue)
+                .ToList() // Execute query and bring to memory
+                .Where(b => b.Schedule.StartTime <= now.TimeOfDay &&
+                           b.Schedule.EndTime >= now.TimeOfDay)
+                .FirstOrDefault();
+
+            if (currentBooking != null)
+            {
+                return $"{currentBooking.ReserveeFirstName} {currentBooking.ReserveeLastName}";
+            }
+            return string.Empty;
+        }
+
+        // ============================================
+        // HELPER: Get next upcoming reservation
+        // ============================================
+        private string GetNextReservation(int roomId)
+        {
+            var now = DateTime.Now;
+            var today = DateTime.Today;
+
+            // Get future bookings, then filter in memory
+            var futureBookings = db.Bookings
+                .Where(b => b.RoomID == roomId &&
+                           !b.CancelledAt.HasValue &&
+                           b.BookingDate >= today)
+                .OrderBy(b => b.BookingDate)
+                .ThenBy(b => b.Schedule.StartTime)
+                .ToList(); // Execute query and bring to memory
+
+            // Filter for bookings after current time
+            var nextBooking = futureBookings
+                .Where(b => b.BookingDate > today ||
+                           (b.BookingDate == today && b.Schedule.StartTime > now.TimeOfDay))
+                .FirstOrDefault();
+
+            if (nextBooking != null)
+            {
+                return $"{nextBooking.ReserveeFirstName} {nextBooking.ReserveeLastName} - {nextBooking.BookingDate:MMM dd}";
+            }
+            return string.Empty;
+        }
+
+        // ============================================
+        // RESERVATIONS MANAGEMENT PAGE
+        // ============================================
+        public ActionResult LibrarianReservations()
+        {
+            try
+            {
+                var bookings = db.Bookings
+                    .Include("Room")
+                    .Include("Schedule")
+                    .Include("Members")
+                    .ToList();
+
+                var reservations = new List<ReservationViewModel>();
+
+                foreach (var booking in bookings)
+                {
+                    var vm = new ReservationViewModel
+                    {
+                        ID = booking.ID,
+                        ReserveeName = FormatName(booking.ReserveeFirstName, booking.ReserveeMiddleName, booking.ReserveeLastName, booking.ReserveeSuffix),
+                        Email = booking.ReserveeEmail ?? "No email",
+                        RoomName = booking.Room?.RoomName ?? "Unknown Room",
+                        BookingDate = booking.BookingDate,
+                        StartTime = booking.Schedule?.StartTime.ToString(@"hh\:mm") ?? "00:00",
+                        EndTime = booking.Schedule?.EndTime.ToString(@"hh\:mm") ?? "00:00",
+                        Purpose = booking.Purpose ?? "Not specified",
+                        Program = booking.Program ?? "Not specified",
+                        StudentNumber = booking.StudentNumber ?? "N/A",
+                        Members = booking.Members?.Select(m => m.FullName).ToList() ?? new List<string>()
+                    };
+
+                    vm.UserType = DetermineUserType(booking);
+                    vm.Status = DetermineStatus(booking);
+
+                    reservations.Add(vm);
+                }
+
+                var acceptedReservations = reservations.Where(r => r.Status == "accepted").ToList();
+                var cancelledReservations = reservations.Where(r => r.Status == "cancelled").ToList();
+
+                ViewBag.AcceptedReservations = acceptedReservations;
+                ViewBag.CancelledReservations = cancelledReservations;
+                ViewBag.AcceptedCount = acceptedReservations.Count;
+                ViewBag.CancelledCount = cancelledReservations.Count;
+
+                return View();
+            }
+            catch (Exception ex)
+            {
+                ViewBag.ErrorMessage = "Error loading reservations: " + ex.Message;
+                ViewBag.AcceptedReservations = new List<ReservationViewModel>();
+                ViewBag.CancelledReservations = new List<ReservationViewModel>();
+                ViewBag.AcceptedCount = 0;
+                ViewBag.CancelledCount = 0;
+                return View();
+            }
+        }
+
+        // ============================================
+        // ARCHIVE RESERVATION
+        // ============================================
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult ArchiveReservation(int id)
+        {
+            try
+            {
+                var booking = db.Bookings.Find(id);
+                if (booking == null)
+                {
+                    TempData["ErrorMessage"] = "Reservation not found.";
+                    return RedirectToAction("LibrarianReservations");
+                }
+
+                db.Bookings.Remove(booking);
+
+                var members = db.Members.Where(m => m.BookingID == id).ToList();
+                foreach (var member in members)
+                {
+                    db.Members.Remove(member);
+                }
+
+                db.SaveChanges();
+
+                TempData["SuccessMessage"] = "Reservation archived successfully!";
+                return RedirectToAction("LibrarianReservations");
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"Error archiving reservation: {ex.Message}";
+                return RedirectToAction("LibrarianReservations");
+            }
+        }
+
+        // ============================================
+        // CANCEL RESERVATION
+        // ============================================
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult CancelReservation(int id)
+        {
+            try
+            {
+                var booking = db.Bookings.Find(id);
+                if (booking == null)
+                {
+                    TempData["ErrorMessage"] = "Reservation not found.";
+                    return RedirectToAction("LibrarianReservations");
+                }
+
+                booking.CancelledAt = DateTime.Now;
+                db.SaveChanges();
+
+                TempData["SuccessMessage"] = "Reservation cancelled successfully!";
+                return RedirectToAction("LibrarianReservations");
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"Error cancelling reservation: {ex.Message}";
+                return RedirectToAction("LibrarianReservations");
+            }
+        }
+
+        // ============================================
+        // HELPER METHODS
+        // ============================================
+        private string FormatName(string firstName, string middleName, string lastName, string suffix)
+        {
+            var nameParts = new List<string>();
+            if (!string.IsNullOrEmpty(firstName)) nameParts.Add(firstName);
+            if (!string.IsNullOrEmpty(middleName)) nameParts.Add(middleName);
+            if (!string.IsNullOrEmpty(lastName)) nameParts.Add(lastName);
+            if (!string.IsNullOrEmpty(suffix)) nameParts.Add(suffix);
+            return string.Join(" ", nameParts);
+        }
+
+        private string DetermineUserType(Booking booking)
+        {
+            if (!string.IsNullOrEmpty(booking.StudentNumber))
+                return "Student";
+            if (!string.IsNullOrEmpty(booking.Program) && booking.Program != "N/A")
+                return "Faculty";
+            if (booking.ReserveeEmail?.Contains("@admin") == true || booking.ReserveeEmail?.Contains("@staff") == true)
+                return "Admin";
+            return "Visitor";
+        }
+
+        private string DetermineStatus(Booking booking)
+        {
+            if (booking.CancelledAt.HasValue)
+                return "cancelled";
+            if (booking.ApprovedAt.HasValue)
+                return "accepted";
+            if (booking.SubmittedAt.HasValue && !booking.ApprovedAt.HasValue)
+                return "pending";
+            return "unknown";
+        }
+
+        // ============================================
+        // DASHBOARD & ARCHIVES
+        // ============================================
+        public ActionResult LibrarianDashboard()
+        {
+            return View();
+        }
+
         public ActionResult LibrarianArchives()
         {
             return View();
         }
 
-        // ============================================
-        // CLEANUP
-        // ============================================
         protected override void Dispose(bool disposing)
         {
             if (disposing)
@@ -301,5 +408,24 @@ namespace LiBook.Controllers
         public string Equipment { get; set; }
         public string CurrentReservation { get; set; }
         public string NextReservation { get; set; }
+    }
+
+    public class RoomDetailsViewModel
+    {
+        public int RoomID { get; set; }
+        public string RoomName { get; set; }
+        public string RoomType { get; set; }
+        public int Capacity { get; set; }
+        public string Status { get; set; }
+        public string Equipment { get; set; }
+        public List<BookingInfoViewModel> Bookings { get; set; }
+    }
+
+    public class BookingInfoViewModel
+    {
+        public string ReserveeName { get; set; }
+        public DateTime BookingDate { get; set; }
+        public TimeSpan StartTime { get; set; }
+        public TimeSpan EndTime { get; set; }
     }
 }
