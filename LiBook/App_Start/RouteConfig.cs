@@ -32,7 +32,7 @@ namespace LiBook
             );
 
             // Home route
-            routes.MapRoute(
+            routes.MapRoute(  
                 name: "Home",
                 url: "",
                 defaults: new { controller = "Bookings", action = "Landing" }

@@ -1906,3 +1906,68 @@ body {
         padding-left: 0.5rem;
     }
 }
+
+/* Message Alert Styles */
+.message-alert {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 15px 20px;
+    border-radius: 10px;
+    color: white;
+    font-weight: 500;
+    z-index: 9999;
+    max-width: 400px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    animation: slideIn 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+    .message-alert.success {
+        background-color: var(--success);
+        border-left: 4px solid #1e7e34;
+    }
+
+    .message-alert.error {
+        background-color: var(--primary-red);
+        border-left: 4px solid #8e0000;
+    }
+
+.close-alert {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    margin-left: 15px;
+    padding: 0;
+    line-height: 1;
+}
+
+    .close-alert:hover {
+        opacity: 0.8;
+    }
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Add to responsive section */
+@media (max-width: 768px) {
+    .message-alert {
+        max-width: 300px;
+        right: 10px;
+        left: 10px;
+        margin: 0 auto;
+    }
+}

@@ -148,6 +148,7 @@
     <Compile Include="Models\Booking.cs">
       <DependentUpon>LiBookContext.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\BookingViewModels.cs" />
     <Compile Include="Models\LiBookContext.Context.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

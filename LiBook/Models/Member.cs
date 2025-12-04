@@ -11,13 +11,20 @@ namespace LiBook.Models
 {
     using System;
     using System.Collections.Generic;
-    
+    using System.ComponentModel.DataAnnotations;
+
     public partial class Member
     {
+        [Key]
         public int ID { get; set; }
+
+        [Required]
         public int BookingID { get; set; }
+
+        [Required]
+        [Display(Name = "Full Name")]
         public string FullName { get; set; }
-    
+
         public virtual Booking Booking { get; set; }
     }
 }
