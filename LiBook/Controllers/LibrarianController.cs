@@ -310,11 +310,11 @@ namespace LiBook.Controllers
                     .Include("Members")
                     .ToList();
 
-                var reservations = new List<ReservationViewModel>();
+                var reservations = new List<LiBook.ViewModels.ReservationViewModel>();
 
                 foreach (var booking in bookings)
                 {
-                    var vm = new ReservationViewModel
+                    var vm = new LiBook.ViewModels.ReservationViewModel
                     {
                         ID = booking.ID,
                         ReserveeName = FormatName(booking.ReserveeFirstName, booking.ReserveeMiddleName, booking.ReserveeLastName, booking.ReserveeSuffix),
@@ -348,8 +348,8 @@ namespace LiBook.Controllers
             catch (Exception ex)
             {
                 ViewBag.ErrorMessage = "Error loading reservations: " + ex.Message;
-                ViewBag.AcceptedReservations = new List<ReservationViewModel>();
-                ViewBag.CancelledReservations = new List<ReservationViewModel>();
+                ViewBag.AcceptedReservations = new List<LiBook.ViewModels.ReservationViewModel>();
+                ViewBag.CancelledReservations = new List<LiBook.ViewModels.ReservationViewModel>();
                 ViewBag.AcceptedCount = 0;
                 ViewBag.CancelledCount = 0;
                 return View();
@@ -892,22 +892,8 @@ namespace LiBook.Controllers
             public bool IsSuccessful { get; set; }
         }
 
-        public class ReservationViewModel
-        {
-            public int ID { get; set; }
-            public string ReserveeName { get; set; }
-            public string Email { get; set; }
-            public string RoomName { get; set; }
-            public DateTime BookingDate { get; set; }
-            public string StartTime { get; set; }
-            public string EndTime { get; set; }
-            public string Purpose { get; set; }
-            public string Program { get; set; }
-            public string StudentNumber { get; set; }
-            public string UserType { get; set; }
-            public string Status { get; set; }
-            public List<string> Members { get; set; }
-        }
+        // REMOVED: Duplicate ReservationViewModel class
+        // Use LiBook.ViewModels.ReservationViewModel instead
 
         public class RoomManagementViewModel
         {
