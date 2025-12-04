@@ -674,6 +674,18 @@ class ReservationsApp {
     async performCancellation(bookingId, type = 'single') {
         const token = this.getAntiForgeryToken();
 
+        console.log('Anti-forgery token:', token ? 'Found' : 'Not found'); // Debug
+
+        const headers = {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        };
+
+        // Add token if found
+        if (token) {
+            headers['RequestVerificationToken'] = token;
+        }
+
         const url = type === 'single'
             ? `/AdminDashboard/CancelBooking?id=${bookingId}`
             : type === 'bulk'
@@ -682,23 +694,36 @@ class ReservationsApp {
 
         const body = type === 'bulk'
             ? JSON.stringify(Array.from(this.selectedBookings))
-            : JSON.stringify({ id: bookingId });
+            : type === 'single'
+                ? JSON.stringify({ id: bookingId })
+                : null;
 
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'RequestVerificationToken': token
-            },
-            body: type !== 'room' ? body : undefined
-        });
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: headers,
+                body: body,
+                credentials: 'same-origin' // Important for cookie-based auth
+            });
 
-        if (!response.ok) throw new Error('Network response was not ok');
+            console.log('Response status:', response.status); // Debug
 
-        const data = await response.json();
-        if (!data.success) throw new Error(data.message || 'Cancellation failed');
+            if (!response.ok) {
+                throw new Error(`Network response was not ok: ${response.status}`);
+            }
 
-        return data;
+            const data = await response.json();
+            console.log('Response data:', data); // Debug
+
+            if (!data.success) {
+                throw new Error(data.message || 'Cancellation failed');
+            }
+
+            return data;
+        } catch (error) {
+            console.error('Cancellation error:', error);
+            throw error;
+        }
     }
 
     async performBulkCancellation(bookingIds) {
@@ -761,18 +786,39 @@ class ReservationsApp {
     // UTILITY FUNCTIONS
     // ============================================
 
-    formatDate(dateString) {
-        if (!dateString) return 'N/A';
+    formatDate(dateInput) {
+        if (!dateInput) return 'N/A';
+
         try {
-            const date = new Date(dateString);
-            if (isNaN(date.getTime())) return dateString;
+            let date;
+
+            // Handle /Date(timestamp)/ format
+            if (typeof dateInput === 'string' && dateInput.startsWith('/Date(')) {
+                const timestamp = parseInt(dateInput.match(/\d+/)[0]);
+                date = new Date(timestamp);
+            }
+            // Handle ISO string format
+            else if (typeof dateInput === 'string') {
+                date = new Date(dateInput);
+            }
+            // Already a Date object
+            else {
+                date = dateInput;
+            }
+
+            if (isNaN(date.getTime())) {
+                return dateInput; // Return original if invalid
+            }
+
             return date.toLocaleDateString('en-US', {
-                month: '2-digit',
-                day: '2-digit',
-                year: 'numeric'
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
             });
+
         } catch (e) {
-            return dateString;
+            console.error('Date formatting error:', e, 'Input:', dateInput);
+            return 'Invalid Date';
         }
     }
 
@@ -912,6 +958,34 @@ class ReservationsApp {
 
     initializeRooms() {
         console.log('Rooms initialized');
+    }
+
+    getAntiForgeryToken() {
+        // Try multiple ways to get the token
+        const token1 = document.querySelector('input[name="__RequestVerificationToken"]');
+        const token2 = document.querySelector('[name="__RequestVerificationToken"]');
+        const token3 = document.querySelector('input[type="hidden"][name="__RequestVerificationToken"]');
+
+        return token1?.value || token2?.value || token3?.value || '';
+    }
+
+    setupDebugHelpers() {
+        window.debugApp = {
+            showSelectedBookings: () => console.log('Selected bookings:', Array.from(this.selectedBookings)),
+            showCurrentRoom: () => console.log('Current room ID:', this.currentRoomId),
+            testToken: () => {
+                const token = this.getAntiForgeryToken();
+                console.log('Token length:', token?.length);
+                console.log('Token:', token);
+            },
+            testCancellation: (bookingId) => {
+                console.log('Testing cancellation for booking:', bookingId);
+                this.cancelSingleBooking(bookingId);
+            }
+        };
+
+        // Call it in init()
+        this.setupDebugHelpers();
     }
 }
 
