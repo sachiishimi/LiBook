@@ -1,10 +1,6 @@
-﻿
-@{
+﻿﻿@{
     ViewBag.Title = "Archives";
-}
-
-@{
-    ViewData["Title"] = "Your Page Title";
+    ViewData["Title"] = "Archives - LiBook";
 }
 
 <!DOCTYPE html>
@@ -12,12 +8,150 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@ViewData["Title"] - LiBook</title>
+    <title>@ViewData["Title"]</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Kumbh+Sans:wght@100..900&family=League+Spartan:wght@100..900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="~/Content/archives.css" rel="stylesheet" />
+    <style>
+        .status {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .status.inactive {
+            background-color: #ffebee;
+            color: #c62828;
+        }
+
+        .status.archived {
+            background-color: #fff3e0;
+            color: #ef6c00;
+        }
+
+        .status.cancelled {
+            background-color: #e8eaf6;
+            color: #3949ab;
+        }
+
+        .alert {
+            margin: 1rem;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: slideIn 0.3s ease;
+        }
+
+        .alert-success {
+            background: #4caf50;
+            color: white;
+            border-left: 4px solid #2e7d32;
+        }
+
+        .alert-error {
+            background: #f44336;
+            color: white;
+            border-left: 4px solid #c62828;
+        }
+
+        .alert i {
+            font-size: 1.2rem;
+        }
+
+        .unarchive-btn {
+            background: linear-gradient(135deg, #4caf50, #2e7d32);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Kumbh Sans', sans-serif;
+        }
+
+        .unarchive-btn:hover {
+            background: linear-gradient(135deg, #43a047, #1b5e20);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+        }
+
+        .unarchive-btn:active {
+            transform: translateY(0);
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: #666;
+            font-style: italic;
+        }
+
+        form {
+            margin: 0;
+            display: inline;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+
+        .card-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .card-header-content h2 {
+            margin: 0 0 0.25rem 0;
+            color: #2c3e50;
+            font-size: 1.5rem;
+        }
+
+        .card-header-content span {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        table th {
+            background: #f8f9fa;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: #2c3e50;
+            border-bottom: 2px solid #eee;
+        }
+
+        table td {
+            padding: 1rem;
+            border-bottom: 1px solid #eee;
+            color: #333;
+        }
+
+        table tr:hover {
+            background: #f8f9fa;
+        }
+    </style>
 </head>
 <body>
     <!-- Sidebar -->
@@ -54,7 +188,7 @@
                 <i class="fas fa-door-open"></i>
                 <span>Manage Rooms</span>
             </a>
-            <a href="@Url.Action("Archives", "AdminDashboard")" class="nav-item" data-page="archives">
+            <a href="@Url.Action("Archives", "AdminDashboard")" class="nav-item active" data-page="archives">
                 <i class="fas fa-archive"></i>
                 <span>Archives</span>
             </a>
@@ -113,12 +247,22 @@
             </div>
         </header>
 
-        <!-- Your Page Content Goes Here -->
+        <!-- Success/Error Messages -->
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success">
+                <i class="fas fa-check-circle"></i>
+                <span>@TempData["SuccessMessage"]</span>
+            </div>
+        }
 
-        @*<div class="search-bar">
-            <i class="fas fa-search"></i>
-            <input type="text" placeholder="Search...">
-        </div>*@
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-error">
+                <i class="fas fa-exclamation-circle"></i>
+                <span>@TempData["ErrorMessage"]</span>
+            </div>
+        }
 
         <div class="archives-container">
             <!-- Tabs -->
@@ -134,43 +278,66 @@
                     <div class="card-header">
                         <div class="card-header-content">
                             <h2>Archived Rooms</h2>
-                            <span>3 Records</span>
+                            <span>@ViewBag.ArchivedRooms.Count Records</span>
                         </div>
                         <div class="table-search-container">
                             <i class="fas fa-search"></i>
                             <input type="text" class="table-search" placeholder="Search rooms..." data-table="rooms-table">
                         </div>
                     </div>
-                    <table id="rooms-table">
-                        <thead>
-                            <tr>
-                                <th>Room Name</th>
-                                <th>Capacity</th>
-                                <th>Status</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>Study Room A</td>
-                                <td>10</td>
-                                <td><span class="status inactive">Archived</span></td>
-                                <td><button class="unarchive-btn">Unarchive</button></td>
-                            </tr>
-                            <tr>
-                                <td>Conference Hall</td>
-                                <td>50</td>
-                                <td><span class="status inactive">Archived</span></td>
-                                <td><button class="unarchive-btn">Unarchive</button></td>
-                            </tr>
-                            <tr>
-                                <td>Mini Theater</td>
-                                <td>30</td>
-                                <td><span class="status inactive">Archived</span></td>
-                                <td><button class="unarchive-btn">Unarchive</button></td>
-                            </tr>
-                        </tbody>
-                    </table>
+                    @if (ViewBag.ArchivedRooms.Count > 0)
+                    {
+                        <table id="rooms-table">
+                            <thead>
+                                <tr>
+                                    <th>Room Name</th>
+                                    <th>Type</th>
+                                    <th>Capacity</th>
+                                    <th>Status</th>
+                                    <th>Archived Date</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var room in ViewBag.ArchivedRooms)
+                                {
+                                    <tr>
+                                        <td>@room.RoomName</td>
+                                        <td>@room.RoomType</td>
+                                        <td>@room.Capacity</td>
+                                        <td>
+                                            <span class="status archived">
+                                                Archived
+                                                @if (room.Availability != null)
+                                                {
+                                                    <br /><small>(@room.Availability)</small>
+                                                }
+                                            </span>
+                                        </td>
+                                        <td>@(room.DateArchived?.ToString("MMM dd, yyyy") ?? "Unknown")</td>
+                                        <td>
+                                            @using (Html.BeginForm("RestoreRoom", "AdminDashboard", FormMethod.Post))
+                                            {
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="id" value="@room.ID" />
+                                                <button type="submit" class="unarchive-btn">
+                                                    <i class="fas fa-undo-alt"></i> Restore
+                                                </button>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                    else
+                    {
+                        <div class="no-results">
+                            <i class="fas fa-door-closed" style="font-size: 3rem; color: #ccc; margin-bottom: 1rem;"></i>
+                            <h3>No Archived Rooms</h3>
+                            <p>There are currently no archived rooms in the system.</p>
+                        </div>
+                    }
                 </div>
             </div>
 
@@ -180,49 +347,65 @@
                     <div class="card-header">
                         <div class="card-header-content">
                             <h2>Canceled Reservations</h2>
-                            <span>4 Records</span>
+                            <span>@ViewBag.CancelledBookings.Count Records</span>
                         </div>
                         <div class="table-search-container">
                             <i class="fas fa-search"></i>
                             <input type="text" class="table-search" placeholder="Search reservations..." data-table="reservations-table">
                         </div>
                     </div>
-                    <table id="reservations-table">
-                        <thead>
-                            <tr>
-                                <th>Reservation ID</th>
-                                <th>Room</th>
-                                <th>User</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>#R-1001</td>
-                                <td>Study Room A</td>
-                                <td>John Reyes</td>
-                                <td><button class="unarchive-btn">Unarchive</button></td>
-                            </tr>
-                            <tr>
-                                <td>#R-1002</td>
-                                <td>Conference Hall</td>
-                                <td>Maria Santos</td>
-                                <td><button class="unarchive-btn">Unarchive</button></td>
-                            </tr>
-                            <tr>
-                                <td>#R-1003</td>
-                                <td>Mini Theater</td>
-                                <td>Pedro Cruz</td>
-                                <td><button class="unarchive-btn">Unarchive</button></td>
-                            </tr>
-                            <tr>
-                                <td>#R-1004</td>
-                                <td>Study Room B</td>
-                                <td>Ana Garcia</td>
-                                <td><button class="unarchive-btn">Unarchive</button></td>
-                            </tr>
-                        </tbody>
-                    </table>
+                    @if (ViewBag.CancelledBookings.Count > 0)
+                    {
+                        <table id="reservations-table">
+                            <thead>
+                                <tr>
+                                    <th>Reservation ID</th>
+                                    <th>Room</th>
+                                    <th>Reservee</th>
+                                    <th>Date</th>
+                                    <th>Cancelled Date</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var booking in ViewBag.CancelledBookings)
+                                {
+                                    var roomName = booking.Room?.RoomName ?? "N/A";
+                                    var reserveeName = $"{booking.ReserveeFirstName} {booking.ReserveeLastName}";
+                                    if (!string.IsNullOrEmpty(booking.ReserveeSuffix))
+                                    {
+                                        reserveeName += $" {booking.ReserveeSuffix}";
+                                    }
+
+                                    <tr>
+                                        <td>#@booking.ID.ToString("D4")</td>
+                                        <td>@roomName</td>
+                                        <td>@reserveeName</td>
+                                        <td>@booking.BookingDate.ToString("MMM dd, yyyy")</td>
+                                        <td>@(booking.CancelledAt?.ToString("MMM dd, yyyy") ?? "Unknown")</td>
+                                        <td>
+                                            @using (Html.BeginForm("ApproveBooking", "AdminDashboard", FormMethod.Post))
+                                            {
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="id" value="@booking.ID" />
+                                                <button type="submit" class="unarchive-btn">
+                                                    <i class="fas fa-check-circle"></i> Approve
+                                                </button>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                    else
+                    {
+                        <div class="no-results">
+                            <i class="fas fa-calendar-times" style="font-size: 3rem; color: #ccc; margin-bottom: 1rem;"></i>
+                            <h3>No Cancelled Reservations</h3>
+                            <p>There are currently no cancelled reservations in the system.</p>
+                        </div>
+                    }
                 </div>
             </div>
 
@@ -232,52 +415,75 @@
                     <div class="card-header">
                         <div class="card-header-content">
                             <h2>Archived Users</h2>
-                            <span>3 Records</span>
+                            <span>@ViewBag.ArchivedUsers.Count Records</span>
                         </div>
                         <div class="table-search-container">
                             <i class="fas fa-search"></i>
                             <input type="text" class="table-search" placeholder="Search users..." data-table="users-table">
                         </div>
                     </div>
-                    <table id="users-table">
-                        <thead>
-                            <tr>
-                                <th>Full Name</th>
-                                <th>Role</th>
-                                <th>Email</th>
-                                <th>Status</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>Maria Santos</td>
-                                <td>Admin</td>
-                                <td>maria.santos@libook.com</td>
-                                <td><span class="status inactive">Archived</span></td>
-                                <td><button class="unarchive-btn">Unarchive</button></td>
-                            </tr>
-                            <tr>
-                                <td>John Reyes</td>
-                                <td>Admin</td>
-                                <td>john.reyes@libook.com</td>
-                                <td><span class="status inactive">Archived</span></td>
-                                <td><button class="unarchive-btn">Unarchive</button></td>
-                            </tr>
-                            <tr>
-                                <td>Ana Garcia</td>
-                                <td>Librarian</td>
-                                <td>ana.garcia@libook.com</td>
-                                <td><span class="status inactive">Archived</span></td>
-                                <td><button class="unarchive-btn">Unarchive</button></td>
-                            </tr>
-                        </tbody>
-                    </table>
+                    @if (ViewBag.ArchivedUsers.Count > 0)
+                    {
+                        <table id="users-table">
+                            <thead>
+                                <tr>
+                                    <th>Full Name</th>
+                                    <th>Email</th>
+                                    <th>Account Status</th>
+                                    <th>Archived Date</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var user in ViewBag.ArchivedUsers)
+                                {
+                                    var fullName = $"{user.FirstName} {user.LastName}";
+                                    if (!string.IsNullOrEmpty(user.MiddleName))
+                                    {
+                                        fullName += $" {user.MiddleName}";
+                                    }
+                                    if (!string.IsNullOrEmpty(user.Suffix))
+                                    {
+                                        fullName += $" {user.Suffix}";
+                                    }
+
+                                    <tr>
+                                        <td>@fullName</td>
+                                        <td>@user.Email</td>
+                                        <td>
+                                            <span class="status inactive">
+                                                @user.AccountStatus
+                                            </span>
+                                        </td>
+                                        <td>@(user.DateArchived?.ToString("MMM dd, yyyy") ?? "Unknown")</td>
+                                        <td>
+                                            @using (Html.BeginForm("RestoreUser", "AdminDashboard", FormMethod.Post))
+                                            {
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="id" value="@user.ID" />
+                                                <button type="submit" class="unarchive-btn">
+                                                    <i class="fas fa-user-plus"></i> Restore
+                                                </button>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                    else
+                    {
+                        <div class="no-results">
+                            <i class="fas fa-user-slash" style="font-size: 3rem; color: #ccc; margin-bottom: 1rem;"></i>
+                            <h3>No Archived Users</h3>
+                            <p>There are currently no archived users in the system.</p>
+                        </div>
+                    }
                 </div>
             </div>
         </div>
+    </div>
 
-        <script src="~/Scripts/archives.js"></script>
+    <script src="~/Scripts/archives.js"></script>
 </body>
 </html>
-

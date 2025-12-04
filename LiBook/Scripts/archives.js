@@ -377,72 +377,29 @@ tabs.forEach(tab => {
 });
 
 // ==================== UNARCHIVE BUTTONS =====================
+// ==================== UNARCHIVE BUTTONS =====================
+// Note: This JavaScript is now just for UI effects since we're using form submissions
+// You might want to disable the old handler or modify it
+
+// Remove or comment out the old unarchive button handler and replace with:
 document.querySelectorAll(".unarchive-btn").forEach(button => {
-    button.addEventListener("click", function () {
-        const row = this.closest("tr");
-        const table = row.closest('table');
-        const card = table.closest('.card');
-        const cardHeader = card.querySelector('.card-header-content');
-
-        // Get item details based on which table we're in
-        let itemName = '';
-        let itemType = '';
-
-        if (table.closest('#rooms')) {
-            itemName = row.cells[0].textContent; // Room Name
-            itemType = 'room';
-        } else if (table.closest('#reservations')) {
-            itemName = row.cells[2].textContent + ' (' + row.cells[0].textContent + ')'; // User + ID
-            itemType = 'reservation';
-        } else if (table.closest('#users')) {
-            itemName = row.cells[0].textContent; // User Name
-            itemType = 'user';
-        }
-
-        // Update button state immediately
-        this.textContent = "Unarchiving...";
+    button.addEventListener("click", function (e) {
+        // Optional: Add loading state to button
+        this.textContent = "Processing...";
         this.disabled = true;
         this.style.opacity = "0.7";
 
-        // Simulate API call delay
-        setTimeout(() => {
-            // Update record count
-            const recordSpan = cardHeader.querySelector('span');
-            if (recordSpan) {
-                const currentCount = parseInt(recordSpan.textContent);
-                if (!isNaN(currentCount)) {
-                    recordSpan.textContent = (currentCount - 1) + ' Records';
-                }
-            }
-
-            // Update metrics if they exist
-            updateMetrics(table.closest('.tab-content'), -1);
-
-            // Remove row with animation
-            row.style.opacity = "0.5";
-            row.style.transition = "opacity 0.5s ease";
-
+        // The form will handle the actual submission
+        // We'll just show a visual feedback
+        const form = this.closest('form');
+        if (form) {
+            // Optional: Add a small delay before submitting for visual feedback
             setTimeout(() => {
-                row.remove();
-
-                // Show success toast notification
-                const message = `Successfully unarchived ${itemType}: ${itemName}`;
-                showToast(message, 'success');
-
-                // If no records left, show empty state
-                const tbody = table.querySelector('tbody');
-                if (tbody.querySelectorAll('tr').length === 0) {
-                    const emptyRow = document.createElement('tr');
-                    const colSpan = table.querySelector('thead tr').children.length;
-                    emptyRow.innerHTML = `<td colspan="${colSpan}" style="text-align: center; padding: 2rem; color: var(--text-light);">No archived records found</td>`;
-                    tbody.appendChild(emptyRow);
-                }
-            }, 500);
-
-        }, 800);
+                form.submit();
+            }, 300);
+        }
     });
 });
-
 // ==================== UPDATE METRICS HELPER =====================
 function updateMetrics(tabContent, change) {
     const metricCards = tabContent.querySelectorAll('.metric-card');

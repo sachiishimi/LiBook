@@ -1,13 +1,11 @@
-﻿using System;
+﻿using LiBook.Models;
+using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Entity;
 using System.Linq;
-using System.Net;
-using System.Web;
 using System.Web.Mvc;
-using LiBook.Models;
-using Newtonsoft.Json;
 using static LiBook.Models.ViewModel;
 using EntityState = System.Data.Entity.EntityState;
 
@@ -233,7 +231,195 @@ namespace LiBook.Controllers
         {
             return View(db.Rooms.Where(r => !r.DateArchived.HasValue).ToList());
         }
+        // Add this method to AdminDashboardController.cs
+        // Replace the GetRoomBookings method with this corrected version
+        public ActionResult GetRoomBookings(int roomId)
+        {
+            var bookings = db.Bookings
+                .Where(b => b.RoomID == roomId)
+                .OrderByDescending(b => b.BookingDate)
+                .Select(b => new
+                {
+                    Id = b.ID,
+                    RoomID = b.RoomID,
+                    RoomName = b.Room.RoomName,
+                    ReserveeFirstName = b.ReserveeFirstName,
+                    ReserveeMiddleName = b.ReserveeMiddleName,
+                    ReserveeLastName = b.ReserveeLastName,
+                    ReserveeEmail = b.ReserveeEmail,
+                    StudentNumber = b.StudentNumber,
+                    Program = b.Program,
+                    Purpose = b.Purpose,
+                    BookingDate = b.BookingDate,
+                    SubmittedAt = b.SubmittedAt,
+                    ApprovedAt = b.ApprovedAt,
+                    CancelledAt = b.CancelledAt,
+                    ScheduleStartTime = b.Schedule.StartTime,
+                    ScheduleEndTime = b.Schedule.EndTime,
+                    Members = b.Members.Select(m => m.FullName).ToList()
+                })
+                .ToList()
+                .Select(b => new BookingViewModel
+                {
+                    Id = b.Id,
+                    BookingId = b.Id.ToString("D4"), // Format after materialization
+                    RoomId = b.RoomID,
+                    RoomName = b.RoomName,
+                    ReserveeName = FormatName(b.ReserveeLastName, b.ReserveeFirstName, b.ReserveeMiddleName),
+                    ReserveeEmail = b.ReserveeEmail,
+                    StudentNumber = b.StudentNumber,
+                    Program = b.Program,
+                    Purpose = b.Purpose,
+                    BookingDate = b.BookingDate,
+                    SubmittedAt = b.SubmittedAt,
+                    ApprovedAt = b.ApprovedAt,
+                    CancelledAt = b.CancelledAt,
+                    Status = GetBookingStatus(b.SubmittedAt, b.ApprovedAt, b.CancelledAt),
+                    Schedule = FormatSchedule(b.ScheduleStartTime, b.ScheduleEndTime),
+                    Members = b.Members
+                })
+                .ToList();
 
+            return Json(bookings, JsonRequestBehavior.AllowGet);
+        }
+
+        // Helper method to format name
+        private string FormatName(string lastName, string firstName, string middleName)
+        {
+            var nameParts = new List<string>();
+
+            if (!string.IsNullOrEmpty(lastName))
+                nameParts.Add(lastName);
+
+            if (!string.IsNullOrEmpty(firstName))
+                nameParts.Add(firstName);
+
+            if (!string.IsNullOrEmpty(middleName))
+                nameParts.Add(middleName);
+
+            return nameParts.Count > 0 ? string.Join(", ", nameParts) : "Unknown";
+        }
+
+        // Helper method to determine booking status
+        private string GetBookingStatus(DateTime? submittedAt, DateTime? approvedAt, DateTime? cancelledAt)
+        {
+            if (cancelledAt.HasValue)
+                return "Cancelled";
+            if (approvedAt.HasValue)
+                return "Approved";
+            if (submittedAt.HasValue)
+                return "Pending";
+            return "Draft";
+        }
+
+        // Helper method to format schedule
+        private string FormatSchedule(TimeSpan? startTime, TimeSpan? endTime)
+        {
+            if (!startTime.HasValue || !endTime.HasValue)
+                return "No schedule";
+
+            return $"{startTime.Value:hh\\:mm} - {endTime.Value:hh\\:mm}";
+        }
+        // Add this method to get a single booking's details
+        // Update the GetBookingDetails method in AdminDashboardController.cs
+        public ActionResult GetBookingDetails(int id)
+        {
+            var booking = db.Bookings
+                .Include(b => b.Members) // Make sure to include Members
+                .Include(b => b.Room)
+                .Include(b => b.Schedule)
+                .Where(b => b.ID == id)
+                .Select(b => new
+                {
+                    Id = b.ID,
+                    RoomID = b.RoomID,
+                    RoomName = b.Room.RoomName,
+                    ReserveeFirstName = b.ReserveeFirstName,
+                    ReserveeMiddleName = b.ReserveeMiddleName,
+                    ReserveeLastName = b.ReserveeLastName,
+                    ReserveeEmail = b.ReserveeEmail,
+                    StudentNumber = b.StudentNumber,
+                    Program = b.Program,
+                    Purpose = b.Purpose,
+                    BookingDate = b.BookingDate,
+                    SubmittedAt = b.SubmittedAt,
+                    ApprovedAt = b.ApprovedAt,
+                    CancelledAt = b.CancelledAt,
+                    ScheduleStartTime = b.Schedule.StartTime,
+                    ScheduleEndTime = b.Schedule.EndTime,
+                    Members = b.Members.Select(m => m.FullName).ToList() // Ensure this is properly populated
+                })
+                .FirstOrDefault();
+
+            if (booking == null)
+            {
+                return Json(new { error = "Booking not found" }, JsonRequestBehavior.AllowGet);
+            }
+
+            var bookingViewModel = new BookingViewModel
+            {
+                Id = booking.Id,
+                BookingId = booking.Id.ToString("D4"),
+                RoomId = booking.RoomID,
+                RoomName = booking.RoomName,
+                ReserveeName = FormatName(booking.ReserveeLastName, booking.ReserveeFirstName, booking.ReserveeMiddleName),
+                ReserveeEmail = booking.ReserveeEmail,
+                StudentNumber = booking.StudentNumber,
+                Program = booking.Program,
+                Purpose = booking.Purpose,
+                BookingDate = booking.BookingDate,
+                SubmittedAt = booking.SubmittedAt,
+                ApprovedAt = booking.ApprovedAt,
+                CancelledAt = booking.CancelledAt,
+                Status = GetBookingStatus(booking.SubmittedAt, booking.ApprovedAt, booking.CancelledAt),
+                Schedule = FormatSchedule(booking.ScheduleStartTime, booking.ScheduleEndTime),
+                Members = booking.Members // This should now have the members
+            };
+
+            return Json(bookingViewModel, JsonRequestBehavior.AllowGet);
+        }
+        // Add these methods for bulk cancellation
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult CancelMultipleBookings(List<int> ids)
+        {
+            try
+            {
+                var bookings = db.Bookings.Where(b => ids.Contains(b.ID)).ToList();
+                foreach (var booking in bookings)
+                {
+                    booking.CancelledAt = DateTime.Now;
+                }
+
+                db.SaveChanges();
+                return Json(new { success = true, count = bookings.Count });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult CancelAllBookings(int roomId)
+        {
+            try
+            {
+                var bookings = db.Bookings.Where(b => b.RoomID == roomId && !b.CancelledAt.HasValue).ToList();
+                foreach (var booking in bookings)
+                {
+                    booking.CancelledAt = DateTime.Now;
+                }
+
+                db.SaveChanges();
+                return Json(new { success = true, count = bookings.Count });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
 
 
         // R00MS
@@ -284,6 +470,76 @@ namespace LiBook.Controllers
             }
 
             return RedirectToAction("Rooms");
+        }
+        // Ensure this method exists and is correct
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult CancelBooking(int id)
+        {
+            try
+            {
+                var booking = db.Bookings.Find(id);
+                if (booking != null)
+                {
+                    booking.CancelledAt = DateTime.Now;
+                    db.Entry(booking).State = EntityState.Modified;
+                    db.SaveChanges();
+                    return Json(new { success = true });
+                }
+                return Json(new { success = false, message = "Booking not found" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+        // Archive multiple bookings
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult ArchiveBookings(List<int> ids)
+        {
+            try
+            {
+                var bookings = db.Bookings.Where(b => ids.Contains(b.ID)).ToList();
+                foreach (var booking in bookings)
+                {
+                    // Add DateArchived field to Booking model first
+                    // Then uncomment this:
+                    // booking.DateArchived = DateTime.Now;
+                }
+
+                db.SaveChanges();
+                return Json(new { success = true, count = bookings.Count });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        // Archive single booking
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult ArchiveBooking(int id)
+        {
+            try
+            {
+                var booking = db.Bookings.Find(id);
+                if (booking != null)
+                {
+                    // Add DateArchived field to Booking model first
+                    // Then uncomment this:
+                    // booking.DateArchived = DateTime.Now;
+                    db.Entry(booking).State = EntityState.Modified;
+                    db.SaveChanges();
+                    return Json(new { success = true });
+                }
+                return Json(new { success = false, message = "Booking not found" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
         }
 
 
@@ -452,9 +708,95 @@ namespace LiBook.Controllers
         }
 
         // GET: /AdminDashboard/Archives
+        // In AdminDashboardController.cs, add this method in the Archives section:
+
         public ActionResult Archives()
         {
+            // Get archived rooms
+            var archivedRooms = db.Rooms
+                .Where(r => r.DateArchived.HasValue)
+                .OrderByDescending(r => r.DateArchived)
+                .ToList();
+            ViewBag.ArchivedRooms = archivedRooms;
+
+            // Get cancelled bookings
+            var cancelledBookings = db.Bookings
+                .Where(b => b.CancelledAt.HasValue)
+                .OrderByDescending(b => b.CancelledAt)
+                .ToList();
+            ViewBag.CancelledBookings = cancelledBookings;
+
+            // Get archived users
+            var archivedUsers = db.Users
+                .Where(u => u.DateArchived.HasValue)
+                .OrderByDescending(u => u.DateArchived)
+                .ToList();
+            ViewBag.ArchivedUsers = archivedUsers;
+
             return View();
+        }
+
+        // Add restore/unarchive methods:
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult RestoreRoom(int id)
+        {
+            var room = db.Rooms.Find(id);
+            if (room != null)
+            {
+                room.DateArchived = null;
+                db.Entry(room).State = EntityState.Modified;
+                db.SaveChanges();
+                TempData["SuccessMessage"] = "Room has been restored successfully.";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "Room not found.";
+            }
+            return RedirectToAction("Archives");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult ApproveBooking(int id)
+        {
+            var booking = db.Bookings.Find(id);
+            if (booking != null)
+            {
+                // Instead of unarchiving, we'll just remove the cancelled status
+                // Or you might want to create a new booking - depending on your business logic
+                // For now, let's just remove the cancellation
+                booking.CancelledAt = null;
+                db.Entry(booking).State = EntityState.Modified;
+                db.SaveChanges();
+                TempData["SuccessMessage"] = "Booking has been approved/restored successfully.";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "Booking not found.";
+            }
+            return RedirectToAction("Archives");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult RestoreUser(int id)
+        {
+            var user = db.Users.Find(id);
+            if (user != null)
+            {
+                user.DateArchived = null;
+                user.AccountStatus = "Active";
+                db.Entry(user).State = EntityState.Modified;
+                db.SaveChanges();
+                TempData["SuccessMessage"] = "User has been restored successfully.";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "User not found.";
+            }
+            return RedirectToAction("Archives");
         }
     }
 }

@@ -122,13 +122,13 @@
                 @foreach (var item in Model)
                 {
                     <!-- Room cards will be dynamically generated here -->
-                    <div class="room-card visible"
-                         data-room-name="@item.RoomName.ToLower()"
-                         data-room-type="@item.RoomType.ToLower()"
-                         data-status="@item.Availability.ToLower()"
-                         data-room-capacity="@item.Capacity"
-                         data-allowed-users='["Student"]'
-                         onclick="showEmbeddedRoomModal(this)">
+                <div class="room-card visible"
+                     data-room-id="@item.ID"
+                     data-room-name="@item.RoomName.ToLower()"
+                     data-room-type="@item.RoomType.ToLower()"
+                     data-status="@item.Availability.ToLower()"
+                     data-room-capacity="@item.Capacity"
+                     onclick="showEmbeddedRoomModal(this)">
                         <div class="room-header">
                             <h3 class="room-name">@Html.DisplayFor(modelItem => item.RoomName)</h3>
                             <p class="room-type">@Html.DisplayFor(modelItem => item.RoomType)</p>
