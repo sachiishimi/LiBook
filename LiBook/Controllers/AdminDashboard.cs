@@ -708,9 +708,95 @@ namespace LiBook.Controllers
         }
 
         // GET: /AdminDashboard/Archives
+        // In AdminDashboardController.cs, add this method in the Archives section:
+
         public ActionResult Archives()
         {
+            // Get archived rooms
+            var archivedRooms = db.Rooms
+                .Where(r => r.DateArchived.HasValue)
+                .OrderByDescending(r => r.DateArchived)
+                .ToList();
+            ViewBag.ArchivedRooms = archivedRooms;
+
+            // Get cancelled bookings
+            var cancelledBookings = db.Bookings
+                .Where(b => b.CancelledAt.HasValue)
+                .OrderByDescending(b => b.CancelledAt)
+                .ToList();
+            ViewBag.CancelledBookings = cancelledBookings;
+
+            // Get archived users
+            var archivedUsers = db.Users
+                .Where(u => u.DateArchived.HasValue)
+                .OrderByDescending(u => u.DateArchived)
+                .ToList();
+            ViewBag.ArchivedUsers = archivedUsers;
+
             return View();
+        }
+
+        // Add restore/unarchive methods:
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult RestoreRoom(int id)
+        {
+            var room = db.Rooms.Find(id);
+            if (room != null)
+            {
+                room.DateArchived = null;
+                db.Entry(room).State = EntityState.Modified;
+                db.SaveChanges();
+                TempData["SuccessMessage"] = "Room has been restored successfully.";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "Room not found.";
+            }
+            return RedirectToAction("Archives");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult ApproveBooking(int id)
+        {
+            var booking = db.Bookings.Find(id);
+            if (booking != null)
+            {
+                // Instead of unarchiving, we'll just remove the cancelled status
+                // Or you might want to create a new booking - depending on your business logic
+                // For now, let's just remove the cancellation
+                booking.CancelledAt = null;
+                db.Entry(booking).State = EntityState.Modified;
+                db.SaveChanges();
+                TempData["SuccessMessage"] = "Booking has been approved/restored successfully.";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "Booking not found.";
+            }
+            return RedirectToAction("Archives");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult RestoreUser(int id)
+        {
+            var user = db.Users.Find(id);
+            if (user != null)
+            {
+                user.DateArchived = null;
+                user.AccountStatus = "Active";
+                db.Entry(user).State = EntityState.Modified;
+                db.SaveChanges();
+                TempData["SuccessMessage"] = "User has been restored successfully.";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "User not found.";
+            }
+            return RedirectToAction("Archives");
         }
     }
 }
