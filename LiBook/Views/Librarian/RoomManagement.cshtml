@@ -1,4 +1,4 @@
-﻿@model IEnumerable<LiBook.Controllers.LibrarianController.RoomManagementViewModel>
+﻿﻿@model IEnumerable<LiBook.Controllers.LibrarianController.RoomManagementViewModel>
 @{
     ViewBag.Title = "Room Management";
 
@@ -114,6 +114,20 @@
             {
                 <div class="alert alert-danger">
                     @ViewBag.ErrorMessage
+                </div>
+            }
+
+            <!-- Display success/error messages from TempData -->
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success" style="background: #d1fae5; color: #065f46; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; border: 1px solid #10b981;">
+                    <i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]
+                </div>
+            }
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-danger" style="background: #fee2e2; color: #991b1b; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; border: 1px solid #ef4444;">
+                    <i class="fas fa-exclamation-circle"></i> @TempData["ErrorMessage"]
                 </div>
             }
 
@@ -291,6 +305,177 @@
                 }
             </div>
         </main>
+    </div>
+
+    <!-- Walk-In Reservation Modal -->
+    <div class="modal-overlay" id="walkInModal">
+        <div class="modal-container modal-walkin">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <i class="fas fa-user-plus"></i>
+                    <h2>Create Walk-In Reservation</h2>
+                </div>
+                <button class="modal-close" onclick="closeWalkInModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            @using (Html.BeginForm("CreateWalkIn", "Librarian", FormMethod.Post, new { id = "walkInForm" }))
+            {
+                @Html.AntiForgeryToken()
+                <div class="modal-body-walkin">
+                    <!-- Info Banner -->
+                    <div class="walkin-info-banner" id="walkInRoomInfo">
+                        <i class="fas fa-info-circle"></i>
+                        <span>Creating walk-in reservation for: <strong id="walkInRoomName">Room Name</strong></span>
+                    </div>
+
+                    <!-- Hidden Room ID -->
+                    <input type="hidden" name="RoomID" id="walkInRoomId" />
+
+                    <!-- Form Grid -->
+                    <div class="walkin-form-grid">
+                        <!-- Reservee Information -->
+                        <div class="form-group">
+                            <label for="ReserveeFirstName">
+                                <i class="fas fa-user"></i> First Name <span class="required">*</span>
+                            </label>
+                            <input type="text" id="ReserveeFirstName" name="ReserveeFirstName" class="form-input" required placeholder="Enter first name">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="ReserveeLastName">
+                                <i class="fas fa-user"></i> Last Name <span class="required">*</span>
+                            </label>
+                            <input type="text" id="ReserveeLastName" name="ReserveeLastName" class="form-input" required placeholder="Enter last name">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="ReserveeMiddleName">
+                                <i class="fas fa-user"></i> Middle Name
+                            </label>
+                            <input type="text" id="ReserveeMiddleName" name="ReserveeMiddleName" class="form-input" placeholder="Optional">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="ReserveeSuffix">
+                                <i class="fas fa-user"></i> Suffix
+                            </label>
+                            <input type="text" id="ReserveeSuffix" name="ReserveeSuffix" class="form-input" placeholder="Jr., Sr., III, etc.">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="ReserveeEmail">
+                                <i class="fas fa-envelope"></i> Email Address <span class="required">*</span>
+                            </label>
+                            <input type="email" id="ReserveeEmail" name="ReserveeEmail" class="form-input" required placeholder="email@example.com">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="StudentNumber">
+                                <i class="fas fa-id-card"></i> Student Number
+                            </label>
+                            <input type="text" id="StudentNumber" name="StudentNumber" class="form-input" placeholder="Enter student number">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="Program">
+                                <i class="fas fa-graduation-cap"></i> Program
+                            </label>
+                            <input type="text" id="Program" name="Program" class="form-input" placeholder="e.g., BS Computer Science">
+                        </div>
+
+                        <!-- Booking Details -->
+                        <div class="form-group">
+                            <label for="BookingDate">
+                                <i class="fas fa-calendar"></i> Booking Date <span class="required">*</span>
+                            </label>
+                            <input type="date" id="BookingDate" name="BookingDate" class="form-input" required
+                                   value="@DateTime.Now.ToString("yyyy-MM-dd")"
+                                   min="@DateTime.Now.ToString("yyyy-MM-dd")">
+                        </div>
+
+                        <!-- Time Slots -->
+                        <div class="form-group">
+                            <label for="StartTime">
+                                <i class="fas fa-clock"></i> Start Time <span class="required">*</span>
+                            </label>
+                            <select id="StartTime" name="StartTime" class="form-select" required>
+                                <option value="">Select start time</option>
+                                @for (int hour = 8; hour <= 17; hour++)
+                                {
+                                    for (int minute = 0; minute < 60; minute += 30)
+                                    {
+                                        var time = new TimeSpan(hour, minute, 0);
+                                        var displayHour = hour > 12 ? hour - 12 : hour;
+                                        var amPm = hour >= 12 ? "PM" : "AM";
+                                        var displayTime = $"{displayHour}:{minute:00} {amPm}";
+                                        <option value="@time.ToString(@"hh\:mm")">@displayTime</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="EndTime">
+                                <i class="fas fa-clock"></i> End Time <span class="required">*</span>
+                            </label>
+                            <select id="EndTime" name="EndTime" class="form-select" required>
+                                <option value="">Select end time</option>
+                                @for (int hour = 8; hour <= 18; hour++)
+                                {
+                                    for (int minute = 0; minute < 60; minute += 30)
+                                    {
+                                        // Skip if hour is 18 and minute > 0 (library closes at 6 PM)
+                                        if (hour == 18 && minute > 0)
+                                        {
+                                            // Skip this iteration
+                                        }
+                                        else
+                                        {
+                                            var time = new TimeSpan(hour, minute, 0);
+                                            var displayHour = hour > 12 ? hour - 12 : hour;
+                                            var amPm = hour >= 12 ? "PM" : "AM";
+                                            var displayTime = $"{displayHour}:{minute:00} {amPm}";
+                                            <option value="@time.ToString(@"hh\:mm")">@displayTime</option>
+                                        }
+                                    }
+                                }
+                            </select>
+                        </div>
+
+                        <!-- Purpose -->
+                        <div class="form-group form-group-full">
+                            <label for="Purpose">
+                                <i class="fas fa-bullseye"></i> Purpose <span class="required">*</span>
+                            </label>
+                            <textarea id="Purpose" name="Purpose" class="form-textarea" required
+                                      placeholder="Describe the purpose of this reservation (e.g., group study, meeting, presentation)"></textarea>
+                        </div>
+
+                        <!-- Additional Notes -->
+                        <div class="form-group form-group-full">
+                            <label for="AdditionalNotes">
+                                <i class="fas fa-sticky-note"></i> Additional Notes
+                                <span class="optional-badge">Optional</span>
+                            </label>
+                            <textarea id="AdditionalNotes" name="AdditionalNotes" class="form-textarea"
+                                      placeholder="Any additional information or special requests"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="form-actions">
+                        <button type="button" class="btn-walkin btn-cancel" onclick="closeWalkInModal()">
+                            <i class="fas fa-times"></i> Cancel
+                        </button>
+                        <button type="submit" class="btn-walkin btn-submit">
+                            <i class="fas fa-check"></i> Create Reservation
+                        </button>
+                    </div>
+                </div>
+            }
+        </div>
     </div>
 
     <!-- Scripts -->

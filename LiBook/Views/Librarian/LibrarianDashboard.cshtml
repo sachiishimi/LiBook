@@ -111,28 +111,28 @@
             <div class="stats-grid">
                 <div class="stat-card blue">
                     <div class="stat-details">
-                        <h3 id="todayBookings">4</h3>
+                        <h3 id="todayBookings">@ViewBag.TodayBookings</h3>
                         <p>Today's Booking</p>
                     </div>
                 </div>
 
                 <div class="stat-card yellow">
                     <div class="stat-details">
-                        <h3 id="roomsAvailable">3/6</h3>
+                        <h3 id="roomsAvailable">@ViewBag.RoomsAvailable</h3>
                         <p>Rooms Available</p>
                     </div>
                 </div>
 
                 <div class="stat-card red">
                     <div class="stat-details">
-                        <h3 id="pendingApprovals">5</h3>
+                        <h3 id="pendingApprovals">@ViewBag.PendingApprovals</h3>
                         <p>PENDING APPROVALS</p>
                     </div>
                 </div>
 
                 <div class="stat-card dark">
                     <div class="stat-details">
-                        <h3 id="totalBookings">4</h3>
+                        <h3 id="totalBookings">@ViewBag.TotalBookings</h3>
                         <p>TOTAL BOOKINGS</p>
                     </div>
                 </div>
@@ -186,66 +186,34 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr>
-                                        <td>
-                                            <div class="room-name">
-                                                <i class="fas fa-door-open"></i>
-                                                <span>Collaboration Room A</span>
-                                            </div>
-                                        </td>
-                                        <td><span class="booking-count">5</span></td>
-                                        <td><span class="status-badge available">Available</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td>
-                                            <div class="room-name">
-                                                <i class="fas fa-door-open"></i>
-                                                <span>Study Room B</span>
-                                            </div>
-                                        </td>
-                                        <td><span class="booking-count">8</span></td>
-                                        <td><span class="status-badge unavailable">Unavailable</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td>
-                                            <div class="room-name">
-                                                <i class="fas fa-door-open"></i>
-                                                <span>Meeting Room C</span>
-                                            </div>
-                                        </td>
-                                        <td><span class="booking-count">3</span></td>
-                                        <td><span class="status-badge available">Available</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td>
-                                            <div class="room-name">
-                                                <i class="fas fa-door-open"></i>
-                                                <span>Conference Room D</span>
-                                            </div>
-                                        </td>
-                                        <td><span class="booking-count">6</span></td>
-                                        <td><span class="status-badge maintenance">Under Maintenance</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td>
-                                            <div class="room-name">
-                                                <i class="fas fa-door-open"></i>
-                                                <span>Study Room E</span>
-                                            </div>
-                                        </td>
-                                        <td><span class="booking-count">4</span></td>
-                                        <td><span class="status-badge available">Available</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td>
-                                            <div class="room-name">
-                                                <i class="fas fa-door-open"></i>
-                                                <span>Innovation Hub F</span>
-                                            </div>
-                                        </td>
-                                        <td><span class="booking-count">7</span></td>
-                                        <td><span class="status-badge unavailable">Unavailable</span></td>
-                                    </tr>
+                                    @if (ViewBag.RoomOverview != null)
+                                    {
+                                        foreach (var room in ViewBag.RoomOverview as List<LiBook.Controllers.LibrarianController.RoomOverviewViewModel>)
+                                        {
+                                            <tr>
+                                                <td>
+                                                    <div class="room-name">
+                                                        <i class="fas fa-door-open"></i>
+                                                        <span>@room.RoomName</span>
+                                                    </div>
+                                                </td>
+                                                <td><span class="booking-count">@room.BookedUsers</span></td>
+                                                <td>
+                                                    <span class="status-badge @GetStatusClass(room.Status)">
+                                                        @room.Status
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <tr>
+                                            <td colspan="3" style="text-align: center; color: var(--text-light);">
+                                                No room data available
+                                            </td>
+                                        </tr>
+                                    }
                                 </tbody>
                             </table>
                         </div>
@@ -271,66 +239,40 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr>
-                                        <td><span class="booking-id">#BK001</span></td>
-                                        <td><span class="user-type student">Student</span></td>
-                                        <td>Collaboration Room A</td>
-                                        <td>
-                                            <div class="user-cell">
-                                                <img src="https://ui-avatars.com/api/?name=John+Doe&background=2c3e50&color=fff" alt="User">
-                                                <span>John Doe</span>
-                                            </div>
-                                        </td>
-                                        <td><span class="time-slot">9:00 AM - 10:00 AM</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td><span class="booking-id">#BK002</span></td>
-                                        <td><span class="user-type faculty">Faculty</span></td>
-                                        <td>Meeting Room C</td>
-                                        <td>
-                                            <div class="user-cell">
-                                                <img src="https://ui-avatars.com/api/?name=Dr+Smith&background=ffc107&color=000" alt="User">
-                                                <span>Dr. Smith</span>
-                                            </div>
-                                        </td>
-                                        <td><span class="time-slot">10:00 AM - 11:00 AM</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td><span class="booking-id">#BK003</span></td>
-                                        <td><span class="user-type student">Student</span></td>
-                                        <td>Study Room E</td>
-                                        <td>
-                                            <div class="user-cell">
-                                                <img src="https://ui-avatars.com/api/?name=Jane+Wilson&background=2c3e50&color=fff" alt="User">
-                                                <span>Jane Wilson</span>
-                                            </div>
-                                        </td>
-                                        <td><span class="time-slot">1:00 PM - 2:00 PM</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td><span class="booking-id">#BK004</span></td>
-                                        <td><span class="user-type admin">Admin</span></td>
-                                        <td>Collaboration Room A</td>
-                                        <td>
-                                            <div class="user-cell">
-                                                <img src="https://ui-avatars.com/api/?name=Admin+User&background=c62828&color=fff" alt="User">
-                                                <span>Admin User</span>
-                                            </div>
-                                        </td>
-                                        <td><span class="time-slot">2:00 PM - 3:00 PM</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td><span class="booking-id">#BK005</span></td>
-                                        <td><span class="user-type visitor">Visitor</span></td>
-                                        <td>Study Room B</td>
-                                        <td>
-                                            <div class="user-cell">
-                                                <img src="https://ui-avatars.com/api/?name=Mark+Lee&background=27ae60&color=fff" alt="User">
-                                                <span>Mark Lee</span>
-                                            </div>
-                                        </td>
-                                        <td><span class="time-slot">3:00 PM - 4:00 PM</span></td>
-                                    </tr>
+                                    @if (ViewBag.TodaysAcceptedReservations != null)
+                                    {
+                                        foreach (var reservation in ViewBag.TodaysAcceptedReservations as List<LiBook.Controllers.LibrarianController.AcceptedReservationViewModel>)
+                                        {
+                                            <tr>
+                                                <td><span class="booking-id">@reservation.BookingID</span></td>
+                                                <td>
+                                                    <span class="user-type @GetUserTypeClass(reservation.UserType)">
+                                                        @reservation.UserType
+                                                    </span>
+                                                </td>
+                                                <td>@reservation.RoomName</td>
+                                                <td>
+                                                    <div class="user-cell">
+                                                        @{
+                                                            var avatarColor = GetAvatarColor(reservation.UserType);
+                                                            var avatarUrl = $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(reservation.UserName)}&background={avatarColor}&color=fff";
+                                                        }
+                                                        <img src="@avatarUrl" alt="@reservation.UserName">
+                                                        <span>@reservation.UserName</span>
+                                                    </div>
+                                                </td>
+                                                <td><span class="time-slot">@reservation.TimeSlot</span></td>
+                                            </tr>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <tr>
+                                            <td colspan="5" style="text-align: center; color: var(--text-light);">
+                                                No accepted reservations for today
+                                            </td>
+                                        </tr>
+                                    }
                                 </tbody>
                             </table>
                         </div>
@@ -341,6 +283,73 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Pass data from server to JavaScript
+        const bookingHoursLabels = @Html.Raw(ViewBag.BookingHoursLabels ?? "[]");
+        const bookingHoursData = @Html.Raw(ViewBag.BookingHoursData ?? "[]");
+        const userTypeLabels = @Html.Raw(ViewBag.UserTypeLabels ?? "[]");
+        const userTypeData = @Html.Raw(ViewBag.UserTypeData ?? "[]");
+        const userTypeColors = @Html.Raw(ViewBag.UserTypeColors ?? "[]");
+    </script>
     <script src="~/Scripts/librariandashboard.js"></script>
 </body>
 </html>
+
+@functions {
+    // Helper function to get CSS class for status badge
+    public string GetStatusClass(string status)
+    {
+        switch (status?.ToLower())
+        {
+            case "available":
+                return "available";
+            case "unavailable":
+                return "unavailable";
+            case "under maintenance":
+            case "maintenance":
+                return "maintenance";
+            default:
+                return "unavailable";
+        }
+    }
+
+    // Helper function to get CSS class for user type badge
+    public string GetUserTypeClass(string userType)
+    {
+        switch (userType?.ToLower())
+        {
+            case "students":
+            case "student":
+                return "student";
+            case "faculty":
+                return "faculty";
+            case "admin":
+                return "admin";
+            case "visitors":
+            case "visitor":
+                return "visitor";
+            default:
+                return "student";
+        }
+    }
+
+    // Helper function to get avatar color based on user type
+    public string GetAvatarColor(string userType)
+    {
+        switch (userType?.ToLower())
+        {
+            case "students":
+            case "student":
+                return "2c3e50";
+            case "faculty":
+                return "ffc107";
+            case "admin":
+                return "c62828";
+            case "visitors":
+            case "visitor":
+                return "27ae60";
+            default:
+                return "2c3e50";
+        }
+    }
+}

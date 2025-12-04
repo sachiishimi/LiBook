@@ -1828,3 +1828,219 @@ select:focus-visible {
     border-left-color: var(--danger);
     color: var(--text-dark);
 }
+
+/* Walk-In Modal Styles */
+.modal-walkin {
+    max-width: 600px;
+}
+
+.modal-body-walkin {
+    padding: 0;
+    max-height: calc(90vh - 80px);
+    overflow-y: auto;
+}
+
+.walkin-info-banner {
+    background: var(--primary-blue);
+    color: white;
+    padding: 0.875rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    font-size: 0.9rem;
+}
+
+    .walkin-info-banner i {
+        font-size: 1rem;
+    }
+
+    .walkin-info-banner strong {
+        font-weight: 600;
+    }
+
+.walkin-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+    padding: 1.5rem;
+}
+
+.form-group.form-group-full {
+    grid-column: 1 / -1;
+}
+
+.form-group label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+    font-size: 0.8rem;
+    color: var(--text-dark);
+    margin-bottom: 0.5rem;
+}
+
+    .form-group label i {
+        color: var(--primary-blue);
+        font-size: 0.8rem;
+        width: 14px;
+    }
+
+.optional-badge {
+    background: var(--light-gray);
+    color: var(--text-light);
+    font-size: 0.65rem;
+    font-weight: 500;
+    padding: 0.125rem 0.4rem;
+    border-radius: 3px;
+    margin-left: auto;
+}
+
+.form-input,
+.form-select,
+.form-textarea {
+    width: 100%;
+    padding: 0.75rem 0.875rem;
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    font-family: 'Kumbh Sans', sans-serif;
+    font-size: 0.9rem;
+    color: var(--text-dark);
+    background: var(--white);
+    transition: all 0.2s ease;
+}
+
+    .form-input:hover,
+    .form-select:hover,
+    .form-textarea:hover {
+        border-color: #cbd5e1;
+    }
+
+    .form-input:focus,
+    .form-select:focus,
+    .form-textarea:focus {
+        outline: none;
+        border-color: var(--primary-blue);
+        box-shadow: 0 0 0 3px rgba(44, 62, 80, 0.08);
+    }
+
+    .form-input::placeholder,
+    .form-textarea::placeholder {
+        color: var(--text-light);
+        font-size: 0.85rem;
+    }
+
+.form-select {
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%232c3e50' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.875rem center;
+    padding-right: 2.5rem;
+}
+
+.form-textarea {
+    resize: vertical;
+    min-height: 80px;
+    line-height: 1.4;
+}
+
+.form-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.875rem;
+    padding: 1.25rem 1.5rem;
+    background: var(--light-gray);
+    border-top: 1px solid var(--border-color);
+}
+
+.btn-walkin {
+    padding: 0.75rem 1.25rem;
+    border: none;
+    border-radius: 8px;
+    font-family: 'Kumbh Sans', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+    .btn-walkin i {
+        font-size: 0.9rem;
+    }
+
+.btn-cancel {
+    background: var(--white);
+    color: var(--text-dark);
+    border: 2px solid var(--border-color);
+}
+
+    .btn-cancel:hover {
+        background: var(--light-gray);
+        border-color: var(--medium-gray);
+    }
+
+.btn-submit {
+    background: var(--primary-blue);
+    color: var(--white);
+}
+
+    .btn-submit:hover {
+        background: var(--dark-blue);
+        box-shadow: 0 2px 8px rgba(44, 62, 80, 0.25);
+    }
+
+/* Responsive */
+@media (max-width: 768px) {
+    .modal-walkin {
+        width: 95%;
+        max-width: none;
+    }
+
+    .walkin-info-banner {
+        padding: 0.75rem 1.25rem;
+        font-size: 0.85rem;
+    }
+
+    .walkin-form-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+        padding: 1.25rem;
+    }
+
+    .form-actions {
+        grid-template-columns: 1fr;
+        padding: 1rem 1.25rem;
+    }
+
+    .btn-cancel {
+        order: 2;
+    }
+
+    .btn-submit {
+        order: 1;
+    }
+}
+
+/* Required field indicator */
+.required {
+    color: var(--primary-red);
+    font-weight: 700;
+}
+
+/* Error state for invalid fields */
+.form-input:invalid,
+.form-select:invalid,
+.form-textarea:invalid {
+    border-color: var(--primary-red);
+}
+
+/* Success state for valid fields */
+.form-input:valid,
+.form-select:valid,
+.form-textarea:valid {
+    border-color: var(--success);
+}

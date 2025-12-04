@@ -236,39 +236,19 @@ function openRoomDetails(roomId) {
         return;
     }
 
-    // Use AJAX to get room data from server
-    fetch('/Librarian/GetRoomData?roomId=' + roomId, {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json'
-        }
-    })
-        .then(function (response) {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return response.json();
-        })
-        .then(function (result) {
-            if (result.success) {
-                // Populate modal with room data
-                console.log('Room data loaded:', result.data);
-
-                // TODO: Implement modal population logic here
-                // For now, show success notification
-                showNotification('Room details loaded successfully', 'success');
-            } else {
-                showNotification('Error: ' + result.message, 'error');
-            }
-        })
-        .catch(function (error) {
-            console.error('Error fetching room data:', error);
-            showNotification('Failed to load room data. Please try again.', 'error');
-        });
+    // Use traditional form submission instead of AJAX
+    window.location.href = '/Librarian/GetRoomDetails?roomId=' + roomId;
 }
 
+// ========================================
+// WALK-IN MODAL FUNCTIONS
+// ========================================
+
+var currentRoomId = null;
+var currentRoomName = null;
+
 /**
- * Create walk-in reservation
+ * Open walk-in modal for specific room
  */
 function createWalkIn(roomId) {
     if (!roomId) {
@@ -276,12 +256,153 @@ function createWalkIn(roomId) {
         return;
     }
 
-    // TODO: Implement walk-in modal logic here
-    // For now, show info notification
-    showNotification('Walk-in reservation feature for room ID: ' + roomId, 'info');
+    // Get room info from the clicked card
+    var roomCard = document.querySelector('.room-card[data-room-id="' + roomId + '"]');
+    if (!roomCard) {
+        showNotification('Room not found', 'error');
+        return;
+    }
 
-    // You can implement modal opening logic here
-    // Example: openWalkInModal(roomId);
+    currentRoomId = roomId;
+    currentRoomName = roomCard.querySelector('.room-name').textContent;
+
+    // Set room info in modal
+    document.getElementById('walkInRoomId').value = roomId;
+    document.getElementById('walkInRoomName').textContent = currentRoomName;
+
+    // Show modal
+    openWalkInModal();
+}
+
+/**
+ * Open walk-in modal
+ */
+function openWalkInModal() {
+    var modal = document.getElementById('walkInModal');
+    if (modal) {
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden'; // Prevent background scrolling
+
+        // Set today's date as default
+        var today = new Date().toISOString().split('T')[0];
+        var bookingDate = document.getElementById('BookingDate');
+        if (bookingDate) {
+            bookingDate.value = today;
+            bookingDate.min = today;
+        }
+
+        // Clear form (except room info)
+        var form = document.getElementById('walkInForm');
+        if (form) {
+            form.reset();
+            document.getElementById('walkInRoomId').value = currentRoomId;
+            document.getElementById('walkInRoomName').textContent = currentRoomName;
+
+            // Re-set today's date
+            if (bookingDate) {
+                bookingDate.value = today;
+                bookingDate.min = today;
+            }
+        }
+    }
+}
+
+/**
+ * Close walk-in modal
+ */
+function closeWalkInModal() {
+    var modal = document.getElementById('walkInModal');
+    if (modal) {
+        modal.classList.remove('active');
+        document.body.style.overflow = 'auto'; // Restore scrolling
+    }
+}
+
+/**
+ * Validate time selection
+ */
+function validateTimeSelection() {
+    var startTime = document.getElementById('StartTime');
+    var endTime = document.getElementById('EndTime');
+
+    if (startTime && endTime && startTime.value && endTime.value) {
+        var start = startTime.value;
+        var end = endTime.value;
+
+        // Convert HH:mm to minutes for comparison
+        var startMinutes = parseInt(start.split(':')[0]) * 60 + parseInt(start.split(':')[1]);
+        var endMinutes = parseInt(end.split(':')[0]) * 60 + parseInt(end.split(':')[1]);
+
+        if (endMinutes <= startMinutes) {
+            showNotification('End time must be after start time', 'error');
+            endTime.focus();
+            endTime.style.borderColor = '#e74c3c';
+            return false;
+        } else {
+            endTime.style.borderColor = '';
+        }
+    }
+    return true;
+}
+
+/**
+ * Initialize walk-in form validation
+ */
+function initializeWalkInForm() {
+    var walkInForm = document.getElementById('walkInForm');
+    if (walkInForm) {
+        walkInForm.addEventListener('submit', function (e) {
+            // Validate time selection
+            if (!validateTimeSelection()) {
+                e.preventDefault();
+                return false;
+            }
+
+            // Validate required fields
+            var requiredFields = walkInForm.querySelectorAll('[required]');
+            var isValid = true;
+
+            requiredFields.forEach(function (field) {
+                if (!field.value.trim()) {
+                    isValid = false;
+                    field.style.borderColor = '#e74c3c';
+                } else {
+                    field.style.borderColor = '';
+                }
+            });
+
+            if (!isValid) {
+                e.preventDefault();
+                showNotification('Please fill in all required fields', 'error');
+                return false;
+            }
+
+            // Show loading state
+            var submitBtn = walkInForm.querySelector('.btn-submit');
+            if (submitBtn) {
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+                submitBtn.disabled = true;
+            }
+
+            // Allow form submission
+            return true;
+        });
+    }
+
+    // Time validation on change
+    var startTimeSelect = document.getElementById('StartTime');
+    var endTimeSelect = document.getElementById('EndTime');
+
+    if (startTimeSelect) {
+        startTimeSelect.addEventListener('change', function () {
+            validateTimeSelection();
+        });
+    }
+    if (endTimeSelect) {
+        endTimeSelect.addEventListener('change', function () {
+            validateTimeSelection();
+        });
+    }
 }
 
 // ========================================
@@ -301,9 +422,6 @@ if (refreshBtn) {
                 icon.classList.remove('fa-spin');
             }
         }, 1000);
-
-        // Note: The actual refresh is handled by the href link
-        // This is just for visual feedback
     });
 }
 
@@ -323,6 +441,33 @@ document.addEventListener('DOMContentLoaded', function () {
             this.classList.add('active');
         });
     });
+});
+
+// ========================================
+// PAGE INITIALIZATION
+// ========================================
+document.addEventListener('DOMContentLoaded', function () {
+    // Initialize walk-in form
+    initializeWalkInForm();
+
+    // Close modal on escape key
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') {
+            closeWalkInModal();
+        }
+    });
+
+    // Close modal when clicking outside
+    var modalOverlay = document.getElementById('walkInModal');
+    if (modalOverlay) {
+        modalOverlay.addEventListener('click', function (e) {
+            if (e.target === modalOverlay) {
+                closeWalkInModal();
+            }
+        });
+    }
+
+    console.log('Room Management JavaScript loaded successfully');
 });
 
 // ========================================
@@ -349,8 +494,3 @@ if (!document.getElementById('room-notification-styles')) {
         '}';
     document.head.appendChild(style);
 }
-
-// ========================================
-// PAGE INITIALIZATION
-// ========================================
-console.log('Room Management JavaScript loaded successfully');

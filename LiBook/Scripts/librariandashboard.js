@@ -163,7 +163,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ========================================
-// CHART.JS CONFIGURATION
+// CHART.JS CONFIGURATION WITH REAL DATA
 // ========================================
 let bookingHoursChart = null;
 let userTypeChart = null;
@@ -175,7 +175,7 @@ function initializeCharts() {
         return;
     }
 
-    // Peak Booking Hours Chart
+    // Peak Booking Hours Chart - USING REAL DATABASE DATA
     const bookingHoursCanvas = document.getElementById('bookingHoursChart');
     if (bookingHoursCanvas) {
         const ctx = bookingHoursCanvas.getContext('2d');
@@ -188,10 +188,10 @@ function initializeCharts() {
         bookingHoursChart = new Chart(ctx, {
             type: 'line',
             data: {
-                labels: ['8:00 AM', '9:00 AM', '10:00 AM', '11:00 AM', '12:00 PM', '1:00 PM', '2:00 PM', '3:00 PM', '4:00 PM', '5:00 PM'],
+                labels: bookingHoursLabels || ['8:00 AM', '9:00 AM', '10:00 AM', '11:00 AM', '12:00 PM', '1:00 PM', '2:00 PM', '3:00 PM', '4:00 PM', '5:00 PM'],
                 datasets: [{
                     label: 'Bookings',
-                    data: [3, 5, 8, 6, 4, 7, 9, 6, 5, 3],
+                    data: bookingHoursData || [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                     borderColor: '#2c3e50',
                     backgroundColor: 'rgba(44, 62, 80, 0.1)',
                     borderWidth: 3,
@@ -236,14 +236,15 @@ function initializeCharts() {
                 scales: {
                     y: {
                         beginAtZero: true,
-                        max: 10,
                         ticks: {
-                            stepSize: 2,
                             font: {
                                 family: 'Kumbh Sans',
                                 size: 12
                             },
-                            color: '#7f8c8d'
+                            color: '#7f8c8d',
+                            callback: function (value) {
+                                return Number.isInteger(value) ? value : '';
+                            }
                         },
                         grid: {
                             color: 'rgba(0, 0, 0, 0.05)',
@@ -290,7 +291,7 @@ function initializeCharts() {
         });
     }
 
-    // User Type Distribution Chart
+    // User Type Distribution Chart - USING REAL DATABASE DATA
     const userTypeCanvas = document.getElementById('userTypeChart');
     if (userTypeCanvas) {
         const ctx = userTypeCanvas.getContext('2d');
@@ -303,15 +304,10 @@ function initializeCharts() {
         userTypeChart = new Chart(ctx, {
             type: 'doughnut',
             data: {
-                labels: ['Students', 'Faculty', 'Admin', 'Visitors'],
+                labels: userTypeLabels && userTypeLabels.length > 0 ? userTypeLabels : ['No Data'],
                 datasets: [{
-                    data: [45, 25, 15, 15],
-                    backgroundColor: [
-                        '#2c3e50',
-                        '#ffc107',
-                        '#c62828',
-                        '#27ae60'
-                    ],
+                    data: userTypeData && userTypeData.length > 0 ? userTypeData : [1],
+                    backgroundColor: userTypeColors && userTypeColors.length > 0 ? userTypeColors : ['#95a5a6'],
                     borderWidth: 0,
                     hoverOffset: 15
                 }]
@@ -350,7 +346,7 @@ function initializeCharts() {
                                 let label = context.label || '';
                                 let value = context.parsed || 0;
                                 let total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                let percentage = ((value / total) * 100).toFixed(1);
+                                let percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
                                 return label + ': ' + value + ' (' + percentage + '%)';
                             }
                         }
@@ -373,37 +369,28 @@ if (chartPeriod) {
 }
 
 function updateBookingHoursChart(period) {
-    if (!bookingHoursChart) return;
+    // Reload page with period parameter for non-AJAX approach
+    showQueuedNotification(`Loading ${period} data...`, 'info');
 
-    let data;
+    // Build URL with period parameter
+    const currentUrl = window.location.href.split('?')[0];
+    const newUrl = `${currentUrl}?period=${period}`;
 
-    switch (period) {
-        case 'today':
-            data = [3, 5, 8, 6, 4, 7, 9, 6, 5, 3];
-            break;
-        case 'week':
-            data = [25, 32, 45, 38, 28, 42, 48, 35, 30, 22];
-            break;
-        case 'month':
-            data = [95, 125, 165, 142, 108, 155, 178, 138, 115, 85];
-            break;
-        default:
-            data = [3, 5, 8, 6, 4, 7, 9, 6, 5, 3];
-    }
-
-    bookingHoursChart.data.datasets[0].data = data;
-    bookingHoursChart.update();
+    // Reload page after short delay to show notification
+    setTimeout(() => {
+        window.location.href = newUrl;
+    }, 500);
 }
 
 // ========================================
 // NAVIGATION FUNCTIONS
 // ========================================
 function viewAllRooms() {
-    window.location.href = '/LibrarianDashboard/Rooms';
+    window.location.href = '/Librarian/RoomManagement';
 }
 
 function viewAllReservations() {
-    window.location.href = '/LibrarianDashboard/Reservations';
+    window.location.href = '/Librarian/LibrarianReservations';
 }
 
 // ========================================
@@ -492,4 +479,62 @@ window.addEventListener('resize', () => {
             setTimeout(initializeCharts, 100);
         }
     }, 250);
+});
+
+// ========================================
+// AUTO-REFRESH DASHBOARD DATA (OPTIONAL)
+// ========================================
+// Uncomment this if you want to auto-refresh dashboard data every 5 minutes
+/*
+setInterval(() => {
+    console.log('Auto-refreshing dashboard data...');
+    showQueuedNotification('Refreshing dashboard data...', 'info');
+    
+    // Reload the page to get fresh data
+    setTimeout(() => {
+        window.location.reload();
+    }, 1000);
+}, 5 * 60 * 1000); // 5 minutes
+*/
+
+// ========================================
+// ERROR HANDLING FOR MISSING DATA
+// ========================================
+window.addEventListener('error', (e) => {
+    console.error('Dashboard error:', e.error);
+
+    // Check if chart data variables are defined
+    if (!window.bookingHoursLabels || !window.bookingHoursData) {
+        console.warn('Chart data variables not found. Using fallback data.');
+        showQueuedNotification('Loading chart data...', 'info');
+    }
+});
+
+// ========================================
+// DASHBOARD DATA VALIDATION
+// ========================================
+function validateDashboardData() {
+    const stats = {
+        todayBookings: document.getElementById('todayBookings'),
+        roomsAvailable: document.getElementById('roomsAvailable'),
+        pendingApprovals: document.getElementById('pendingApprovals'),
+        totalBookings: document.getElementById('totalBookings')
+    };
+
+    let allValid = true;
+
+    Object.values(stats).forEach(statElement => {
+        if (statElement && statElement.textContent === '0') {
+            console.warn(`Statistic ${statElement.id} has zero value`);
+        }
+    });
+
+    return allValid;
+}
+
+// Run validation after page loads
+window.addEventListener('load', () => {
+    setTimeout(() => {
+        validateDashboardData();
+    }, 2000);
 });
