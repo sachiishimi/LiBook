@@ -1,21 +1,15 @@
-﻿// @ts-check
-
-/**
- * @typedef {Object} WindowWithReset
- * @property {() => void} resetBookingForm
- */
-
-(function () {
+﻿(function () {
     'use strict';
 
     // DOM Elements
     let agreeCheckbox, bookButton, userTypeModal, cancelButton, userTypeCards;
-    let visitorFormModal, cancelVisitorButton, submitVisitorButton;
-    let studentFormModal, cancelStudentButton, submitStudentButton;
-    let adminFormModal, cancelAdminButton, submitAdminButton;
-    let facultyFormModal, cancelFacultyButton, submitFacultyButton;
+    let visitorFormModal, cancelVisitorButton, submitVisitorButton, visitorBookingForm;
+    let studentFormModal, cancelStudentButton, submitStudentButton, studentBookingForm;
+    let adminFormModal, cancelAdminButton, submitAdminButton, adminBookingForm;
+    let facultyFormModal, cancelFacultyButton, submitFacultyButton, facultyBookingForm;
     let privacyPolicyLink, termsOfUseLink, privacyPolicyModal, termsOfUseModal;
     let closePrivacyPolicy, closeTermsOfUse;
+    let currentFormType = null;
 
     // Wait for DOM to be fully loaded
     if (document.readyState === 'loading') {
@@ -35,19 +29,19 @@
         // Form Elements
         visitorFormModal = document.getElementById('visitorFormModal');
         cancelVisitorButton = document.getElementById('cancelVisitorForm');
-        submitVisitorButton = document.getElementById('submitVisitorForm');
+        visitorBookingForm = document.getElementById('visitorBookingForm');
 
         studentFormModal = document.getElementById('studentFormModal');
         cancelStudentButton = document.getElementById('cancelStudentForm');
-        submitStudentButton = document.getElementById('submitStudentForm');
+        studentBookingForm = document.getElementById('studentBookingForm');
 
         adminFormModal = document.getElementById('adminFormModal');
         cancelAdminButton = document.getElementById('cancelAdminForm');
-        submitAdminButton = document.getElementById('submitAdminForm');
+        adminBookingForm = document.getElementById('adminBookingForm');
 
         facultyFormModal = document.getElementById('facultyFormModal');
         cancelFacultyButton = document.getElementById('cancelFacultyForm');
-        submitFacultyButton = document.getElementById('submitFacultyForm');
+        facultyBookingForm = document.getElementById('facultyBookingForm');
 
         // Policy Elements
         privacyPolicyLink = document.getElementById('privacyPolicyLink');
@@ -71,6 +65,9 @@
 
         // Initialize policy dates
         initializePolicyDates();
+
+        // Setup message alert auto-hide
+        setupMessageAlert();
     }
 
     function setupEventListeners() {
@@ -80,7 +77,7 @@
                 if (agreeCheckbox && agreeCheckbox.checked) {
                     openModal(userTypeModal);
                 } else {
-                    alert('Please agree to the Privacy Policy and Terms of Use before proceeding.');
+                    showAlert('Please agree to the Privacy Policy and Terms of Use before proceeding.', 'error');
                 }
             });
         }
@@ -96,11 +93,11 @@
         if (cancelAdminButton) cancelAdminButton.addEventListener('click', () => closeModal(adminFormModal));
         if (cancelFacultyButton) cancelFacultyButton.addEventListener('click', () => closeModal(facultyFormModal));
 
-        // Submit buttons
-        if (submitVisitorButton) submitVisitorButton.addEventListener('click', submitVisitorForm);
-        if (submitStudentButton) submitStudentButton.addEventListener('click', submitStudentForm);
-        if (submitAdminButton) submitAdminButton.addEventListener('click', submitAdminForm);
-        if (submitFacultyButton) submitFacultyButton.addEventListener('click', submitFacultyForm);
+        // Form submit handlers
+        if (visitorBookingForm) visitorBookingForm.addEventListener('submit', submitVisitorForm);
+        if (studentBookingForm) studentBookingForm.addEventListener('submit', submitStudentForm);
+        if (adminBookingForm) adminBookingForm.addEventListener('submit', submitAdminForm);
+        if (facultyBookingForm) facultyBookingForm.addEventListener('submit', submitFacultyForm);
 
         // User type cards click
         userTypeCards.forEach(card => {
@@ -202,7 +199,7 @@
     }
 
     function initializeVisitorForm() {
-        // Set tomorrow's date as default
+        // Set minimum date to tomorrow
         const tomorrow = getTomorrowDate();
         const visitorDateInput = document.getElementById('visitorBookingDate');
         const visitorTimeSelect = document.getElementById('visitorBookingTime');
@@ -212,8 +209,9 @@
         const visitorMembersList = document.getElementById('visitorMembersList');
 
         if (visitorDateInput) {
-            visitorDateInput.value = tomorrow;
             visitorDateInput.min = tomorrow;
+            // Set default to tomorrow
+            visitorDateInput.value = tomorrow;
         }
 
         // Populate time slots (7 AM to 7 PM)
@@ -234,7 +232,7 @@
     }
 
     function initializeStudentForm() {
-        // Set tomorrow's date as default
+        // Set minimum date to tomorrow
         const tomorrow = getTomorrowDate();
         const studentDateInput = document.getElementById('studentBookingDate');
         const studentTimeSelect = document.getElementById('studentBookingTime');
@@ -244,8 +242,8 @@
         const studentMembersList = document.getElementById('studentMembersList');
 
         if (studentDateInput) {
-            studentDateInput.value = tomorrow;
             studentDateInput.min = tomorrow;
+            studentDateInput.value = tomorrow;
         }
 
         // Populate time slots (7 AM to 7 PM)
@@ -266,14 +264,14 @@
     }
 
     function initializeAdminForm() {
-        // Set tomorrow's date as default
+        // Set minimum date to tomorrow
         const tomorrow = getTomorrowDate();
         const adminDateInput = document.getElementById('adminBookingDate');
         const adminTimeSelect = document.getElementById('adminBookingTime');
 
         if (adminDateInput) {
-            adminDateInput.value = tomorrow;
             adminDateInput.min = tomorrow;
+            adminDateInput.value = tomorrow;
         }
 
         // Populate time slots (7 AM to 7 PM)
@@ -283,7 +281,7 @@
     }
 
     function initializeFacultyForm() {
-        // Set tomorrow's date as default
+        // Set minimum date to tomorrow
         const tomorrow = getTomorrowDate();
         const facultyDateInput = document.getElementById('facultyBookingDate');
         const facultyTimeSelect = document.getElementById('facultyBookingTime');
@@ -293,8 +291,8 @@
         const facultyMembersList = document.getElementById('facultyMembersList');
 
         if (facultyDateInput) {
-            facultyDateInput.value = tomorrow;
             facultyDateInput.min = tomorrow;
+            facultyDateInput.value = tomorrow;
         }
 
         // Populate time slots (7 AM to 7 PM)
@@ -334,6 +332,9 @@
             option.textContent = timeString;
             timeSelect.appendChild(option);
         }
+
+        // Set default to 9 AM
+        timeSelect.value = '09:00';
     }
 
     function formatHourToTime(hour) {
@@ -361,7 +362,7 @@
             }
         });
 
-        // Initial member fields
+        // Initialize member fields
         updateMemberFields(memberCountInput, membersList, formType);
     }
 
@@ -399,11 +400,12 @@
                     input.value = 'You (Main Contact)';
                     input.readOnly = true;
                     input.placeholder = '';
+                    input.required = false;
                 }
             } else {
                 label.textContent = `Member ${index + 1}`;
                 if (input) {
-                    input.value = '';
+                    input.value = input.value || '';
                     input.readOnly = false;
                     input.placeholder = 'Enter full name';
                     input.required = true;
@@ -434,19 +436,20 @@
 
         const input = document.createElement('input');
         input.type = 'text';
-        input.name = 'memberName[]';
-        input.required = index <= 2; // Require at least first 2 members
+        input.name = `MemberNames[${index - 1}]`;
+        input.setAttribute('form', formType === 'visitor' ? 'visitorBookingForm' :
+            formType === 'student' ? 'studentBookingForm' :
+                formType === 'faculty' ? 'facultyBookingForm' : '');
 
         if (index === 1) {
             input.value = 'You (Main Contact)';
             input.readOnly = true;
             input.placeholder = '';
+            input.required = false;
         } else {
             input.placeholder = 'Enter full name';
+            input.required = true;
         }
-
-        // Add data attribute for form type
-        input.dataset.formType = formType;
 
         memberItem.appendChild(label);
         memberItem.appendChild(input);
@@ -475,326 +478,356 @@
 
             switch (userType) {
                 case 'visitor':
+                    currentFormType = 'visitor';
                     openModal(visitorFormModal);
                     break;
                 case 'student':
+                    currentFormType = 'student';
                     openModal(studentFormModal);
                     break;
                 case 'admin':
+                    currentFormType = 'admin';
                     openModal(adminFormModal);
                     break;
                 case 'faculty':
+                    currentFormType = 'faculty';
                     openModal(facultyFormModal);
                     break;
             }
         }
     }
 
-    function submitVisitorForm() {
-        // Get the form
-        const form = document.getElementById('visitorBookingForm');
+    function submitVisitorForm(e) {
+        e.preventDefault();
+        const form = e.target;
 
-        // Validate form
-        if (!form || !form.checkValidity()) {
-            form.reportValidity();
-            return;
+        // Validate required fields
+        if (!validateForm(form)) {
+            return false;
         }
 
-        // Collect form data
-        const formData = new FormData(form);
-        const bookingData = {
-            userType: 'visitor',
-            lastName: formData.get('lastName'),
-            firstName: formData.get('firstName'),
-            middleInitial: formData.get('middleInitial'),
-            suffix: formData.get('suffix'),
-            email: formData.get('email'),
-            program: formData.get('program'),
-            purpose: formData.get('purpose'),
-            memberCount: formData.get('memberCount'),
-            memberNames: [],
-            bookingDate: formData.get('bookingDate'),
-            bookingTime: formData.get('bookingTime'),
-            termsAccepted: document.getElementById('visitorTerms').checked
-        };
-
-        // Collect member names
+        // Validate member names
         const membersList = document.getElementById('visitorMembersList');
-        const memberInputs = membersList.querySelectorAll('input[name="memberName[]"]');
+        const memberInputs = membersList.querySelectorAll('input[name^="MemberNames"]');
+        let hasEmptyMemberNames = false;
+
         memberInputs.forEach((input, index) => {
-            if (index > 0 || input.value !== 'You (Main Contact)') {
-                bookingData.memberNames.push(input.value);
+            if (index > 0 && !input.value.trim()) {
+                hasEmptyMemberNames = true;
+                input.style.borderColor = '#c62828';
+                input.style.backgroundColor = '#ffebee';
+            } else {
+                input.style.borderColor = '';
+                input.style.backgroundColor = '';
             }
         });
 
-        // Validate member names
-        const emptyMemberNames = bookingData.memberNames.filter(name => !name.trim());
-        if (emptyMemberNames.length > 0) {
-            alert('Please fill in all member names.');
-            return;
+        if (hasEmptyMemberNames) {
+            showAlert('Please fill in all member names.', 'error');
+            return false;
         }
 
-        // Disable submit button and show loading state
-        submitVisitorButton.disabled = true;
-        const originalText = submitVisitorButton.textContent;
-        submitVisitorButton.textContent = 'Processing...';
+        // Validate terms agreement
+        const termsCheckbox = document.getElementById('visitorTerms');
+        if (termsCheckbox && !termsCheckbox.checked) {
+            showAlert('You must accept the terms and conditions.', 'error');
+            termsCheckbox.focus();
+            return false;
+        }
 
-        // Simulate API call
-        setTimeout(() => {
-            console.log('Visitor Booking Data:', bookingData);
+        // Disable submit button to prevent double submission
+        const submitBtn = form.querySelector('button[type="submit"]');
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Processing...';
+        }
 
-            // Show success message
-            alert('Booking submitted successfully! You will receive a confirmation email shortly.');
-
-            // Reset form
-            form.reset();
-
-            // Reset date to tomorrow
-            const tomorrow = getTomorrowDate();
-            document.getElementById('visitorBookingDate').value = tomorrow;
-
-            // Reset member count
-            document.getElementById('visitorMemberCount').value = 1;
-            updateMemberFields(
-                document.getElementById('visitorMemberCount'),
-                document.getElementById('visitorMembersList'),
-                'visitor'
-            );
-
-            // Close modal
-            closeModal(visitorFormModal);
-
-            // Reset submit button
-            submitVisitorButton.disabled = false;
-            submitVisitorButton.textContent = originalText;
-
-        }, 1500);
+        // Submit the form
+        form.submit();
+        return true;
     }
 
-    function submitStudentForm() {
-        // Get the form
-        const form = document.getElementById('studentBookingForm');
+    function submitStudentForm(e) {
+        e.preventDefault();
+        const form = e.target;
 
-        // Validate form
-        if (!form || !form.checkValidity()) {
-            form.reportValidity();
-            return;
+        // Validate required fields
+        if (!validateForm(form)) {
+            return false;
         }
 
-        // Collect form data
-        const formData = new FormData(form);
-        const bookingData = {
-            userType: 'student',
-            lastName: formData.get('lastName'),
-            firstName: formData.get('firstName'),
-            middleInitial: formData.get('middleInitial'),
-            suffix: formData.get('suffix'),
-            studentId: formData.get('studentId'),
-            email: formData.get('email'),
-            program: formData.get('program'),
-            yearLevel: formData.get('yearLevel'),
-            purpose: formData.get('purpose'),
-            courseCode: formData.get('courseCode'),
-            memberCount: formData.get('memberCount'),
-            memberNames: [],
-            bookingDate: formData.get('bookingDate'),
-            bookingTime: formData.get('bookingTime'),
-            termsAccepted: document.getElementById('studentTerms').checked
-        };
-
-        // Collect member names
+        // Validate member names
         const membersList = document.getElementById('studentMembersList');
-        const memberInputs = membersList.querySelectorAll('input[name="memberName[]"]');
+        const memberInputs = membersList.querySelectorAll('input[name^="MemberNames"]');
+        let hasEmptyMemberNames = false;
+
         memberInputs.forEach((input, index) => {
-            if (index > 0 || input.value !== 'You (Main Contact)') {
-                bookingData.memberNames.push(input.value);
+            if (index > 0 && !input.value.trim()) {
+                hasEmptyMemberNames = true;
+                input.style.borderColor = '#c62828';
+                input.style.backgroundColor = '#ffebee';
+            } else {
+                input.style.borderColor = '';
+                input.style.backgroundColor = '';
             }
         });
 
+        if (hasEmptyMemberNames) {
+            showAlert('Please fill in all member names.', 'error');
+            return false;
+        }
+
+        // Validate Student ID
+        const studentIdInput = document.getElementById('StudentId');
+        if (studentIdInput && !studentIdInput.value.trim()) {
+            showAlert('Please enter your Student ID.', 'error');
+            studentIdInput.focus();
+            return false;
+        }
+
+        // Validate terms agreement
+        const termsCheckbox = document.getElementById('studentTerms');
+        if (termsCheckbox && !termsCheckbox.checked) {
+            showAlert('You must accept the terms and conditions.', 'error');
+            termsCheckbox.focus();
+            return false;
+        }
+
+        // Disable submit button
+        const submitBtn = form.querySelector('button[type="submit"]');
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Processing...';
+        }
+
+        // Submit the form
+        form.submit();
+        return true;
+    }
+
+    function submitFacultyForm(e) {
+        e.preventDefault();
+        const form = e.target;
+
+        // Validate required fields
+        if (!validateForm(form)) {
+            return false;
+        }
+
         // Validate member names
-        const emptyMemberNames = bookingData.memberNames.filter(name => !name.trim());
-        if (emptyMemberNames.length > 0) {
-            alert('Please fill in all member names.');
-            return;
-        }
-
-        // Disable submit button and show loading state
-        submitStudentButton.disabled = true;
-        const originalText = submitStudentButton.textContent;
-        submitStudentButton.textContent = 'Processing...';
-
-        // Simulate API call
-        setTimeout(() => {
-            console.log('Student Booking Data:', bookingData);
-
-            // Show success message
-            alert('Booking submitted successfully! You will receive a confirmation email shortly.');
-
-            // Reset form
-            form.reset();
-
-            // Reset date to tomorrow
-            const tomorrow = getTomorrowDate();
-            document.getElementById('studentBookingDate').value = tomorrow;
-
-            // Reset member count
-            document.getElementById('studentMemberCount').value = 1;
-            updateMemberFields(
-                document.getElementById('studentMemberCount'),
-                document.getElementById('studentMembersList'),
-                'student'
-            );
-
-            // Close modal
-            closeModal(studentFormModal);
-
-            // Reset submit button
-            submitStudentButton.disabled = false;
-            submitStudentButton.textContent = originalText;
-
-        }, 1500);
-    }
-
-    function submitAdminForm() {
-        // Get the form
-        const form = document.getElementById('adminBookingForm');
-
-        // Validate form
-        if (!form || !form.checkValidity()) {
-            form.reportValidity();
-            return;
-        }
-
-        // Collect form data
-        const formData = new FormData(form);
-        const bookingData = {
-            userType: 'admin',
-            lastName: formData.get('lastName'),
-            firstName: formData.get('firstName'),
-            middleInitial: formData.get('middleInitial'),
-            suffix: formData.get('suffix'),
-            email: formData.get('email'),
-            office: formData.get('office'),
-            purpose: formData.get('purpose'),
-            attendees: formData.get('attendees'),
-            requirements: formData.get('requirements'),
-            bookingDate: formData.get('bookingDate'),
-            bookingTime: formData.get('bookingTime'),
-            termsAccepted: document.getElementById('adminTerms').checked
-        };
-
-        // Disable submit button and show loading state
-        submitAdminButton.disabled = true;
-        const originalText = submitAdminButton.textContent;
-        submitAdminButton.textContent = 'Processing...';
-
-        // Simulate API call
-        setTimeout(() => {
-            console.log('Admin Booking Data:', bookingData);
-
-            // Show success message
-            alert('Booking submitted successfully! You will receive a confirmation email shortly.');
-
-            // Reset form
-            form.reset();
-
-            // Reset date to tomorrow
-            const tomorrow = getTomorrowDate();
-            document.getElementById('adminBookingDate').value = tomorrow;
-
-            // Reset textareas
-            document.getElementById('adminAttendees').value = '';
-            document.getElementById('adminRequirements').value = '';
-
-            // Close modal
-            closeModal(adminFormModal);
-
-            // Reset submit button
-            submitAdminButton.disabled = false;
-            submitAdminButton.textContent = originalText;
-
-        }, 1500);
-    }
-
-    function submitFacultyForm() {
-        // Get the form
-        const form = document.getElementById('facultyBookingForm');
-
-        // Validate form
-        if (!form || !form.checkValidity()) {
-            form.reportValidity();
-            return;
-        }
-
-        // Collect form data
-        const formData = new FormData(form);
-        const bookingData = {
-            userType: 'faculty',
-            lastName: formData.get('lastName'),
-            firstName: formData.get('firstName'),
-            middleInitial: formData.get('middleInitial'),
-            suffix: formData.get('suffix'),
-            email: formData.get('email'),
-            department: formData.get('department'),
-            purpose: formData.get('purpose'),
-            courseCode: formData.get('courseCode'),
-            memberCount: formData.get('memberCount'),
-            memberNames: [],
-            bookingDate: formData.get('bookingDate'),
-            bookingTime: formData.get('bookingTime'),
-            termsAccepted: document.getElementById('facultyTerms').checked
-        };
-
-        // Collect member names
         const membersList = document.getElementById('facultyMembersList');
-        const memberInputs = membersList.querySelectorAll('input[name="memberName[]"]');
+        const memberInputs = membersList.querySelectorAll('input[name^="MemberNames"]');
+        let hasEmptyMemberNames = false;
+
         memberInputs.forEach((input, index) => {
-            if (index > 0 || input.value !== 'You (Main Contact)') {
-                bookingData.memberNames.push(input.value);
+            if (index > 0 && !input.value.trim()) {
+                hasEmptyMemberNames = true;
+                input.style.borderColor = '#c62828';
+                input.style.backgroundColor = '#ffebee';
+            } else {
+                input.style.borderColor = '';
+                input.style.backgroundColor = '';
             }
         });
 
-        // Validate member names
-        const emptyMemberNames = bookingData.memberNames.filter(name => !name.trim());
-        if (emptyMemberNames.length > 0) {
-            alert('Please fill in all member names.');
-            return;
+        if (hasEmptyMemberNames) {
+            showAlert('Please fill in all member names.', 'error');
+            return false;
         }
 
-        // Disable submit button and show loading state
-        submitFacultyButton.disabled = true;
-        const originalText = submitFacultyButton.textContent;
-        submitFacultyButton.textContent = 'Processing...';
+        // Validate terms agreement
+        const termsCheckbox = document.getElementById('facultyTerms');
+        if (termsCheckbox && !termsCheckbox.checked) {
+            showAlert('You must accept the terms and conditions.', 'error');
+            termsCheckbox.focus();
+            return false;
+        }
 
-        // Simulate API call
-        setTimeout(() => {
-            console.log('Faculty Booking Data:', bookingData);
+        // Disable submit button
+        const submitBtn = form.querySelector('button[type="submit"]');
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Processing...';
+        }
 
-            // Show success message
-            alert('Booking submitted successfully! You will receive a confirmation email shortly.');
-
-            // Reset form
-            form.reset();
-
-            // Reset date to tomorrow
-            const tomorrow = getTomorrowDate();
-            document.getElementById('facultyBookingDate').value = tomorrow;
-
-            // Reset member count
-            document.getElementById('facultyMemberCount').value = 1;
-            updateMemberFields(
-                document.getElementById('facultyMemberCount'),
-                document.getElementById('facultyMembersList'),
-                'faculty'
-            );
-
-            // Close modal
-            closeModal(facultyFormModal);
-
-            // Reset submit button
-            submitFacultyButton.disabled = false;
-            submitFacultyButton.textContent = originalText;
-
-        }, 1500);
+        // Submit the form
+        form.submit();
+        return true;
     }
+
+    function submitAdminForm(e) {
+        e.preventDefault();
+        const form = e.target;
+
+        // Validate required fields
+        if (!validateForm(form)) {
+            return false;
+        }
+
+        // Validate terms agreement
+        const termsCheckbox = document.getElementById('adminTerms');
+        if (termsCheckbox && !termsCheckbox.checked) {
+            showAlert('You must accept the terms and conditions.', 'error');
+            termsCheckbox.focus();
+            return false;
+        }
+
+        // Disable submit button
+        const submitBtn = form.querySelector('button[type="submit"]');
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Processing...';
+        }
+
+        // Submit the form
+        form.submit();
+        return true;
+    }
+
+    function validateForm(form) {
+        // Get all required inputs
+        const requiredInputs = form.querySelectorAll('input[required], select[required], textarea[required]');
+        let isValid = true;
+        let firstInvalidInput = null;
+
+        requiredInputs.forEach(input => {
+            // Skip readonly inputs
+            if (input.readOnly) return;
+
+            if (!input.value.trim()) {
+                isValid = false;
+                input.style.borderColor = '#c62828';
+                input.style.backgroundColor = '#ffebee';
+
+                if (!firstInvalidInput) {
+                    firstInvalidInput = input;
+                }
+            } else {
+                input.style.borderColor = '';
+                input.style.backgroundColor = '';
+            }
+        });
+
+        if (!isValid) {
+            showAlert('Please fill in all required fields.', 'error');
+            if (firstInvalidInput) {
+                firstInvalidInput.focus();
+            }
+        }
+
+        return isValid;
+    }
+
+    function showAlert(message, type = 'info') {
+        // Create alert element
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `custom-alert ${type}`;
+        alertDiv.innerHTML = `
+            <span>${message}</span>
+            <button type="button" class="custom-alert-close">&times;</button>
+        `;
+
+        // Style the alert
+        alertDiv.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 10px;
+            color: white;
+            font-weight: 500;
+            z-index: 9999;
+            max-width: 400px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            animation: slideIn 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: ${type === 'error' ? '#c62828' : type === 'success' ? '#27ae60' : '#2c3e50'};
+            border-left: 4px solid ${type === 'error' ? '#8e0000' : type === 'success' ? '#1e7e34' : '#1a252f'};
+        `;
+
+        // Add to document
+        document.body.appendChild(alertDiv);
+
+        // Add close functionality
+        const closeBtn = alertDiv.querySelector('.custom-alert-close');
+        closeBtn.addEventListener('click', () => {
+            alertDiv.remove();
+        });
+
+        // Auto-remove after 5 seconds
+        setTimeout(() => {
+            if (alertDiv.parentNode) {
+                alertDiv.remove();
+            }
+        }, 5000);
+    }
+
+    function setupMessageAlert() {
+        // Auto-hide existing message alert after 5 seconds
+        setTimeout(() => {
+            const alert = document.getElementById('messageAlert');
+            if (alert) {
+                alert.style.display = 'none';
+            }
+        }, 5000);
+
+        // Close alert on button click
+        const closeAlertBtn = document.querySelector('.close-alert');
+        if (closeAlertBtn) {
+            closeAlertBtn.addEventListener('click', () => {
+                const alert = document.getElementById('messageAlert');
+                if (alert) {
+                    alert.style.display = 'none';
+                }
+            });
+        }
+    }
+
+    // Add animation for custom alerts
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+        
+        .custom-alert {
+            animation: slideIn 0.3s ease;
+        }
+        
+        .custom-alert-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            margin-left: 15px;
+            padding: 0;
+            line-height: 1;
+        }
+        
+        .custom-alert-close:hover {
+            opacity: 0.8;
+        }
+    `;
+    document.head.appendChild(style);
 })();

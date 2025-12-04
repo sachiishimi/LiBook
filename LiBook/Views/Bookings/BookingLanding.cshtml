@@ -1,4 +1,4 @@
-﻿﻿﻿@{
+﻿﻿@{
     ViewData["Title"] = "Book a Room - QCU LiBook";
     Layout = null;
 }
@@ -20,6 +20,14 @@
     <link href="~/Content/booklanding.css" rel="stylesheet" />
 </head>
 <body>
+    <!-- Add this after the <body> tag in BookingLanding.cshtml -->
+@if (!string.IsNullOrEmpty(ViewBag.Message))
+{
+    <div id="messageAlert" class="message-alert @(ViewBag.MessageType == "success" ? "success" : "error")">
+        @ViewBag.Message
+        <button type="button" class="close-alert">&times;</button>
+    </div>
+}
     <!-- Main Container -->
     <div class="landing-container">
 
@@ -213,28 +221,31 @@
             </div>
 
             <div class="modal-body">
-                <form id="visitorBookingForm">
+                @using (Html.BeginForm("SubmitVisitor", "Bookings", FormMethod.Post, new { id = "visitorBookingForm" }))
+                {
+                    @Html.AntiForgeryToken()
+
                     <div class="form-grid">
                         <!-- Name Fields Row -->
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="lastName">Last Name <span class="required">*</span></label>
-                                <input type="text" id="lastName" name="lastName" required>
+                                <label for="LastName">Last Name <span class="required">*</span></label>
+                                <input type="text" id="LastName" name="LastName" required>
                             </div>
 
                             <div class="form-group">
-                                <label for="firstName">First Name <span class="required">*</span></label>
-                                <input type="text" id="firstName" name="firstName" required>
+                                <label for="FirstName">First Name <span class="required">*</span></label>
+                                <input type="text" id="FirstName" name="FirstName" required>
                             </div>
 
                             <div class="form-group">
-                                <label for="middleInitial">Middle Initial</label>
-                                <input type="text" id="middleInitial" name="middleInitial" maxlength="1">
+                                <label for="MiddleInitial">Middle Initial</label>
+                                <input type="text" id="MiddleInitial" name="MiddleInitial" maxlength="1">
                             </div>
 
                             <div class="form-group">
-                                <label for="suffix">Suffix</label>
-                                <select id="suffix" name="suffix">
+                                <label for="Suffix">Suffix</label>
+                                <select id="Suffix" name="Suffix">
                                     <option value="">None</option>
                                     <option value="Jr.">Jr.</option>
                                     <option value="Sr.">Sr.</option>
@@ -248,21 +259,21 @@
                         <!-- Contact Info Row -->
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="email">Email Address <span class="required">*</span></label>
-                                <input type="email" id="email" name="email" required>
+                                <label for="Email">Email Address <span class="required">*</span></label>
+                                <input type="email" id="Email" name="Email" required>
                             </div>
 
                             <div class="form-group">
-                                <label for="program">Program/Organization <span class="required">*</span></label>
-                                <input type="text" id="program" name="program" required>
+                                <label for="Program">Program/Organization <span class="required">*</span></label>
+                                <input type="text" id="Program" name="Program" required>
                             </div>
                         </div>
 
                         <!-- Purpose and Date/Time Row -->
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="purpose">Purpose <span class="required">*</span></label>
-                                <select id="purpose" name="purpose" required>
+                                <label for="Purpose">Purpose <span class="required">*</span></label>
+                                <select id="Purpose" name="Purpose" required>
                                     <option value="">Select Purpose</option>
                                     <option value="groupMeeting">Group Meeting</option>
                                     <option value="presentation">Presentation</option>
@@ -274,13 +285,13 @@
                             </div>
 
                             <div class="form-group">
-                                <label for="visitorBookingDate">Date <span class="required">*</span></label>
-                                <input type="date" id="visitorBookingDate" name="bookingDate" required>
+                                <label for="BookingDate">Date <span class="required">*</span></label>
+                                <input type="date" id="visitorBookingDate" name="BookingDate" required>
                             </div>
 
                             <div class="form-group">
-                                <label for="visitorBookingTime">Time <span class="required">*</span></label>
-                                <select id="visitorBookingTime" name="bookingTime" required>
+                                <label for="BookingTime">Time <span class="required">*</span></label>
+                                <select id="visitorBookingTime" name="BookingTime" required>
                                     <option value="">Select Time</option>
                                     <!-- Times will be populated by JavaScript -->
                                 </select>
@@ -299,7 +310,7 @@
                                     <label for="visitorMemberCount">Number of Members (including you) <span class="required">*</span></label>
                                     <div class="number-input-wrapper">
                                         <button type="button" class="number-btn" id="visitorDecreaseMembers">−</button>
-                                        <input type="number" id="visitorMemberCount" name="memberCount" min="1" max="10" value="1" readonly>
+                                        <input type="number" id="visitorMemberCount" name="MemberCount" min="1" max="10" value="1" readonly>
                                         <button type="button" class="number-btn" id="visitorIncreaseMembers">+</button>
                                     </div>
                                     <div class="helper-text">Maximum: 10 members total</div>
@@ -310,7 +321,7 @@
                                 <!-- Member fields will be dynamically generated here -->
                                 <div class="member-item">
                                     <label>Member 1 (You)</label>
-                                    <input type="text" name="memberName[]" value="You (Main Contact)" readonly>
+                                    <input type="text" name="MemberNames[0]" value="You (Main Contact)" readonly>
                                 </div>
                             </div>
                         </div>
@@ -328,12 +339,12 @@
                             </div>
                         </div>
                     </div>
-                </form>
-            </div>
 
-            <div class="modal-footer">
-                <button class="btn-cancel" id="cancelVisitorForm">Cancel</button>
-                <button class="btn-submit" id="submitVisitorForm">Submit Booking</button>
+                    <div class="modal-footer">
+                        <button type="button" class="btn-cancel" id="cancelVisitorForm">Cancel</button>
+                        <button type="submit" class="btn-submit">Submit Booking</button>
+                    </div>
+                }
             </div>
         </div>
     </div>
@@ -347,28 +358,31 @@
             </div>
 
             <div class="modal-body">
-                <form id="studentBookingForm">
+                @using (Html.BeginForm("SubmitStudent", "Bookings", FormMethod.Post, new { id = "studentBookingForm" }))
+                {
+                    @Html.AntiForgeryToken()
+
                     <div class="form-grid">
                         <!-- Student Info Row -->
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="studentLastName">Last Name <span class="required">*</span></label>
-                                <input type="text" id="studentLastName" name="lastName" required>
+                                <input type="text" id="LastName" name="LastName" required>
                             </div>
 
                             <div class="form-group">
                                 <label for="studentFirstName">First Name <span class="required">*</span></label>
-                                <input type="text" id="studentFirstName" name="firstName" required>
+                                <input type="text" id="FirstName" name="FirstName" required>
                             </div>
 
                             <div class="form-group">
                                 <label for="studentMiddleInitial">Middle Initial</label>
-                                <input type="text" id="studentMiddleInitial" name="middleInitial" maxlength="1">
+                                <input type="text" id="MiddleInitial" name="MiddleInitial" maxlength="1">
                             </div>
 
                             <div class="form-group">
                                 <label for="studentSuffix">Suffix</label>
-                                <select id="studentSuffix" name="suffix">
+                                <select id="Suffix" name="Suffix">
                                     <option value="">None</option>
                                     <option value="Jr.">Jr.</option>
                                     <option value="Sr.">Sr.</option>
@@ -383,17 +397,17 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="studentId">Student ID <span class="required">*</span></label>
-                                <input type="text" id="studentId" name="studentId" required>
+                                <input type="text" id="StudentId" name="StudentId" required>
                             </div>
 
                             <div class="form-group">
                                 <label for="studentEmail">QCU Email <span class="required">*</span></label>
-                                <input type="email" id="studentEmail" name="email" required>
+                                <input type="email" id="Email" name="Email" required>
                             </div>
 
                             <div class="form-group">
                                 <label for="studentProgram">Program <span class="required">*</span></label>
-                                <select id="studentProgram" name="program" required>
+                                <select id="Program" name="Program" required>
                                     <option value="">Select Program</option>
                                     <option value="BSIT">BS Information Technology</option>
                                     <option value="BSCS">BS Computer Science</option>
@@ -423,7 +437,7 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="studentPurpose">Purpose <span class="required">*</span></label>
-                                <select id="studentPurpose" name="purpose" required>
+                                <select id="Purpose" name="Purpose" required>
                                     <option value="">Select Purpose</option>
                                     <option value="groupStudy">Group Study</option>
                                     <option value="projectMeeting">Project Meeting</option>
@@ -436,12 +450,12 @@
 
                             <div class="form-group">
                                 <label for="studentBookingDate">Date <span class="required">*</span></label>
-                                <input type="date" id="studentBookingDate" name="bookingDate" required>
+                                <input type="date" id="studentBookingDate" name="BookingDate" required>
                             </div>
 
                             <div class="form-group">
                                 <label for="studentBookingTime">Time <span class="required">*</span></label>
-                                <select id="studentBookingTime" name="bookingTime" required>
+                                <select id="studentBookingTime" name="BookingTime" required>
                                     <option value="">Select Time</option>
                                     <!-- Times will be populated by JavaScript -->
                                 </select>
@@ -460,7 +474,7 @@
                                     <label for="studentMemberCount">Number of Members (including you) <span class="required">*</span></label>
                                     <div class="number-input-wrapper">
                                         <button type="button" class="number-btn" id="studentDecreaseMembers">−</button>
-                                        <input type="number" id="studentMemberCount" name="memberCount" min="1" max="10" value="1" readonly>
+                                        <input type="number" id="studentMemberCount" name="MemberCount" min="1" max="10" value="1" readonly>
                                         <button type="button" class="number-btn" id="studentIncreaseMembers">+</button>
                                     </div>
                                     <div class="helper-text">Maximum: 10 members total</div>
@@ -471,7 +485,7 @@
                                 <!-- Member fields will be dynamically generated here -->
                                 <div class="member-item">
                                     <label>Member 1 (You)</label>
-                                    <input type="text" name="memberName[]" value="You (Main Contact)" readonly>
+                                    <input type="text" name="MemberNames[0]" value="You (Main Contact)" readonly>
                                 </div>
                             </div>
                         </div>
@@ -497,12 +511,12 @@
                             </div>
                         </div>
                     </div>
-                </form>
-            </div>
 
-            <div class="modal-footer">
-                <button class="btn-cancel" id="cancelStudentForm">Cancel</button>
-                <button class="btn-submit" id="submitStudentForm">Submit Booking</button>
+                    <div class="modal-footer">
+                        <button type="button" class="btn-cancel" id="cancelStudentForm">Cancel</button>
+                        <button type="submit" class="btn-submit">Submit Booking</button>
+                    </div>
+                }
             </div>
         </div>
     </div>
@@ -516,28 +530,31 @@
             </div>
 
             <div class="modal-body">
-                <form id="adminBookingForm">
+                @using (Html.BeginForm("SubmitAdmin", "Bookings", FormMethod.Post, new { id = "adminBookingForm" }))
+                {
+                    @Html.AntiForgeryToken()
+
                     <div class="form-grid">
                         <!-- Name Fields Row -->
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="adminLastName">Last Name <span class="required">*</span></label>
-                                <input type="text" id="adminLastName" name="lastName" required>
+                                <input type="text" id="LastName" name="LastName" required>
                             </div>
 
                             <div class="form-group">
                                 <label for="adminFirstName">First Name <span class="required">*</span></label>
-                                <input type="text" id="adminFirstName" name="firstName" required>
+                                <input type="text" id="FirstName" name="FirstName" required>
                             </div>
 
                             <div class="form-group">
                                 <label for="adminMiddleInitial">Middle Initial</label>
-                                <input type="text" id="adminMiddleInitial" name="middleInitial" maxlength="1">
+                                <input type="text" id="MiddleInitial" name="MiddleInitial" maxlength="1">
                             </div>
 
                             <div class="form-group">
                                 <label for="adminSuffix">Suffix</label>
-                                <select id="adminSuffix" name="suffix">
+                                <select id="Suffix" name="Suffix">
                                     <option value="">None</option>
                                     <option value="Jr.">Jr.</option>
                                     <option value="Sr.">Sr.</option>
@@ -552,12 +569,12 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="adminEmail">Email Address <span class="required">*</span></label>
-                                <input type="email" id="adminEmail" name="email" required>
+                                <input type="email" id="Email" name="Email" required>
                             </div>
 
                             <div class="form-group">
                                 <label for="adminOffice">Office/Unit <span class="required">*</span></label>
-                                <input type="text" id="adminOffice" name="office" required placeholder="e.g., Registrar's Office, Library">
+                                <input type="text" id="Office" name="Office" required placeholder="e.g., Registrar's Office, Library">
                             </div>
                         </div>
 
@@ -565,7 +582,7 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="adminPurpose">Purpose <span class="required">*</span></label>
-                                <select id="adminPurpose" name="purpose" required>
+                                <select id="Purpose" name="Purpose" required>
                                     <option value="">Select Purpose</option>
                                     <option value="staffMeeting">Staff Meeting</option>
                                     <option value="training">Training Session</option>
@@ -578,12 +595,12 @@
 
                             <div class="form-group">
                                 <label for="adminBookingDate">Date <span class="required">*</span></label>
-                                <input type="date" id="adminBookingDate" name="bookingDate" required>
+                                <input type="date" id="adminBookingDate" name="BookingDate" required>
                             </div>
 
                             <div class="form-group">
                                 <label for="adminBookingTime">Time <span class="required">*</span></label>
-                                <select id="adminBookingTime" name="bookingTime" required>
+                                <select id="adminBookingTime" name="BookingTime" required>
                                     <option value="">Select Time</option>
                                     <!-- Times will be populated by JavaScript -->
                                 </select>
@@ -599,7 +616,7 @@
                             <div class="form-row">
                                 <div class="form-group full-width">
                                     <label for="adminAttendees">List of Attendees (Optional)</label>
-                                    <textarea id="adminAttendees" name="attendees" rows="3" placeholder="Enter names of attendees, separated by commas"></textarea>
+                                    <textarea id="Attendees" name="Attendees" rows="3" placeholder="Enter names of attendees, separated by commas"></textarea>
                                 </div>
                             </div>
                         </div>
@@ -608,7 +625,7 @@
                         <div class="form-row">
                             <div class="form-group full-width">
                                 <label for="adminRequirements">Special Requirements (Optional)</label>
-                                <textarea id="adminRequirements" name="requirements" rows="2" placeholder="Any special equipment or setup needed"></textarea>
+                                <textarea id="Requirements" name="Requirements" rows="2" placeholder="Any special equipment or setup needed"></textarea>
                             </div>
                         </div>
 
@@ -625,12 +642,12 @@
                             </div>
                         </div>
                     </div>
-                </form>
-            </div>
 
-            <div class="modal-footer">
-                <button class="btn-cancel" id="cancelAdminForm">Cancel</button>
-                <button class="btn-submit" id="submitAdminForm">Submit Booking</button>
+                    <div class="modal-footer">
+                        <button type="button" class="btn-cancel" id="cancelAdminForm">Cancel</button>
+                        <button type="submit" class="btn-submit">Submit Booking</button>
+                    </div>
+                }
             </div>
         </div>
     </div>
@@ -644,28 +661,31 @@
             </div>
 
             <div class="modal-body">
-                <form id="facultyBookingForm">
+                @using (Html.BeginForm("SubmitFaculty", "Bookings", FormMethod.Post, new { id = "facultyBookingForm" }))
+                {
+                    @Html.AntiForgeryToken()
+
                     <div class="form-grid">
                         <!-- Name Fields Row -->
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="facultyLastName">Last Name <span class="required">*</span></label>
-                                <input type="text" id="facultyLastName" name="lastName" required>
+                                <input type="text" id="LastName" name="LastName" required>
                             </div>
 
                             <div class="form-group">
                                 <label for="facultyFirstName">First Name <span class="required">*</span></label>
-                                <input type="text" id="facultyFirstName" name="firstName" required>
+                                <input type="text" id="FirstName" name="FirstName" required>
                             </div>
 
                             <div class="form-group">
                                 <label for="facultyMiddleInitial">Middle Initial</label>
-                                <input type="text" id="facultyMiddleInitial" name="middleInitial" maxlength="1">
+                                <input type="text" id="MiddleInitial" name="MiddleInitial" maxlength="1">
                             </div>
 
                             <div class="form-group">
                                 <label for="facultySuffix">Suffix</label>
-                                <select id="facultySuffix" name="suffix">
+                                <select id="Suffix" name="Suffix">
                                     <option value="">None</option>
                                     <option value="Jr.">Jr.</option>
                                     <option value="Sr.">Sr.</option>
@@ -680,12 +700,12 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="facultyEmail">Email Address <span class="required">*</span></label>
-                                <input type="email" id="facultyEmail" name="email" required>
+                                <input type="email" id="Email" name="Email" required>
                             </div>
 
                             <div class="form-group">
                                 <label for="facultyDepartment">Department <span class="required">*</span></label>
-                                <select id="facultyDepartment" name="department" required>
+                                <select id="Department" name="Department" required>
                                     <option value="">Select Department</option>
                                     <option value="ComputerScience">Computer Science</option>
                                     <option value="InformationTechnology">Information Technology</option>
@@ -703,7 +723,7 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="facultyPurpose">Purpose <span class="required">*</span></label>
-                                <select id="facultyPurpose" name="purpose" required>
+                                <select id="Purpose" name="Purpose" required>
                                     <option value="">Select Purpose</option>
                                     <option value="classSession">Class Session</option>
                                     <option value="thesisAdvisory">Thesis Advisory</option>
@@ -717,12 +737,12 @@
 
                             <div class="form-group">
                                 <label for="facultyBookingDate">Date <span class="required">*</span></label>
-                                <input type="date" id="facultyBookingDate" name="bookingDate" required>
+                                <input type="date" id="facultyBookingDate" name="BookingDate" required>
                             </div>
 
                             <div class="form-group">
                                 <label for="facultyBookingTime">Time <span class="required">*</span></label>
-                                <select id="facultyBookingTime" name="bookingTime" required>
+                                <select id="facultyBookingTime" name="BookingTime" required>
                                     <option value="">Select Time</option>
                                     <!-- Times will be populated by JavaScript -->
                                 </select>
@@ -741,7 +761,7 @@
                                     <label for="facultyMemberCount">Number of Members (including you) <span class="required">*</span></label>
                                     <div class="number-input-wrapper">
                                         <button type="button" class="number-btn" id="facultyDecreaseMembers">−</button>
-                                        <input type="number" id="facultyMemberCount" name="memberCount" min="1" max="10" value="1" readonly>
+                                        <input type="number" id="facultyMemberCount" name="MemberCount" min="1" max="10" value="1" readonly>
                                         <button type="button" class="number-btn" id="facultyIncreaseMembers">+</button>
                                     </div>
                                     <div class="helper-text">Maximum: 10 members total</div>
@@ -752,7 +772,7 @@
                                 <!-- Member fields will be dynamically generated here -->
                                 <div class="member-item">
                                     <label>Member 1 (You)</label>
-                                    <input type="text" name="memberName[]" value="You (Main Contact)" readonly>
+                                    <input type="text" name="MemberNames[0]" value="You (Main Contact)" readonly>
                                 </div>
                             </div>
                         </div>
@@ -778,12 +798,12 @@
                             </div>
                         </div>
                     </div>
-                </form>
-            </div>
 
-            <div class="modal-footer">
-                <button class="btn-cancel" id="cancelFacultyForm">Cancel</button>
-                <button class="btn-submit" id="submitFacultyForm">Submit Booking</button>
+                    <div class="modal-footer">
+                        <button type="button" class="btn-cancel" id="cancelFacultyForm">Cancel</button>
+                        <button type="submit" class="btn-submit">Submit Booking</button>
+                    </div>
+                }
             </div>
         </div>
     </div>
