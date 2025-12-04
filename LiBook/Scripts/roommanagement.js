@@ -494,3 +494,239 @@ if (!document.getElementById('room-notification-styles')) {
         '}';
     document.head.appendChild(style);
 }
+
+// ========================================
+// ROOM DETAILS MODAL FUNCTIONS
+// ========================================
+
+/**
+ * Open room details modal (updated version)
+ */
+function openRoomDetailsModal(roomId, linkElement) {
+    if (!roomId) {
+        showNotification('Invalid room ID', 'error');
+        return false;
+    }
+
+    // Prevent default link behavior
+    if (linkElement) {
+        event.preventDefault();
+    }
+
+    // Show loading overlay
+    showLoadingOverlay();
+
+    // Make request to get room details with reservations
+    var url = '/Librarian/GetRoomDetailsWithReservations?roomId=' + roomId;
+
+    // Use fetch to get the partial view
+    fetch(url)
+        .then(function (response) {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.text();
+        })
+        .then(function (html) {
+            // Hide loading overlay
+            hideLoadingOverlay();
+
+            // Remove existing modal if any
+            var existingModal = document.getElementById('roomDetailsModal');
+            if (existingModal) {
+                existingModal.remove();
+            }
+
+            // Add the modal HTML to the body
+            var modalContainer = document.createElement('div');
+            modalContainer.innerHTML = html;
+            document.body.appendChild(modalContainer);
+
+            // Add body styles to prevent scrolling
+            document.body.style.overflow = 'hidden';
+
+            console.log('Room details modal loaded for Room ID:', roomId);
+        })
+        .catch(function (error) {
+            hideLoadingOverlay();
+            console.error('Error loading room details:', error);
+            showNotification('Error loading room details. Please try again.', 'error');
+        });
+
+    return false;
+}
+
+/**
+ * Show loading overlay
+ */
+function showLoadingOverlay() {
+    var loadingOverlay = document.createElement('div');
+    loadingOverlay.id = 'loadingOverlay';
+    loadingOverlay.style.cssText =
+        'position: fixed;' +
+        'top: 0;' +
+        'left: 0;' +
+        'width: 100%;' +
+        'height: 100%;' +
+        'background: rgba(0, 0, 0, 0.5);' +
+        'z-index: 9999;' +
+        'display: flex;' +
+        'align-items: center;' +
+        'justify-content: center;';
+
+    var spinner = document.createElement('div');
+    spinner.style.cssText =
+        'width: 50px;' +
+        'height: 50px;' +
+        'border: 5px solid var(--light-gray);' +
+        'border-top: 5px solid var(--accent-yellow);' +
+        'border-radius: 50%;' +
+        'animation: spin 1s linear infinite;';
+
+    loadingOverlay.appendChild(spinner);
+    document.body.appendChild(loadingOverlay);
+}
+
+/**
+ * Hide loading overlay
+ */
+function hideLoadingOverlay() {
+    var loadingOverlay = document.getElementById('loadingOverlay');
+    if (loadingOverlay) {
+        loadingOverlay.remove();
+    }
+}
+
+/**
+ * Close room details modal (for use within modal HTML)
+ */
+function closeRoomDetailsModal() {
+    var modal = document.getElementById('roomDetailsModal');
+    if (modal) {
+        modal.remove();
+    }
+
+    // Restore body scrolling
+    document.body.style.overflow = 'auto';
+}
+
+/**
+ * Close modal on escape key
+ */
+document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') {
+        closeRoomDetailsModal();
+    }
+});
+
+/**
+ * Close modal when clicking outside
+ */
+document.addEventListener('click', function (e) {
+    var modal = document.getElementById('roomDetailsModal');
+    if (modal && e.target === modal) {
+        closeRoomDetailsModal();
+    }
+});
+
+// Add CSS for spinner animation if not already present
+if (!document.getElementById('modal-spinner-styles')) {
+    var style = document.createElement('style');
+    style.id = 'modal-spinner-styles';
+    style.textContent =
+        '@keyframes spin {' +
+        '    0% { transform: rotate(0deg); }' +
+        '    100% { transform: rotate(360deg); }' +
+        '}';
+    document.head.appendChild(style);
+}
+
+// ========================================
+// ROOM DETAILS MODAL FUNCTIONS
+// ========================================
+
+function openRoomDetailsModal(roomId) {
+    if (!roomId) {
+        showNotification('Invalid room ID', 'error');
+        return;
+    }
+
+    // Show loading
+    showLoadingOverlay();
+
+    // Fetch modal content from server
+    var url = '/Librarian/GetRoomDetailsWithReservations?roomId=' + roomId;
+
+    fetch(url)
+        .then(function (response) {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.text();
+        })
+        .then(function (html) {
+            hideLoadingOverlay();
+
+            // Remove existing modal
+            var existingModal = document.getElementById('roomDetailsModal');
+            if (existingModal) {
+                existingModal.remove();
+            }
+
+            // Add new modal
+            var modalContainer = document.createElement('div');
+            modalContainer.innerHTML = html;
+            document.body.appendChild(modalContainer);
+
+            // Prevent body scrolling
+            document.body.style.overflow = 'hidden';
+        })
+        .catch(function (error) {
+            hideLoadingOverlay();
+            console.error('Error loading room details:', error);
+            showNotification('Error loading room details', 'error');
+        });
+}
+
+function showLoadingOverlay() {
+    var loadingOverlay = document.createElement('div');
+    loadingOverlay.id = 'loadingOverlay';
+    loadingOverlay.style.cssText =
+        'position: fixed;' +
+        'top: 0;' +
+        'left: 0;' +
+        'width: 100%;' +
+        'height: 100%;' +
+        'background: rgba(0,0,0,0.5);' +
+        'z-index: 9999;' +
+        'display: flex;' +
+        'align-items: center;' +
+        'justify-content: center;';
+
+    var spinner = document.createElement('div');
+    spinner.style.cssText =
+        'width: 50px;' +
+        'height: 50px;' +
+        'border: 5px solid #f5f7fa;' +
+        'border-top: 5px solid #ffc107;' +
+        'border-radius: 50%;' +
+        'animation: spin 1s linear infinite;';
+
+    loadingOverlay.appendChild(spinner);
+    document.body.appendChild(loadingOverlay);
+}
+
+function hideLoadingOverlay() {
+    var loadingOverlay = document.getElementById('loadingOverlay');
+    if (loadingOverlay) {
+        loadingOverlay.remove();
+    }
+}
+
+// Add CSS for spinner if not exists
+if (!document.getElementById('spinner-styles')) {
+    var style = document.createElement('style');
+    style.id = 'spinner-styles';
+    style.textContent = '@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }';
+    document.head.appendChild(style);
+}

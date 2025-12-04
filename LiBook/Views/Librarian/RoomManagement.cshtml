@@ -279,10 +279,12 @@
                                 }
 
                                 <div class="room-actions">
-                                    <button class="room-btn room-btn-primary" onclick="openRoomDetails(@room.RoomID)">
+                                    <!-- Updated Details Button - Opens Modal -->
+                                    <button class="room-btn room-btn-primary" onclick="openRoomDetailsModal(@room.RoomID)">
                                         <i class="fas fa-info-circle"></i>
                                         <span>Details</span>
                                     </button>
+
                                     @if (statusClass == "available")
                                     {
                                         <button class="room-btn room-btn-success" onclick="createWalkIn(@room.RoomID)">

@@ -1,10 +1,11 @@
 ﻿@model IEnumerable<LiBook.ViewModels.ReservationViewModel>
 @{
     ViewBag.Title = "Reservations Management";
-    var acceptedReservations = ViewBag.AcceptedReservations as List<LiBook.ViewModels.ReservationViewModel> ?? new List<LiBook.ViewModels.ReservationViewModel>();
-    var cancelledReservations = ViewBag.CancelledReservations as List<LiBook.ViewModels.ReservationViewModel> ?? new List<LiBook.ViewModels.ReservationViewModel>();
+    var acceptedReservations = ViewBag.AcceptedReservations as List<LiBook.Controllers.LibrarianController.ReservationViewModel> ?? new List<LiBook.Controllers.LibrarianController.ReservationViewModel>();
+    var cancelledReservations = ViewBag.CancelledReservations as List<LiBook.Controllers.LibrarianController.ReservationViewModel> ?? new List<LiBook.Controllers.LibrarianController.ReservationViewModel>();
     var acceptedCount = ViewBag.AcceptedCount ?? 0;
     var cancelledCount = ViewBag.CancelledCount ?? 0;
+
 
     // Convert times to AM/PM format
     Func<string, string> FormatTime = (time) =>

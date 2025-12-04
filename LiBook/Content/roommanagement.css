@@ -4845,3 +4845,70 @@ gap: 0.5rem;
     .form-grid {
         gap: 0.875rem;
     }
+
+
+    /* Modal Styles */
+    .modal-container {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: white;
+        border-radius: 12px;
+        z-index: 10000;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        width: 90%;
+        max-width: 900px;
+    }
+
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(4px);
+        z-index: 9999;
+        display: none;
+    }
+
+        .modal-overlay.active {
+            display: block;
+        }
+
+    .modal-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .modal-title {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+        .modal-title h2 {
+            margin: 0;
+            color: var(--text-dark);
+            font-family: 'League Spartan', sans-serif;
+        }
+
+    .modal-close {
+        background: none;
+        border: none;
+        color: var(--text-light);
+        font-size: 1.25rem;
+        cursor: pointer;
+        padding: 0.5rem;
+        border-radius: 6px;
+        transition: all 0.2s ease;
+    }
+
+        .modal-close:hover {
+            background: var(--light-gray);
+            color: var(--text-dark);
+        }
