@@ -1,4 +1,4 @@
-﻿@model List<LiBook.Controllers.LibrarianController.ArchiveReservationViewModel>
+﻿﻿@model List<LiBook.Controllers.LibrarianController.ArchiveReservationViewModel>
 @{
     ViewBag.Title = "Archives";
     var statusFilter = ViewBag.StatusFilter as string ?? "successful";
@@ -13,6 +13,17 @@
 
     // Get reservations from Model (not ViewBag)
     var archivedReservations = Model;
+
+    // Helper function to format time
+    Func<TimeSpan, string> FormatTime = (time) =>
+    {
+        var hours = time.Hours;
+        var minutes = time.Minutes;
+        var ampm = hours >= 12 ? "PM" : "AM";
+        var displayHour = hours % 12;
+        if (displayHour == 0) displayHour = 12;
+        return $"{displayHour}:{minutes:D2} {ampm}";
+    };
 }
 
 <!DOCTYPE html>
@@ -127,6 +138,7 @@
                         <button class="tab-btn active" onclick="submitStatusFilter('successful')">
                             <i class="fas fa-check-circle"></i>
                             <span>Successful Reservations</span>
+                            <span class="tab-badge">@successfulCount</span>
                         </button>
                     }
                     else
@@ -134,6 +146,7 @@
                         <button class="tab-btn" onclick="submitStatusFilter('successful')">
                             <i class="fas fa-check-circle"></i>
                             <span>Successful Reservations</span>
+                            <span class="tab-badge">@successfulCount</span>
                         </button>
                     }
 
@@ -143,6 +156,7 @@
                         <button class="tab-btn active" onclick="submitStatusFilter('cancelled')">
                             <i class="fas fa-times-circle"></i>
                             <span>Cancelled Reservations</span>
+                            <span class="tab-badge">@cancelledCount</span>
                         </button>
                     }
                     else
@@ -150,6 +164,7 @@
                         <button class="tab-btn" onclick="submitStatusFilter('cancelled')">
                             <i class="fas fa-times-circle"></i>
                             <span>Cancelled Reservations</span>
+                            <span class="tab-badge">@cancelledCount</span>
                         </button>
                     }
                 </div>
@@ -197,7 +212,7 @@
                                 </div>
                                 <div class="stat-info">
                                     <h3 id="successful-total-count">@successfulCount</h3>
-                                    <p>Total Reservations</p>
+                                    <p>Total Successful Reservations</p>
                                 </div>
                             </div>
 
@@ -231,50 +246,62 @@
                         </div>
 
                         <div class="table-wrapper">
-                            <table class="data-table">
-                                <thead>
-                                    <tr>
-                                        <th>ID</th>
-                                        <th>Name</th>
-                                        <th>User Type</th>
-                                        <th>Date</th>
-                                        <th>Time</th>
-                                        <th>Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @if (archivedReservations != null && archivedReservations.Any())
-                                    {
-                                        foreach (var reservation in archivedReservations)
+                            @if (archivedReservations != null && archivedReservations.Any())
+                            {
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Name</th>
+                                            <th>User Type</th>
+                                            <th>Date</th>
+                                            <th>Time</th>
+                                            <th>Room</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var reservation in archivedReservations)
                                         {
                                             <tr data-user-type="@reservation.UserType" data-reservation-id="@reservation.ID">
                                                 <td>@reservation.ReservationID</td>
-                                                <td><div class="user-cell"><span>@reservation.ReserveeName</span></div></td>
+                                                <td>
+                                                    <div class="user-cell">
+                                                        <img src="https://ui-avatars.com/api/?name=@Uri.EscapeDataString(reservation.ReserveeName)&background=random&color=fff"
+                                                             alt="@reservation.ReserveeName"
+                                                             class="user-avatar">
+                                                        <span>@reservation.ReserveeName</span>
+                                                    </div>
+                                                </td>
                                                 <td><div class="user-type-cell"><strong>@reservation.UserType</strong></div></td>
                                                 <td>@reservation.BookingDate.ToString("MMM dd, yyyy")</td>
-                                                <td>@reservation.StartTime.ToString(@"hh\:mm") - @reservation.EndTime.ToString(@"hh\:mm")</td>
+                                                <td>@FormatTime(reservation.StartTime) - @FormatTime(reservation.EndTime)</td>
+                                                <td>@reservation.RoomName</td>
                                                 <td><span class="badge-status success">@reservation.Status</span></td>
                                             </tr>
                                         }
-                                    }
-                                    else
-                                    {
-                                        <tr>
-                                            <td colspan="6" style="text-align: center; padding: 2rem;">
-                                                No successful reservations found in the archives.
-                                            </td>
-                                        </tr>
-                                    }
-                                </tbody>
-                            </table>
+                                    </tbody>
+                                </table>
+                            }
+                            else
+                            {
+                                <div class="empty-state">
+                                    <i class="fas fa-calendar-check"></i>
+                                    <h3>No Successful Reservations</h3>
+                                    <p>Completed reservations will appear here after their scheduled time has passed</p>
+                                </div>
+                            }
                         </div>
 
-                        <div class="pagination">
-                            <button class="pagination-btn" disabled><i class="fas fa-chevron-left"></i></button>
-                            <button class="pagination-btn active">1</button>
-                            <button class="pagination-btn">2</button>
-                            <button class="pagination-btn"><i class="fas fa-chevron-right"></i></button>
-                        </div>
+                        @if (archivedReservations != null && archivedReservations.Any())
+                        {
+                            <div class="pagination">
+                                <button class="pagination-btn" disabled><i class="fas fa-chevron-left"></i></button>
+                                <button class="pagination-btn active">1</button>
+                                <button class="pagination-btn">2</button>
+                                <button class="pagination-btn"><i class="fas fa-chevron-right"></i></button>
+                            </div>
+                        }
                     </div>
                 }
 
@@ -347,50 +374,62 @@
                         </div>
 
                         <div class="table-wrapper">
-                            <table class="data-table">
-                                <thead>
-                                    <tr>
-                                        <th>ID</th>
-                                        <th>Name</th>
-                                        <th>User Type</th>
-                                        <th>Date</th>
-                                        <th>Time</th>
-                                        <th>Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @if (archivedReservations != null && archivedReservations.Any())
-                                    {
-                                        foreach (var reservation in archivedReservations)
+                            @if (archivedReservations != null && archivedReservations.Any())
+                            {
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Name</th>
+                                            <th>User Type</th>
+                                            <th>Date</th>
+                                            <th>Time</th>
+                                            <th>Room</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var reservation in archivedReservations)
                                         {
                                             <tr data-user-type="@reservation.UserType" data-reservation-id="@reservation.ID">
                                                 <td>@reservation.ReservationID</td>
-                                                <td><div class="user-cell"><span>@reservation.ReserveeName</span></div></td>
+                                                <td>
+                                                    <div class="user-cell">
+                                                        <img src="https://ui-avatars.com/api/?name=@Uri.EscapeDataString(reservation.ReserveeName)&background=random&color=fff"
+                                                             alt="@reservation.ReserveeName"
+                                                             class="user-avatar">
+                                                        <span>@reservation.ReserveeName</span>
+                                                    </div>
+                                                </td>
                                                 <td><div class="user-type-cell"><strong>@reservation.UserType</strong></div></td>
                                                 <td>@reservation.BookingDate.ToString("MMM dd, yyyy")</td>
-                                                <td>@reservation.StartTime.ToString(@"hh\:mm") - @reservation.EndTime.ToString(@"hh\:mm")</td>
+                                                <td>@FormatTime(reservation.StartTime) - @FormatTime(reservation.EndTime)</td>
+                                                <td>@reservation.RoomName</td>
                                                 <td><span class="badge-status cancelled">@reservation.Status</span></td>
                                             </tr>
                                         }
-                                    }
-                                    else
-                                    {
-                                        <tr>
-                                            <td colspan="6" style="text-align: center; padding: 2rem;">
-                                                No cancelled reservations found in the archives.
-                                            </td>
-                                        </tr>
-                                    }
-                                </tbody>
-                            </table>
+                                    </tbody>
+                                </table>
+                            }
+                            else
+                            {
+                                <div class="empty-state">
+                                    <i class="fas fa-ban"></i>
+                                    <h3>No Cancelled Reservations</h3>
+                                    <p>Cancelled reservations will appear here</p>
+                                </div>
+                            }
                         </div>
 
-                        <div class="pagination">
-                            <button class="pagination-btn" disabled><i class="fas fa-chevron-left"></i></button>
-                            <button class="pagination-btn active">1</button>
-                            <button class="pagination-btn">2</button>
-                            <button class="pagination-btn"><i class="fas fa-chevron-right"></i></button>
-                        </div>
+                        @if (archivedReservations != null && archivedReservations.Any())
+                        {
+                            <div class="pagination">
+                                <button class="pagination-btn" disabled><i class="fas fa-chevron-left"></i></button>
+                                <button class="pagination-btn active">1</button>
+                                <button class="pagination-btn">2</button>
+                                <button class="pagination-btn"><i class="fas fa-chevron-right"></i></button>
+                            </div>
+                        }
                     </div>
                 }
             </div>
@@ -424,20 +463,44 @@
         // Client-side table filtering
         function filterTable(tabType, searchTerm) {
             const table = document.querySelector(`#${tabType}-tab .data-table tbody`);
-
             if (!table) return;
 
             const rows = table.querySelectorAll('tr[data-reservation-id]');
             const term = searchTerm.toLowerCase();
 
+            let visibleCount = 0;
             rows.forEach(row => {
                 const text = row.textContent.toLowerCase();
                 if (text.includes(term)) {
                     row.style.display = '';
+                    visibleCount++;
                 } else {
                     row.style.display = 'none';
                 }
             });
+
+            // Show empty state if no results
+            const emptyState = table.closest('.table-wrapper').querySelector('.empty-state');
+            if (visibleCount === 0 && term !== '') {
+                if (!emptyState) {
+                    const tableWrapper = table.closest('.table-wrapper');
+                    const emptyHtml = `
+                            <div class="empty-state">
+                                <i class="fas fa-search"></i>
+                                <h3>No Results Found</h3>
+                                <p>No reservations match your search: "${term}"</p>
+                            </div>
+                        `;
+                    tableWrapper.innerHTML = emptyHtml;
+                }
+            } else if (visibleCount > 0 && emptyState) {
+                // Remove empty state if we have results
+                emptyState.remove();
+                const tableWrapper = table.closest('.table-wrapper');
+                if (tableWrapper.innerHTML.includes('empty-state')) {
+                    location.reload(); // Reload to show table again
+                }
+            }
         }
 
         // Initialize search functionality

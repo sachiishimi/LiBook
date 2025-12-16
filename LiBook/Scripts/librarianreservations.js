@@ -331,10 +331,12 @@ class ReservationsManager {
         this.setupPanelActions();
     }
 
+    // In showReservationDetails method, update the actions section:
     setupPanelActions() {
         setTimeout(() => {
             const archiveBtn = document.getElementById("archiveBtn");
             const cancelBtn = document.getElementById("cancelBtn");
+            const approveBtn = document.getElementById("approveBtn");
 
             if (archiveBtn) {
                 archiveBtn.addEventListener("click", (e) => {
@@ -353,6 +355,16 @@ class ReservationsManager {
                     const reservationId = cancelBtn.dataset.reservationId;
                     const userName = cancelBtn.closest('.panel-actions')?.previousElementSibling?.querySelector('h4')?.textContent || '';
                     this.openCancelModal(reservationId, userName);
+                });
+            }
+
+            if (approveBtn) {
+                approveBtn.addEventListener("click", (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const reservationId = approveBtn.dataset.reservationId;
+                    // You might want to add an approve form submission here
+                    alert(`Approving reservation ${reservationId}`);
                 });
             }
         }, 100);

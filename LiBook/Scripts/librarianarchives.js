@@ -215,7 +215,7 @@ tabButtons.forEach(button => {
 });
 
 // ========================================
-// CLIENT-SIDE SEARCH FUNCTIONALITY
+// CLIENT-SIDE SEARCH FUNCTIONALITY - UPDATED
 // ========================================
 const successfulSearch = document.getElementById('successfulSearch');
 const cancelledSearch = document.getElementById('cancelledSearch');
@@ -227,34 +227,11 @@ function setupSearchFunctionality(searchInput, tabType) {
         const searchTerm = e.target.value.toLowerCase();
         const table = document.querySelector(`#${tabType}-tab .data-table tbody`);
 
-        if (!table) return;
+        // If no table (empty state), show notification
+        if (!table) {
+            showNotification('Searching archived reservations...', 'info');
+            return;
 
-        const rows = table.querySelectorAll('tr[data-reservation-id]');
-        let visibleCount = 0;
-
-        rows.forEach(row => {
-            const text = row.textContent.toLowerCase();
-            if (text.includes(searchTerm)) {
-                row.style.display = '';
-                visibleCount++;
-            } else {
-                row.style.display = 'none';
-            }
-        });
-
-        if (visibleCount === 0 && searchTerm !== '') {
-            showNotification('No results found for "' + searchTerm + '"', 'info');
-        }
-    });
-}
-
-if (successfulSearch) {
-    setupSearchFunctionality(successfulSearch, 'successful');
-}
-
-if (cancelledSearch) {
-    setupSearchFunctionality(cancelledSearch, 'cancelled');
-}
 
 // ========================================
 // STAT CARD CLICK FUNCTIONALITY

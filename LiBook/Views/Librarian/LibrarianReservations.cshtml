@@ -3,9 +3,12 @@
     ViewBag.Title = "Reservations Management";
     var acceptedReservations = ViewBag.AcceptedReservations as List<LiBook.Controllers.LibrarianController.ReservationViewModel> ?? new List<LiBook.Controllers.LibrarianController.ReservationViewModel>();
     var cancelledReservations = ViewBag.CancelledReservations as List<LiBook.Controllers.LibrarianController.ReservationViewModel> ?? new List<LiBook.Controllers.LibrarianController.ReservationViewModel>();
+    var pendingReservations = ViewBag.PendingReservations as List<LiBook.Controllers.LibrarianController.ReservationViewModel> ?? new List<LiBook.Controllers.LibrarianController.ReservationViewModel>();
+
     var acceptedCount = ViewBag.AcceptedCount ?? 0;
     var cancelledCount = ViewBag.CancelledCount ?? 0;
-
+    var pendingCount = ViewBag.PendingCount ?? 0;
+    var currentStatusFilter = ViewBag.CurrentStatusFilter ?? "all";
 
     // Convert times to AM/PM format
     Func<string, string> FormatTime = (time) =>
@@ -29,6 +32,38 @@
             catch { }
         }
         return time;
+    };
+
+    // Function to get status badge class
+    Func<string, string> GetStatusClass = (status) =>
+    {
+        switch (status.ToLower())
+        {
+            case "accepted":
+                return "status-accepted";
+            case "cancelled":
+                return "status-cancelled";
+            case "pending":
+                return "status-pending";
+            default:
+                return "status-unknown";
+        }
+    };
+
+    // Function to get status text
+    Func<string, string> GetStatusText = (status) =>
+    {
+        switch (status.ToLower())
+        {
+            case "accepted":
+                return "Accepted";
+            case "cancelled":
+                return "Cancelled";
+            case "pending":
+                return "Pending";
+            default:
+                return "Unknown";
+        }
     };
 }
 
@@ -92,7 +127,7 @@
                 </button>
                 <div class="page-header">
                     <h1 class="page-title">Reservations Management</h1>
-                    <p>Manage and review all room reservation requests</p>
+                    <p>Manage and review active room reservation requests</p>
                 </div>
             </div>
 
@@ -149,24 +184,34 @@
             </div>
         }
 
+        <!-- Status Filter -->
+        <div class="status-filter-container">
+            <div class="status-filter">
+                <a href="@Url.Action("FilterReservations", "Librarian", new { statusFilter = "all" })"
+                   class="status-filter-btn @(currentStatusFilter == "all" ? "active" : "")">
+                    All Active Reservations
+                    <span class="status-count">@(acceptedCount + cancelledCount + pendingCount)</span>
+                </a>
+                <a href="@Url.Action("FilterReservations", "Librarian", new { statusFilter = "accepted" })"
+                   class="status-filter-btn @(currentStatusFilter == "accepted" ? "active" : "")">
+                    <i class="fas fa-calendar-check"></i> Accepted
+                    <span class="status-count">@acceptedCount</span>
+                </a>
+                <a href="@Url.Action("FilterReservations", "Librarian", new { statusFilter = "pending" })"
+                   class="status-filter-btn @(currentStatusFilter == "pending" ? "active" : "")">
+                    <i class="fas fa-clock"></i> Pending
+                    <span class="status-count">@pendingCount</span>
+                </a>
+                <a href="@Url.Action("FilterReservations", "Librarian", new { statusFilter = "cancelled" })"
+                   class="status-filter-btn @(currentStatusFilter == "cancelled" ? "active" : "")">
+                    <i class="fas fa-ban"></i> Cancelled
+                    <span class="status-count">@cancelledCount</span>
+                </a>
+            </div>
+        </div>
+
         <!-- Reservations Content -->
         <main class="content">
-            <!-- Tabs -->
-            <div class="tabs-container">
-                <div class="tabs">
-                    <button class="tab active" data-tab="accepted">
-                        <i class="fas fa-check-circle"></i>
-                        Accepted
-                        <span class="tab-badge">@acceptedCount</span>
-                    </button>
-                    <button class="tab" data-tab="cancelled">
-                        <i class="fas fa-ban"></i>
-                        Cancelled
-                        <span class="tab-badge">@cancelledCount</span>
-                    </button>
-                </div>
-            </div>
-
             <!-- Main Content Area with Table and Side Panel -->
             <div class="content-wrapper">
                 <!-- Panel Backdrop -->
@@ -195,69 +240,33 @@
                     </div>
 
                     <div id="tableContent">
-                        <!-- Accepted Reservations Table -->
-                        <div class="table-wrapper" id="acceptedTable" style="display: block;">
-                            @if (acceptedReservations.Any())
-                            {
-                                <table class="reservations-table">
-                                    <thead>
-                                        <tr>
-                                            <th>User</th>
-                                            <th>Room</th>
-                                            <th>Date</th>
-                                            <th>Time</th>
-                                            <th>Status</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach (var reservation in acceptedReservations)
-                                        {
-                                            <tr data-reservation-id="@reservation.ID"
-                                                data-name="@reservation.ReserveeName"
-                                                data-email="@reservation.Email"
-                                                data-user-type="@reservation.UserType"
-                                                data-room="@reservation.RoomName"
-                                                data-date="@reservation.FormattedDate"
-                                                data-time="@reservation.FormattedTime"
-                                                data-purpose="@reservation.Purpose"
-                                                data-program="@reservation.Program"
-                                                data-student-number="@reservation.StudentNumber">
-                                                <td>
-                                                    <div class="user-cell">
-                                                        <img src="https://ui-avatars.com/api/?name=@Uri.EscapeDataString(reservation.ReserveeName)&background=random"
-                                                             alt="@reservation.ReserveeName"
-                                                             class="user-avatar">
-                                                        <div class="user-details">
-                                                            <strong>@reservation.ReserveeName</strong>
-                                                            <small>@reservation.Email</small>
-                                                            <span class="user-type">@reservation.UserType</span>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td>@reservation.RoomName</td>
-                                                <td>@reservation.FormattedDate</td>
-                                                <td>@FormatTime(reservation.StartTime) - @FormatTime(reservation.EndTime)</td>
-                                                <td>
-                                                    <span class="status-badge status-accepted">Accepted</span>
-                                                </td>
-                                            </tr>
-                                        }
-                                    </tbody>
-                                </table>
-                            }
-                            else
-                            {
-                                <div class="empty-state">
-                                    <i class="fas fa-inbox"></i>
-                                    <h3>No accepted reservations</h3>
-                                    <p>All accepted reservations will appear here</p>
-                                </div>
-                            }
-                        </div>
+                        <!-- Display reservations based on current filter -->
+                        @{
+                            var reservationsToShow = new List<LiBook.Controllers.LibrarianController.ReservationViewModel>();
 
-                        <!-- Cancelled Reservations Table -->
-                        <div class="table-wrapper" id="cancelledTable" style="display: none;">
-                            @if (cancelledReservations.Any())
+                            switch (currentStatusFilter)
+                            {
+                                case "accepted":
+                                    reservationsToShow = acceptedReservations;
+                                    break;
+                                case "cancelled":
+                                    reservationsToShow = cancelledReservations;
+                                    break;
+                                case "pending":
+                                    reservationsToShow = pendingReservations;
+                                    break;
+                                default:
+                                    reservationsToShow = acceptedReservations
+                                        .Concat(cancelledReservations)
+                                        .Concat(pendingReservations)
+                                        .OrderByDescending(r => r.BookingDate)
+                                        .ToList();
+                                    break;
+                            }
+                        }
+
+                        <div class="table-wrapper" id="reservationsTable">
+                            @if (reservationsToShow.Any())
                             {
                                 <table class="reservations-table">
                                     <thead>
@@ -270,7 +279,7 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @foreach (var reservation in cancelledReservations)
+                                        @foreach (var reservation in reservationsToShow)
                                         {
                                             <tr data-reservation-id="@reservation.ID"
                                                 data-name="@reservation.ReserveeName"
@@ -281,7 +290,8 @@
                                                 data-time="@reservation.FormattedTime"
                                                 data-purpose="@reservation.Purpose"
                                                 data-program="@reservation.Program"
-                                                data-student-number="@reservation.StudentNumber">
+                                                data-student-number="@reservation.StudentNumber"
+                                                data-status="@reservation.Status">
                                                 <td>
                                                     <div class="user-cell">
                                                         <img src="https://ui-avatars.com/api/?name=@Uri.EscapeDataString(reservation.ReserveeName)&background=random"
@@ -298,7 +308,9 @@
                                                 <td>@reservation.FormattedDate</td>
                                                 <td>@FormatTime(reservation.StartTime) - @FormatTime(reservation.EndTime)</td>
                                                 <td>
-                                                    <span class="status-badge status-cancelled">Cancelled</span>
+                                                    <span class="status-badge @GetStatusClass(reservation.Status)">
+                                                        @GetStatusText(reservation.Status)
+                                                    </span>
                                                 </td>
                                             </tr>
                                         }
@@ -308,9 +320,16 @@
                             else
                             {
                                 <div class="empty-state">
-                                    <i class="fas fa-inbox"></i>
-                                    <h3>No cancelled reservations</h3>
-                                    <p>All cancelled reservations will appear here</p>
+                                    <i class="fas fa-calendar-check"></i>
+                                    <h3>No Active Reservations</h3>
+                                    <p>@(currentStatusFilter != "all" ? $"No {currentStatusFilter} reservations" : "All reservations have been completed or archived")</p>
+                                    <p class="small-text">
+                                        <i class="fas fa-info-circle"></i>
+                                        Completed reservations can be found in the
+                                        <a href="@Url.Action("LibrarianArchives", "Librarian")" class="archive-link">
+                                            Archives section
+                                        </a>
+                                    </p>
                                 </div>
                             }
                         </div>
@@ -329,9 +348,9 @@
                             </button>
                         </div>
                         <div class="table-info" id="tableInfo">
-                            @if (acceptedReservations.Any())
+                            @if (reservationsToShow.Any())
                             {
-                                <text>Showing 1-@acceptedReservations.Count of @acceptedReservations.Count reservations</text>
+                                <text>Showing 1-@reservationsToShow.Count of @reservationsToShow.Count reservations</text>
                             }
                             else
                             {

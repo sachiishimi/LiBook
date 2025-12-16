@@ -77,5 +77,39 @@ namespace LiBook.Models
         public virtual Room Room { get; set; }
         public virtual Schedule Schedule { get; set; }
         public virtual ICollection<Member> Members { get; set; }
+
+        // Helper property to determine if booking is in the past
+        [NotMapped]
+        public bool IsPastBooking
+        {
+            get
+            {
+                var currentDateTime = DateTime.Now;
+                var bookingDateTime = BookingDate.Date.Add(Schedule?.EndTime ?? TimeSpan.Zero);
+                return bookingDateTime < currentDateTime;
+            }
+        }
+
+        // Helper property for status
+        [NotMapped]
+        public string Status
+        {
+            get
+            {
+                if (CancelledAt.HasValue)
+                    return "cancelled";
+
+                if (IsPastBooking && ApprovedAt.HasValue)
+                    return "successful";
+
+                if (ApprovedAt.HasValue)
+                    return "accepted";
+
+                if (SubmittedAt.HasValue)
+                    return "pending";
+
+                return "unknown";
+            }
+        }
     }
 }
