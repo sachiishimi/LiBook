@@ -1004,3 +1004,38 @@ body {
         min-height: 350px;
     }
 }
+
+/* ============================================
+   ROOM AVAILABILITY SCROLLABLE CONTAINER
+   ============================================ */
+.popular-books .card-body {
+    max-height: 400px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+    /* Custom Scrollbar for Room Availability */
+    .popular-books .card-body::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .popular-books .card-body::-webkit-scrollbar-track {
+        background: var(--light-gray);
+        border-radius: 10px;
+    }
+
+    .popular-books .card-body::-webkit-scrollbar-thumb {
+        background: var(--medium-gray);
+        border-radius: 10px;
+        transition: background 0.3s ease;
+    }
+
+        .popular-books .card-body::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-blue);
+        }
+
+/* Firefox Scrollbar */
+.popular-books .card-body {
+    scrollbar-width: thin;
+    scrollbar-color: var(--medium-gray) var(--light-gray);
+}

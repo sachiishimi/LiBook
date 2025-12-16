@@ -1,4 +1,4 @@
-﻿@{
+﻿﻿@{
     ViewData["Title"] = "Admin Dashboard";
 }
 
@@ -188,47 +188,31 @@
                         <h2>Recent Reservations</h2>
                         <button class="btn-link" onclick="viewAllReservations()">View All</button>
                     </div>
-                    <div class="card-body">
-                        <div class="activity-item">
-                            <div class="activity-icon blue">
-                                <i class="fas fa-calendar-plus"></i>
+                    <div class="card-body" id="recentReservationsContainer">
+                        @if (ViewBag.RecentReservations != null && ((List<LiBook.Models.ViewModel.RecentReservationViewModel>)ViewBag.RecentReservations).Count > 0)
+                        {
+                            foreach (var reservation in (List<LiBook.Models.ViewModel.RecentReservationViewModel>)ViewBag.RecentReservations)
+                            {
+                                <div class="activity-item">
+                                    <div class="activity-icon @reservation.ActivityIconColor">
+                                        <i class="@reservation.ActivityIcon"></i>
+                                    </div>
+                                    <div class="activity-details">
+                                        <p><strong>@reservation.Status Booking</strong></p>
+                                        <span>@reservation.RoomName - @reservation.ReserveeName</span>
+                                        <small>@reservation.FormattedDate, @reservation.FormattedTime</small>
+                                    </div>
+                                    <span class="activity-time">@reservation.TimeAgo</span>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <div class="empty-state">
+                                <i class="fas fa-calendar-times empty-icon"></i>
+                                <p>No Recent Reservations for now.</p>
                             </div>
-                            <div class="activity-details">
-                                <p><strong>New reservation request</strong></p>
-                                <span>Collaboration Room A - Today, 2:00 PM</span>
-                            </div>
-                            <span class="activity-time">10 min ago</span>
-                        </div>
-                        <div class="activity-item">
-                            <div class="activity-icon red">
-                                <i class="fas fa-user-check"></i>
-                            </div>
-                            <div class="activity-details">
-                                <p><strong>Reservation approved</strong></p>
-                                <span>Study Room B - John Smith</span>
-                            </div>
-                            <span class="activity-time">1 hour ago</span>
-                        </div>
-                        <div class="activity-item">
-                            <div class="activity-icon yellow">
-                                <i class="fas fa-clock"></i>
-                            </div>
-                            <div class="activity-details">
-                                <p><strong>Upcoming reservation</strong></p>
-                                <span>Meeting Room C - Starting in 30 min</span>
-                            </div>
-                            <span class="activity-time">2 hours ago</span>
-                        </div>
-                        <div class="activity-item">
-                            <div class="activity-icon dark">
-                                <i class="fas fa-times-circle"></i>
-                            </div>
-                            <div class="activity-details">
-                                <p><strong>Reservation cancelled</strong></p>
-                                <span>Study Room D - Conflict in schedule</span>
-                            </div>
-                            <span class="activity-time">3 hours ago</span>
-                        </div>
+                        }
                     </div>
                 </div>
 
@@ -238,39 +222,28 @@
                         <h2>Room Availability Today</h2>
                         <button class="btn-link" onclick="viewAllRooms()">View All</button>
                     </div>
-                    <div class="card-body">
-                        <div class="book-item">
-                            <div class="book-rank available">A</div>
-                            <div class="book-info">
-                                <h4>Collaboration Room A</h4>
-                                <p>Capacity: 8 people</p>
+                    <div class="card-body" id="roomAvailabilityContainer">
+                        @if (ViewBag.RoomAvailabilityToday != null && ((List<LiBook.Models.ViewModel.RoomAvailabilityViewModel>)ViewBag.RoomAvailabilityToday).Count > 0)
+                        {
+                            foreach (var room in (List<LiBook.Models.ViewModel.RoomAvailabilityViewModel>)ViewBag.RoomAvailabilityToday)
+                            {
+                                <div class="book-item">
+                                    <div class="book-rank @room.StatusClass">@room.RankLetter</div>
+                                    <div class="book-info">
+                                        <h4>@room.RoomName</h4>
+                                        <p>Capacity: @room.Capacity people</p>
+                                    </div>
+                                    <span class="book-borrows @room.StatusClass">@room.DisplayStatus</span>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <div class="empty-state">
+                                <i class="fas fa-door-closed empty-icon"></i>
+                                <p>No available rooms for now.</p>
                             </div>
-                            <span class="book-borrows available">Available</span>
-                        </div>
-                        <div class="book-item">
-                            <div class="book-rank occupied">B</div>
-                            <div class="book-info">
-                                <h4>Study Room B</h4>
-                                <p>Capacity: 4 people</p>
-                            </div>
-                            <span class="book-borrows occupied">Occupied</span>
-                        </div>
-                        <div class="book-item">
-                            <div class="book-rank available">C</div>
-                            <div class="book-info">
-                                <h4>Meeting Room C</h4>
-                                <p>Capacity: 12 people</p>
-                            </div>
-                            <span class="book-borrows available">Available</span>
-                        </div>
-                        <div class="book-item">
-                            <div class="book-rank maintenance">D</div>
-                            <div class="book-info">
-                                <h4>Study Room D</h4>
-                                <p>Capacity: 6 people</p>
-                            </div>
-                            <span class="book-borrows maintenance">Maintenance</span>
-                        </div>
+                        }
                     </div>
                 </div>
             </div>
@@ -283,6 +256,8 @@
     window.reservationTrendsMonth = @Html.Raw(ViewBag.ReservationTrendsMonthJson ?? "[]");
     window.reservationTrendsYear = @Html.Raw(ViewBag.ReservationTrendsYearJson ?? "[]");
     window.roomUtilization = @Html.Raw(ViewBag.RoomUtilizationJson ?? "[]");
+    window.recentReservations = @Html.Raw(ViewBag.RecentReservationsJson ?? "[]");
+    window.roomAvailabilityToday = @Html.Raw(ViewBag.RoomAvailabilityTodayJson ?? "[]");
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>

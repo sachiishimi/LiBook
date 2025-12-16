@@ -99,23 +99,179 @@ function initializeDashboardData() {
     const isDashboard = document.getElementById('totalReservations') !== null;
 
     if (isDashboard) {
-        // Update stats
-        const totalReservations = document.getElementById('totalReservations');
-        const availableRooms = document.getElementById('availableRooms');
-        const userCount = document.getElementById('userCount');
-        const reservationsChange = document.getElementById('reservationsChange');
-        const roomsChange = document.getElementById('roomsChange');
-        const userChange = document.getElementById('userChange');
-
-        //if (totalReservations) totalReservations.textContent = '47';
-        //if (availableRooms) availableRooms.textContent = '12';
-        //if (userCount) userCount.textContent = '125';
-        //if (reservationsChange) reservationsChange.textContent = '12%';
-        //if (roomsChange) roomsChange.textContent = '3%';
-        //if (userChange) userChange.textContent = '8%';
         // Initialize charts
         initializeCharts();
+
+        // If we have recent reservations data, update the UI
+        if (window.recentReservations && window.recentReservations.length > 0) {
+            updateRecentReservationsUI(window.recentReservations);
+        }
+
+        // If we have room availability data, update the UI
+        if (window.roomAvailabilityToday && window.roomAvailabilityToday.length > 0) {
+            updateRoomAvailabilityUI(window.roomAvailabilityToday);
+        }
     }
+}
+
+function updateRecentReservationsUI(reservations) {
+    const container = document.getElementById('recentReservationsContainer');
+    if (!container) return;
+
+    // Clear existing content except the first child (which might be empty state)
+    while (container.firstChild) {
+        container.removeChild(container.firstChild);
+    }
+
+    if (reservations.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-calendar-times empty-icon"></i>
+                <p>No Recent Reservations for now.</p>
+            </div>
+        `;
+        return;
+    }
+
+    reservations.forEach(reservation => {
+        const activityItem = document.createElement('div');
+        activityItem.className = 'activity-item';
+
+        // Determine icon and color based on status
+        let iconClass, iconColor, statusText;
+        switch (reservation.Status) {
+            case 'Pending':
+                iconClass = 'fas fa-clock';
+                iconColor = 'yellow';
+                statusText = 'New reservation request';
+                break;
+            case 'Approved':
+                iconClass = 'fas fa-user-check';
+                iconColor = 'blue';
+                statusText = 'Reservation approved';
+                break;
+            case 'Cancelled':
+                iconClass = 'fas fa-times-circle';
+                iconColor = 'dark';
+                statusText = 'Reservation cancelled';
+                break;
+            default:
+                iconClass = 'fas fa-calendar-plus';
+                iconColor = 'blue';
+                statusText = 'Reservation request';
+        }
+
+        // Format time
+        const timeAgo = getTimeAgo(reservation.SubmittedAt);
+
+        activityItem.innerHTML = `
+            <div class="activity-icon ${iconColor}">
+                <i class="${iconClass}"></i>
+            </div>
+            <div class="activity-details">
+                <p><strong>${statusText}</strong></p>
+                <span>${reservation.RoomName} - ${reservation.ReserveeName}</span>
+                <small>${formatDate(reservation.BookingDate)}, ${formatTime(reservation.StartTime)} - ${formatTime(reservation.EndTime)}</small>
+            </div>
+            <span class="activity-time">${timeAgo}</span>
+        `;
+
+        container.appendChild(activityItem);
+    });
+}
+
+function updateRoomAvailabilityUI(rooms) {
+    const container = document.getElementById('roomAvailabilityContainer');
+    if (!container) return;
+
+    // Clear existing content
+    while (container.firstChild) {
+        container.removeChild(container.firstChild);
+    }
+
+    if (rooms.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-door-closed empty-icon"></i>
+                <p>No available rooms for now.</p>
+            </div>
+        `;
+        return;
+    }
+
+    rooms.forEach(room => {
+        const bookItem = document.createElement('div');
+        bookItem.className = 'book-item';
+
+        // Determine status and class
+        let statusClass, statusText;
+        if (room.Availability === 'Available' && !room.HasBookingToday) {
+            statusClass = 'available';
+            statusText = 'Available';
+        } else if (room.Availability === 'Under Maintenance') {
+            statusClass = 'maintenance';
+            statusText = 'Maintenance';
+        } else if (room.HasBookingToday) {
+            statusClass = 'occupied';
+            statusText = 'Occupied';
+        } else {
+            statusClass = 'unknown';
+            statusText = room.Availability;
+        }
+
+        // Get first letter of room name for rank
+        const rankLetter = room.RoomName && room.RoomName.length > 0 ? room.RoomName[0] : 'A';
+
+        bookItem.innerHTML = `
+            <div class="book-rank ${statusClass}">${rankLetter}</div>
+            <div class="book-info">
+                <h4>${room.RoomName}</h4>
+                <p>Capacity: ${room.Capacity} people</p>
+            </div>
+            <span class="book-borrows ${statusClass}">${statusText}</span>
+        `;
+
+        container.appendChild(bookItem);
+    });
+}
+
+function formatDate(dateString) {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+function formatTime(timeString) {
+    // If timeString is already a TimeSpan object with hours/minutes
+    if (typeof timeString === 'object' && timeString.hours !== undefined) {
+        const hours = timeString.hours.toString().padStart(2, '0');
+        const minutes = timeString.minutes.toString().padStart(2, '0');
+        return `${hours}:${minutes}`;
+    }
+
+    // If it's a string
+    if (typeof timeString === 'string') {
+        return timeString;
+    }
+
+    return '00:00';
+}
+
+function getTimeAgo(dateString) {
+    if (!dateString) return 'Recently';
+
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins} min ago`;
+    if (diffHours < 24) return `${diffHours} hour${diffHours !== 1 ? 's' : ''} ago`;
+    if (diffDays < 7) return `${diffDays} day${diffDays !== 1 ? 's' : ''} ago`;
+
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
 // ========================================
@@ -364,7 +520,7 @@ function viewAllReservations() {
 }
 
 function viewAllRooms() {
-    showNotification('Viewing all rooms...', 'info');
+    window.location.href = '/AdminDashboard/Rooms';
 }
 
 // ========================================
@@ -417,19 +573,18 @@ style.textContent = `
             opacity: 0;
         }
     }
+    .empty-state {
+        text-align: center;
+        padding: 2rem;
+        color: #7f8c8d;
+    }
+    .empty-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        color: #bdc3c7;
+    }
 `;
 document.head.appendChild(style);
-
-// ========================================
-// SEARCH FUNCTIONALITY
-// ========================================
-const searchInput = document.querySelector('.search-bar input');
-if (searchInput) {
-    searchInput.addEventListener('input', (e) => {
-        const searchTerm = e.target.value.toLowerCase();
-        console.log('Searching for:', searchTerm);
-    });
-}
 
 // ========================================
 // NOTIFICATION BUTTON

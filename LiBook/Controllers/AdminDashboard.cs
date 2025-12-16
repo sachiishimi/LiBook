@@ -11,7 +11,7 @@ using EntityState = System.Data.Entity.EntityState;
 
 namespace LiBook.Controllers
 {
-    [Authorize(Roles = "Admin")] // This protects ALL actions in this controller
+    [Authorize(Roles = "Admin")]
     public class AdminDashboardController : Controller
     {
         private LiBookEntities db = new LiBookEntities();
@@ -63,17 +63,66 @@ namespace LiBook.Controllers
             }
             catch (Exception)
             {
-                // Fallback to static value if calculation fails
-                ViewBag.ReservationsChange = 12.0;
+                ViewBag.ReservationsChange = 0;
             }
 
             // For rooms change
-            ViewBag.RoomsChange = 3.0;
+            ViewBag.RoomsChange = 0;
 
             // For user change
-            ViewBag.UserChange = 8.0;
+            ViewBag.UserChange = 0;
 
-            // ===== NEW: Get Reservation Trends (Last 7 Days) =====
+            // ===== Get Recent Reservations (Last 5 bookings) =====
+            // Exclude: past bookings, completed bookings, and cancelled bookings
+            var recentBookings = db.Bookings
+                .Include(b => b.Room)
+                .Include(b => b.Schedule)
+                .Where(b => b.SubmittedAt.HasValue &&
+                           !b.CancelledAt.HasValue &&
+                           b.BookingDate >= today)
+                .OrderByDescending(b => b.SubmittedAt)
+                .Take(5)
+                .ToList()
+                .Select(b => new RecentReservationViewModel
+                {
+                    Id = b.ID,
+                    RoomName = b.Room?.RoomName ?? "Unknown Room",
+                    ReserveeName = FormatReserveeName(b.ReserveeFirstName, b.ReserveeMiddleName, b.ReserveeLastName),
+                    Status = GetBookingStatus(b.SubmittedAt, b.ApprovedAt, b.CancelledAt),
+                    BookingDate = b.BookingDate,
+                    StartTime = b.Schedule?.StartTime ?? TimeSpan.Zero,
+                    EndTime = b.Schedule?.EndTime ?? TimeSpan.Zero,
+                    SubmittedAt = b.SubmittedAt,
+                    Purpose = b.Purpose ?? "No purpose specified"
+                })
+                .ToList();
+
+            ViewBag.RecentReservations = recentBookings;
+            ViewBag.RecentReservationsJson = JsonConvert.SerializeObject(recentBookings);
+
+            // ===== Get Room Availability Today =====
+            // Gets ALL rooms regardless of RoomType (Academic, Function Hall, etc.)
+            var roomsToday = db.Rooms
+                .Where(r => !r.DateArchived.HasValue)
+                .ToList()
+                .Select(r => new RoomAvailabilityViewModel
+                {
+                    Id = r.ID,
+                    RoomName = r.RoomName,
+                    Capacity = r.Capacity,
+                    Availability = r.Availability ?? "Unknown",
+                    HasBookingToday = db.Bookings.Any(b => b.RoomID == r.ID &&
+                                                          DbFunctions.TruncateTime(b.BookingDate) == today &&
+                                                          b.ApprovedAt.HasValue &&
+                                                          !b.CancelledAt.HasValue)
+                })
+                .OrderBy(r => r.RoomName)
+                .ToList();
+
+            ViewBag.RoomAvailabilityToday = roomsToday;
+            ViewBag.RoomAvailabilityTodayJson = JsonConvert.SerializeObject(roomsToday);
+
+            // ===== Get Reservation Trends =====
             var last7Days = Enumerable.Range(0, 7)
                 .Select(i => today.AddDays(-i))
                 .Reverse()
@@ -83,7 +132,7 @@ namespace LiBook.Controllers
 
             foreach (var date in last7Days)
             {
-                var dayName = date.ToString("ddd"); // Mon, Tue, etc.
+                var dayName = date.ToString("ddd");
                 var count = db.Bookings
                     .Where(b => DbFunctions.TruncateTime(b.BookingDate) == date)
                     .Count();
@@ -95,7 +144,7 @@ namespace LiBook.Controllers
                 });
             }
 
-            // ===== NEW: Get Room Utilization =====
+            // ===== Get Room Utilization =====
             var allRooms = db.Rooms.Where(r => !r.DateArchived.HasValue).ToList();
             var totalRooms = allRooms.Count();
 
@@ -103,7 +152,6 @@ namespace LiBook.Controllers
 
             if (totalRooms > 0)
             {
-                // Group by Availability status
                 var statusGroups = allRooms
                     .GroupBy(r => r.Availability ?? "Unknown")
                     .Select(g => new
@@ -127,32 +175,44 @@ namespace LiBook.Controllers
             }
             else
             {
-                // Default data if no rooms exist
                 roomUtilization = new List<RoomUtilizationViewModel>
-        {
-            new RoomUtilizationViewModel { Status = "Available", Count = 0, Percentage = 0 },
-            new RoomUtilizationViewModel { Status = "Occupied", Count = 0, Percentage = 0 },
-            new RoomUtilizationViewModel { Status = "Maintenance", Count = 0, Percentage = 0 }
-        };
+                {
+                    new RoomUtilizationViewModel { Status = "Available", Count = 0, Percentage = 0 },
+                    new RoomUtilizationViewModel { Status = "Occupied", Count = 0, Percentage = 0 },
+                    new RoomUtilizationViewModel { Status = "Maintenance", Count = 0, Percentage = 0 }
+                };
             }
 
-            // Pass data to ViewBag
             ViewBag.ReservationTrends = reservationTrends;
             ViewBag.RoomUtilization = roomUtilization;
             ViewBag.ReservationTrendsJson = JsonConvert.SerializeObject(reservationTrends);
             ViewBag.RoomUtilizationJson = JsonConvert.SerializeObject(roomUtilization);
 
-            // ===== Get Reservation Trends for different periods =====
             ViewBag.ReservationTrendsWeek = GetReservationTrendsForPeriod("week");
             ViewBag.ReservationTrendsMonth = GetReservationTrendsForPeriod("month");
             ViewBag.ReservationTrendsYear = GetReservationTrendsForPeriod("year");
 
-            // Add these as JSON too
             ViewBag.ReservationTrendsWeekJson = JsonConvert.SerializeObject(ViewBag.ReservationTrendsWeek);
             ViewBag.ReservationTrendsMonthJson = JsonConvert.SerializeObject(ViewBag.ReservationTrendsMonth);
             ViewBag.ReservationTrendsYearJson = JsonConvert.SerializeObject(ViewBag.ReservationTrendsYear);
 
             return View();
+        }
+
+        private string FormatReserveeName(string firstName, string middleName, string lastName)
+        {
+            var nameParts = new List<string>();
+
+            if (!string.IsNullOrWhiteSpace(lastName))
+                nameParts.Add(lastName.Trim());
+
+            if (!string.IsNullOrWhiteSpace(firstName))
+                nameParts.Add(firstName.Trim());
+
+            if (!string.IsNullOrWhiteSpace(middleName))
+                nameParts.Add(middleName.Trim());
+
+            return nameParts.Count > 0 ? string.Join(", ", nameParts) : "Unknown User";
         }
 
         private List<ReservationTrendViewModel> GetReservationTrendsForPeriod(string period)
@@ -163,7 +223,6 @@ namespace LiBook.Controllers
             switch (period.ToLower())
             {
                 case "week":
-                    // Last 7 days
                     for (int i = 6; i >= 0; i--)
                     {
                         var date = today.AddDays(-i);
@@ -181,7 +240,6 @@ namespace LiBook.Controllers
                     break;
 
                 case "month":
-                    // Last 30 days, grouped by week
                     for (int i = 3; i >= 0; i--)
                     {
                         var startDate = today.AddDays(-((i + 1) * 7) + 1);
@@ -201,7 +259,6 @@ namespace LiBook.Controllers
                     break;
 
                 case "year":
-                    // Last 12 months
                     for (int i = 11; i >= 0; i--)
                     {
                         var monthDate = today.AddMonths(-i);
@@ -226,13 +283,23 @@ namespace LiBook.Controllers
             return trends;
         }
 
+        private string GetBookingStatus(DateTime? submittedAt, DateTime? approvedAt, DateTime? cancelledAt)
+        {
+            if (cancelledAt.HasValue)
+                return "Cancelled";
+            if (approvedAt.HasValue)
+                return "Approved";
+            if (submittedAt.HasValue)
+                return "Pending";
+            return "Unknown";
+        }
+
         // GET: /AdminDashboard/Reservations
         public ActionResult Reservations()
         {
             return View(db.Rooms.Where(r => !r.DateArchived.HasValue).ToList());
         }
-        // Add this method to AdminDashboardController.cs
-        // Replace the GetRoomBookings method with this corrected version
+
         public ActionResult GetRoomBookings(int roomId)
         {
             var bookings = db.Bookings
@@ -262,7 +329,7 @@ namespace LiBook.Controllers
                 .Select(b => new BookingViewModel
                 {
                     Id = b.Id,
-                    BookingId = b.Id.ToString("D4"), // Format after materialization
+                    BookingId = b.Id.ToString("D4"),
                     RoomId = b.RoomID,
                     RoomName = b.RoomName,
                     ReserveeName = FormatName(b.ReserveeLastName, b.ReserveeFirstName, b.ReserveeMiddleName),
@@ -283,7 +350,6 @@ namespace LiBook.Controllers
             return Json(bookings, JsonRequestBehavior.AllowGet);
         }
 
-        // Helper method to format name
         private string FormatName(string lastName, string firstName, string middleName)
         {
             var nameParts = new List<string>();
@@ -300,19 +366,6 @@ namespace LiBook.Controllers
             return nameParts.Count > 0 ? string.Join(", ", nameParts) : "Unknown";
         }
 
-        // Helper method to determine booking status
-        private string GetBookingStatus(DateTime? submittedAt, DateTime? approvedAt, DateTime? cancelledAt)
-        {
-            if (cancelledAt.HasValue)
-                return "Cancelled";
-            if (approvedAt.HasValue)
-                return "Approved";
-            if (submittedAt.HasValue)
-                return "Pending";
-            return "Draft";
-        }
-
-        // Helper method to format schedule
         private string FormatSchedule(TimeSpan? startTime, TimeSpan? endTime)
         {
             if (!startTime.HasValue || !endTime.HasValue)
@@ -320,12 +373,11 @@ namespace LiBook.Controllers
 
             return $"{startTime.Value:hh\\:mm} - {endTime.Value:hh\\:mm}";
         }
-        // Add this method to get a single booking's details
-        // Update the GetBookingDetails method in AdminDashboardController.cs
+
         public ActionResult GetBookingDetails(int id)
         {
             var booking = db.Bookings
-                .Include(b => b.Members) // Include Members
+                .Include(b => b.Members)
                 .Include(b => b.Room)
                 .Include(b => b.Schedule)
                 .FirstOrDefault(b => b.ID == id);
@@ -335,7 +387,6 @@ namespace LiBook.Controllers
                 return Json(new { error = "Booking not found" }, JsonRequestBehavior.AllowGet);
             }
 
-            // Extract member names
             var memberNames = booking.Members?.Select(m => m.FullName).ToList() ?? new List<string>();
 
             var bookingViewModel = new BookingViewModel
@@ -355,20 +406,12 @@ namespace LiBook.Controllers
                 CancelledAt = booking.CancelledAt,
                 Status = GetBookingStatus(booking.SubmittedAt, booking.ApprovedAt, booking.CancelledAt),
                 Schedule = FormatSchedule(booking.Schedule?.StartTime, booking.Schedule?.EndTime),
-                Members = memberNames // This should now work
+                Members = memberNames
             };
 
             return Json(bookingViewModel, JsonRequestBehavior.AllowGet);
-
         }
 
-        //private string GetAntiForgeryToken()
-        //{
-        //    var token = System.Web.Helpers.AntiForgery.GetTokens(null).Item1;
-        //    return token?.ToString() ?? "";
-        //}
-
-        // Add these methods for bulk cancellation
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult CancelMultipleBookings(List<int> ids)
@@ -380,22 +423,16 @@ namespace LiBook.Controllers
                     return Json(new { success = false, message = "No bookings selected" });
                 }
 
-                Console.WriteLine($"Cancelling {ids.Count} bookings: {string.Join(",", ids)}");
-
                 var bookings = db.Bookings
                     .Where(b => ids.Contains(b.ID) && !b.CancelledAt.HasValue)
                     .ToList();
 
-                Console.WriteLine($"Found {bookings.Count} bookings to cancel");
-
                 foreach (var booking in bookings)
                 {
                     booking.CancelledAt = DateTime.Now;
-                    Console.WriteLine($"Cancelled booking ID: {booking.ID}");
                 }
 
                 int changes = db.SaveChanges();
-                Console.WriteLine($"Saved {changes} changes to database");
 
                 return Json(new
                 {
@@ -406,14 +443,6 @@ namespace LiBook.Controllers
             }
             catch (Exception ex)
             {
-                // Log the full error
-                Console.WriteLine($"ERROR in CancelMultipleBookings: {ex.Message}");
-                Console.WriteLine($"Stack Trace: {ex.StackTrace}");
-                if (ex.InnerException != null)
-                {
-                    Console.WriteLine($"Inner Exception: {ex.InnerException.Message}");
-                }
-
                 return Json(new
                 {
                     success = false,
@@ -445,14 +474,11 @@ namespace LiBook.Controllers
             }
         }
 
-
-        // R00MS
-        // GET: /AdminDashboard/Rooms
         public ActionResult Rooms()
         {
             return View(db.Rooms.Where(r => !r.DateArchived.HasValue).ToList());
         }
-        // POST: AdminDashboard/CreateRoom
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult CreateRoom([Bind(Include = "ID,RoomName,RoomType,Capacity,Availability,DateArchived")] Room room)
@@ -466,7 +492,7 @@ namespace LiBook.Controllers
 
             return View("Rooms", room);
         }
-        // POST: AdminDashboard/EditRoom/5
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult EditRoom([Bind(Include = "ID,RoomName,RoomType,Capacity,Availability,DateArchived")] Room room)
@@ -480,7 +506,6 @@ namespace LiBook.Controllers
             return View(room);
         }
 
-        // Add this method to AdminDashboard.cs
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult ArchiveRoom(int id)
@@ -495,7 +520,7 @@ namespace LiBook.Controllers
 
             return RedirectToAction("Rooms");
         }
-        // Ensure this method exists and is correct
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult CancelBooking(int id)
@@ -505,13 +530,7 @@ namespace LiBook.Controllers
                 var booking = db.Bookings.Find(id);
                 if (booking != null)
                 {
-                    // Set cancellation date to current date/time
                     booking.CancelledAt = DateTime.Now;
-
-                    // Also update status in database if needed
-                    // If you have a Status field directly in Booking model
-                    // booking.Status = "Cancelled";
-
                     db.Entry(booking).State = EntityState.Modified;
                     db.SaveChanges();
 
@@ -538,7 +557,7 @@ namespace LiBook.Controllers
                 });
             }
         }
-        // Archive multiple bookings
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult ArchiveBookings(List<int> ids)
@@ -548,9 +567,6 @@ namespace LiBook.Controllers
                 var bookings = db.Bookings.Where(b => ids.Contains(b.ID)).ToList();
                 foreach (var booking in bookings)
                 {
-                    // Add DateArchived field to Booking model first
-                    // Then uncomment this:
-                    // booking.DateArchived = DateTime.Now;
                 }
 
                 db.SaveChanges();
@@ -562,7 +578,6 @@ namespace LiBook.Controllers
             }
         }
 
-        // Archive single booking
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult ArchiveBooking(int id)
@@ -572,9 +587,6 @@ namespace LiBook.Controllers
                 var booking = db.Bookings.Find(id);
                 if (booking != null)
                 {
-                    // Add DateArchived field to Booking model first
-                    // Then uncomment this:
-                    // booking.DateArchived = DateTime.Now;
                     db.Entry(booking).State = EntityState.Modified;
                     db.SaveChanges();
                     return Json(new { success = true });
@@ -587,19 +599,16 @@ namespace LiBook.Controllers
             }
         }
 
-
-
-        // USERS
-        // GET: /AdminDashboard/Librarian (User actually)
         public ActionResult Librarian()
         {
             var usersWithRoles = GetUsersWithRoles();
             return View(usersWithRoles);
         }
+
         private List<UserWithRolesViewModel> GetUsersWithRoles()
         {
             var usersWithRoles = (from user in db.Users
-                                  where user.DateArchived == null // Only active users
+                                  where user.DateArchived == null
                                   select new UserWithRolesViewModel
                                   {
                                       ID = user.ID,
@@ -619,15 +628,17 @@ namespace LiBook.Controllers
 
             return usersWithRoles;
         }
-        // Helper methods to get separated lists
+
         public List<UserWithRolesViewModel> GetAdmins(List<UserWithRolesViewModel> allUsers)
         {
             return allUsers.Where(u => u.IsAdmin).ToList();
         }
+
         public List<UserWithRolesViewModel> GetLibrarians(List<UserWithRolesViewModel> allUsers)
         {
             return allUsers.Where(u => u.IsLibrarian).ToList();
         }
+
         protected override void Dispose(bool disposing)
         {
             if (disposing)
@@ -636,8 +647,6 @@ namespace LiBook.Controllers
             }
             base.Dispose(disposing);
         }
-        // POST: AdminDashboard/CreateUser
-        // In your AdminDashboardController, update the CreateUser method to ensure proper role assignment:
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -647,18 +656,13 @@ namespace LiBook.Controllers
             {
                 try
                 {
-                    // Set default values
                     user.AccountStatus = "Active";
                     user.DateArchived = null;
-
-                    // Generate simple random password
                     user.UserPassword = GeneratePassword();
 
-                    // Add user
                     db.Users.Add(user);
-                    db.SaveChanges(); // user.ID is generated here
+                    db.SaveChanges();
 
-                    // Create user role mapping
                     var userRoleMapping = new UserRolesMapping
                     {
                         UserID = user.ID,
@@ -668,7 +672,6 @@ namespace LiBook.Controllers
                     db.UserRolesMappings.Add(userRoleMapping);
                     db.SaveChanges();
 
-                    // ---- EMAIL: notify user of their account ----
                     try
                     {
                         string subject = "Your LiBook account has been created";
@@ -681,12 +684,10 @@ namespace LiBook.Controllers
             </ul>
             <p>Thanks,<br/>Your Team</p>";
 
-                        // Synchronous send:
                         LiBook.Helpers.EmailHelper.SendEmail(user.Email, subject, body);
                     }
                     catch (Exception mailEx)
                     {
-                        // Log email error but don't fail user creation
                         System.Diagnostics.Debug.WriteLine("Email sending failed: " + mailEx.Message);
                     }
 
@@ -698,10 +699,10 @@ namespace LiBook.Controllers
                 }
             }
 
-            // If we got here, something went wrong - reload the page with users
             var usersWithRoles = GetUsersWithRoles();
             return View("Librarian", usersWithRoles);
         }
+
         private string GeneratePassword()
         {
             const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -709,7 +710,7 @@ namespace LiBook.Controllers
             return new string(Enumerable.Repeat(chars, 8)
                 .Select(s => s[random.Next(s.Length)]).ToArray());
         }
-        // POST: AdminDashboard/EditUser/5
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult EditUser([Bind(Include = "ID,FirstName,LastName,MiddleName,Suffix,Email,UserPassword,AccountStatus,DateArchived")] User user)
@@ -722,7 +723,7 @@ namespace LiBook.Controllers
             }
             return RedirectToAction("Librarian");
         }
-        // Add this method to AdminDashboard.cs (after the EditUser method)
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult ArchiveUser(int id)
@@ -739,39 +740,25 @@ namespace LiBook.Controllers
             return RedirectToAction("Librarian");
         }
 
-
-
-
-
-
-
-
-        // GET: /AdminDashboard/AdminManagement
         public ActionResult AdminManagement()
         {
             return View();
         }
 
-        // GET: /AdminDashboard/Archives
-        // In AdminDashboardController.cs, add this method in the Archives section:
-
         public ActionResult Archives()
         {
-            // Get archived rooms
             var archivedRooms = db.Rooms
                 .Where(r => r.DateArchived.HasValue)
                 .OrderByDescending(r => r.DateArchived)
                 .ToList();
             ViewBag.ArchivedRooms = archivedRooms;
 
-            // Get cancelled bookings
             var cancelledBookings = db.Bookings
                 .Where(b => b.CancelledAt.HasValue)
                 .OrderByDescending(b => b.CancelledAt)
                 .ToList();
             ViewBag.CancelledBookings = cancelledBookings;
 
-            // Get archived users
             var archivedUsers = db.Users
                 .Where(u => u.DateArchived.HasValue)
                 .OrderByDescending(u => u.DateArchived)
@@ -780,8 +767,6 @@ namespace LiBook.Controllers
 
             return View();
         }
-
-        // Add restore/unarchive methods:
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -809,9 +794,6 @@ namespace LiBook.Controllers
             var booking = db.Bookings.Find(id);
             if (booking != null)
             {
-                // Instead of unarchiving, we'll just remove the cancelled status
-                // Or you might want to create a new booking - depending on your business logic
-                // For now, let's just remove the cancellation
                 booking.CancelledAt = null;
                 db.Entry(booking).State = EntityState.Modified;
                 db.SaveChanges();
