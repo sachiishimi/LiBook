@@ -729,4 +729,370 @@ if (!document.getElementById('spinner-styles')) {
     style.id = 'spinner-styles';
     style.textContent = '@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }';
     document.head.appendChild(style);
+}// ========================================
+// LIBRARIAN NOTIFICATION SYSTEM
+// ========================================
+
+class NotificationSystem {
+    constructor() {
+        this.notifications = [];
+        this.unreadCount = 0;
+        this.notificationBtn = document.querySelector('.notification-btn');
+        this.notificationPanel = null;
+        this.badge = document.querySelector('.notification-btn .badge');
+        this.isOpen = false;
+
+        this.init();
+    }
+
+    init() {
+        // Create notification panel
+        this.createNotificationPanel();
+
+        // Bind events
+        this.bindEvents();
+
+        // Load notifications
+        this.loadNotifications();
+
+        // Refresh notifications every 30 seconds
+        setInterval(() => this.loadNotifications(), 30000);
+    }
+
+    createNotificationPanel() {
+        const panel = document.createElement('div');
+        panel.className = 'notification-panel';
+        panel.id = 'notificationPanel';
+        panel.innerHTML = `
+            <div class="notification-header">
+                <h3>
+                    <i class="fas fa-bell"></i>
+                    Notifications
+                </h3>
+                <button class="mark-all-read" onclick="notificationSystem.markAllAsRead()">
+                    <i class="fas fa-check-double"></i>
+                    Mark all as read
+                </button>
+            </div>
+            <div class="notification-tabs">
+                <button class="notification-tab active" data-type="all">
+                    <i class="fas fa-list"></i>
+                    All
+                </button>
+                <button class="notification-tab" data-type="booking">
+                    <i class="fas fa-calendar-check"></i>
+                    Bookings
+                </button>
+                <button class="notification-tab" data-type="decline">
+                    <i class="fas fa-times-circle"></i>
+                    Declines
+                </button>
+                <button class="notification-tab" data-type="room">
+                    <i class="fas fa-door-open"></i>
+                    Rooms
+                </button>
+            </div>
+            <div class="notification-list" id="notificationList">
+                <div class="notification-loading">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p>Loading notifications...</p>
+                </div>
+            </div>
+            <div class="notification-footer">
+                <a href="/Librarian/ViewAllNotifications" class="view-all-link">
+                    View All Notifications
+                    <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+        `;
+
+        document.body.appendChild(panel);
+        this.notificationPanel = panel;
+    }
+
+    bindEvents() {
+        // Toggle notification panel
+        if (this.notificationBtn) {
+            this.notificationBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.togglePanel();
+            });
+        }
+
+        // Close panel when clicking outside
+        document.addEventListener('click', (e) => {
+            if (this.isOpen && !this.notificationPanel.contains(e.target) && !this.notificationBtn.contains(e.target)) {
+                this.closePanel();
+            }
+        });
+
+        // Tab switching
+        const tabs = this.notificationPanel.querySelectorAll('.notification-tab');
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                const type = tab.getAttribute('data-type');
+                this.filterNotifications(type);
+            });
+        });
+
+        // Close on escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && this.isOpen) {
+                this.closePanel();
+            }
+        });
+    }
+
+    togglePanel() {
+        if (this.isOpen) {
+            this.closePanel();
+        } else {
+            this.openPanel();
+        }
+    }
+
+    openPanel() {
+        this.notificationPanel.classList.add('active');
+        this.isOpen = true;
+
+        // Mark notifications as seen (not read, just seen)
+        this.updateBadge(0);
+    }
+
+    closePanel() {
+        this.notificationPanel.classList.remove('active');
+        this.isOpen = false;
+    }
+
+    async loadNotifications() {
+        try {
+            // Simulate API call - Replace this with your actual API endpoint
+            const response = await this.fetchNotifications();
+
+            this.notifications = response.notifications || [];
+            this.unreadCount = response.unreadCount || 0;
+
+            this.updateBadge(this.unreadCount);
+            this.renderNotifications();
+        } catch (error) {
+            console.error('Error loading notifications:', error);
+            this.showError();
+        }
+    }
+
+    async fetchNotifications() {
+        // REPLACE THIS WITH YOUR ACTUAL API CALL
+        // Example: const response = await fetch('/Librarian/GetNotifications');
+        // return await response.json();
+
+        // Simulated data for demonstration
+        return new Promise((resolve) => {
+            setTimeout(() => {
+                resolve({
+                    unreadCount: 5,
+                    notifications: [
+                        {
+                            id: 1,
+                            type: 'booking',
+                            title: 'New Reservation',
+                            message: 'John Doe booked Study Room 101',
+                            time: '2 minutes ago',
+                            isRead: false,
+                            icon: 'fa-calendar-check',
+                            color: '#27ae60',
+                            actionUrl: '/Librarian/LibrarianReservations'
+                        },
+                        {
+                            id: 2,
+                            type: 'booking',
+                            title: 'New Reservation',
+                            message: 'Jane Smith booked Conference Room A',
+                            time: '5 minutes ago',
+                            isRead: false,
+                            icon: 'fa-calendar-check',
+                            color: '#27ae60',
+                            actionUrl: '/Librarian/LibrarianReservations'
+                        },
+                        {
+                            id: 3,
+                            type: 'decline',
+                            title: 'Reservation Declined',
+                            message: 'Bob Johnson cancelled Study Room 202',
+                            time: '15 minutes ago',
+                            isRead: false,
+                            icon: 'fa-times-circle',
+                            color: '#e74c3c',
+                            actionUrl: '/Librarian/LibrarianArchives'
+                        },
+                        {
+                            id: 4,
+                            type: 'room',
+                            title: 'New Room Added',
+                            message: 'Study Room 305 has been added to the system',
+                            time: '1 hour ago',
+                            isRead: true,
+                            icon: 'fa-door-open',
+                            color: '#3498db',
+                            actionUrl: '/Librarian/RoomManagement'
+                        },
+                        {
+                            id: 5,
+                            type: 'booking',
+                            title: 'Walk-in Reservation',
+                            message: 'Walk-in guest reserved Meeting Room B',
+                            time: '2 hours ago',
+                            isRead: true,
+                            icon: 'fa-walking',
+                            color: '#f39c12',
+                            actionUrl: '/Librarian/LibrarianReservations'
+                        }
+                    ]
+                });
+            }, 500);
+        });
+    }
+
+    renderNotifications(filteredNotifications = null) {
+        const notificationList = document.getElementById('notificationList');
+        const notifications = filteredNotifications || this.notifications;
+
+        if (notifications.length === 0) {
+            notificationList.innerHTML = `
+                <div class="notification-empty">
+                    <i class="fas fa-bell-slash"></i>
+                    <p>No notifications</p>
+                </div>
+            `;
+            return;
+        }
+
+        notificationList.innerHTML = notifications.map(notification => `
+            <div class="notification-item ${notification.isRead ? 'read' : 'unread'}" 
+                 data-id="${notification.id}" 
+                 data-type="${notification.type}"
+                 onclick="notificationSystem.handleNotificationClick(${notification.id}, '${notification.actionUrl}')">
+                <div class="notification-icon" style="background: ${notification.color};">
+                    <i class="fas ${notification.icon}"></i>
+                </div>
+                <div class="notification-content">
+                    <div class="notification-title">${notification.title}</div>
+                    <div class="notification-message">${notification.message}</div>
+                    <div class="notification-time">
+                        <i class="fas fa-clock"></i>
+                        ${notification.time}
+                    </div>
+                </div>
+                ${!notification.isRead ? '<div class="notification-dot"></div>' : ''}
+            </div>
+        `).join('');
+    }
+
+    filterNotifications(type) {
+        if (type === 'all') {
+            this.renderNotifications();
+        } else {
+            const filtered = this.notifications.filter(n => n.type === type);
+            this.renderNotifications(filtered);
+        }
+    }
+
+    handleNotificationClick(notificationId, actionUrl) {
+        // Mark as read
+        const notification = this.notifications.find(n => n.id === notificationId);
+        if (notification) {
+            notification.isRead = true;
+            this.unreadCount = Math.max(0, this.unreadCount - 1);
+            this.updateBadge(this.unreadCount);
+
+            // Update UI
+            const notificationElement = document.querySelector(`[data-id="${notificationId}"]`);
+            if (notificationElement) {
+                notificationElement.classList.remove('unread');
+                notificationElement.classList.add('read');
+                const dot = notificationElement.querySelector('.notification-dot');
+                if (dot) dot.remove();
+            }
+        }
+
+        // Navigate to action URL
+        if (actionUrl) {
+            window.location.href = actionUrl;
+        }
+    }
+
+    markAllAsRead() {
+        this.notifications.forEach(n => n.isRead = true);
+        this.unreadCount = 0;
+        this.updateBadge(0);
+        this.renderNotifications();
+
+        // Show success message
+        this.showToast('All notifications marked as read', 'success');
+    }
+
+    updateBadge(count) {
+        if (this.badge) {
+            if (count > 0) {
+                this.badge.textContent = count > 99 ? '99+' : count;
+                this.badge.style.display = 'flex';
+            } else {
+                this.badge.style.display = 'none';
+            }
+        }
+    }
+
+    showError() {
+        const notificationList = document.getElementById('notificationList');
+        notificationList.innerHTML = `
+            <div class="notification-error">
+                <i class="fas fa-exclamation-triangle"></i>
+                <p>Failed to load notifications</p>
+                <button onclick="notificationSystem.loadNotifications()" class="retry-btn">
+                    <i class="fas fa-redo"></i>
+                    Retry
+                </button>
+            </div>
+        `;
+    }
+
+    showToast(message, type = 'info') {
+        const toast = document.createElement('div');
+        toast.className = `notification-toast notification-toast-${type}`;
+
+        const icons = {
+            success: 'fa-check-circle',
+            error: 'fa-exclamation-circle',
+            warning: 'fa-exclamation-triangle',
+            info: 'fa-info-circle'
+        };
+
+        toast.innerHTML = `
+            <i class="fas ${icons[type] || icons.info}"></i>
+            <span>${message}</span>
+        `;
+
+        document.body.appendChild(toast);
+
+        // Trigger animation
+        setTimeout(() => toast.classList.add('show'), 10);
+
+        // Remove after 3 seconds
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+}
+
+// Initialize notification system when DOM is ready
+let notificationSystem;
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        notificationSystem = new NotificationSystem();
+    });
+} else {
+    notificationSystem = new NotificationSystem();
 }

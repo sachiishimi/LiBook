@@ -1,4 +1,4 @@
-﻿﻿@model IEnumerable<LiBook.Controllers.LibrarianController.RoomManagementViewModel>
+﻿@model IEnumerable<LiBook.Controllers.LibrarianController.RoomManagementViewModel>
 @{
     ViewBag.Title = "Room Management";
 
@@ -187,17 +187,6 @@
                     <div class="stat-info">
                         <h3 id="unavailableCount">@ViewBag.UnavailableCount</h3>
                         <p>Unavailable</p>
-                    </div>
-                </div>
-                <div class="stat-card stat-maintenance @(currentStatus == "maintenance" ? "active" : "")"
-                     data-filter="maintenance" role="button" tabindex="0"
-                     onclick="filterRooms('maintenance')">
-                    <div class="stat-icon">
-                        <i class="fas fa-wrench"></i>
-                    </div>
-                    <div class="stat-info">
-                        <h3 id="maintenanceCount">@ViewBag.MaintenanceCount</h3>
-                        <p>Maintenance</p>
                     </div>
                 </div>
             </div>
