@@ -71,9 +71,9 @@
                 </button>
             </div>
 
-            <div class="search-bar">
-                <i class="fas fa-search"></i>
-                <input type="text" id="userSearch" placeholder="Search users...">
+            <div class="content-header">
+                <h1>User Management</h1>
+                <p>Manage librarians and administrators in the system.</p>
             </div>
 
             <div class="topbar-actions">
@@ -103,7 +103,7 @@
                         @using (Html.BeginForm("Logout", "Account", FormMethod.Post, new { id = "logoutForm" }))
                         {
                             @Html.AntiForgeryToken()
-                            <a href="#" class="dropdown-item logout">
+                            <a href="#" class="dropdown-item logout" onclick="document.getElementById('logoutForm').submit()">
                                 <i class="fas fa-sign-out-alt"></i>
                                 <span>Logout</span>
                             </a>
@@ -115,9 +115,9 @@
 
         <!-- User Management Content -->
         <main class="content">
-            <div class="content-header">
-                <h1>User Management</h1>
-                <p>Manage librarians and administrators in the system.</p>
+            <div class="search-bar">
+                <i class="fas fa-search"></i>
+                <input type="text" id="userSearch" placeholder="Search users...">
             </div>
 
             <!-- Tabs and Action Bar -->

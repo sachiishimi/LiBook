@@ -57,6 +57,15 @@ class ReservationsApp {
             this.closeSidebar.addEventListener('click', () => this.closeMobileSidebar());
         }
 
+        //LOGOUT FUNCTION MANNNN SAWADIKAAAA
+        const logoutLinks = document.querySelectorAll('.dropdown-item.logout');
+        logoutLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                document.getElementById('logoutForm').submit();
+            });
+        });
+
         // User Profile Events
         if (this.userProfile) {
             this.userProfile.addEventListener('click', (e) => this.toggleUserDropdown(e));
@@ -382,7 +391,7 @@ class ReservationsApp {
             this.selectedBookings.add(bookingId);
         }
 
-        // Update select all checkbox
+        // select all checkbox
         const selectAll = this.roomModal?.querySelector('#selectAllBookings');
         if (selectAll && this.currentRoomBookings) {
             const allChecked = this.currentRoomBookings.every(b => this.selectedBookings.has(b.Id));
