@@ -1,4 +1,4 @@
-﻿﻿@model List<LiBook.Controllers.LibrarianController.ArchiveReservationViewModel>
+﻿﻿﻿@model List<LiBook.Controllers.LibrarianController.ArchiveReservationViewModel>
 @{
     ViewBag.Title = "Archives";
     var statusFilter = ViewBag.StatusFilter as string ?? "successful";
@@ -91,10 +91,6 @@
             </div>
 
             <div class="topbar-actions">
-                <button class="icon-btn notification-btn">
-                    <i class="fas fa-bell"></i>
-                    <span class="badge">3</span>
-                </button>
                 <div class="user-profile" id="userProfile">
                     <img src="https://ui-avatars.com/api/?name=Librarian&background=2c3e50&color=fff" alt="Librarian">
                     <div class="user-info">
@@ -105,15 +101,6 @@
 
                     <!-- User Dropdown Menu -->
                     <div class="user-dropdown" id="userDropdown">
-                        <a href="#" class="dropdown-item">
-                            <i class="fas fa-user-cog"></i>
-                            <span>Settings</span>
-                        </a>
-                        <a href="#" class="dropdown-item">
-                            <i class="fas fa-question-circle"></i>
-                            <span>Help & Support</span>
-                        </a>
-                        <div class="dropdown-divider"></div>
                         @using (Html.BeginForm("Logout", "Account", FormMethod.Post, new { id = "logoutForm" }))
                         {
                             @Html.AntiForgeryToken()
@@ -485,12 +472,12 @@
                 if (!emptyState) {
                     const tableWrapper = table.closest('.table-wrapper');
                     const emptyHtml = `
-                            <div class="empty-state">
-                                <i class="fas fa-search"></i>
-                                <h3>No Results Found</h3>
-                                <p>No reservations match your search: "${term}"</p>
-                            </div>
-                        `;
+                                <div class="empty-state">
+                                    <i class="fas fa-search"></i>
+                                    <h3>No Results Found</h3>
+                                    <p>No reservations match your search: "${term}"</p>
+                                </div>
+                            `;
                     tableWrapper.innerHTML = emptyHtml;
                 }
             } else if (visibleCount > 0 && emptyState) {

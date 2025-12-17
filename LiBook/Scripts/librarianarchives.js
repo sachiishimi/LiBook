@@ -93,13 +93,13 @@ navItems.forEach(item => {
     });
 });
 
-// Handle logout button
+// Handle logout button - FIXED VERSION
 const logoutButton = document.getElementById('logoutButton');
 if (logoutButton) {
     logoutButton.addEventListener('click', (e) => {
         e.preventDefault();
         const logoutForm = document.getElementById('logoutForm');
-        if (logoutForm && logoutForm instanceof HTMLFormElement) {
+        if (logoutForm) {
             logoutForm.submit();
         }
     });
@@ -231,7 +231,9 @@ function setupSearchFunctionality(searchInput, tabType) {
         if (!table) {
             showNotification('Searching archived reservations...', 'info');
             return;
-
+        }
+    });
+}
 
 // ========================================
 // STAT CARD CLICK FUNCTIONALITY
