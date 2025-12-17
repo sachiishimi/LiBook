@@ -108,6 +108,7 @@ class ReservationsManager {
         this.setupModals();
         this.setupTableRowClick();
         this.updateTableInfo();
+        this.setupAutoRefresh();
     }
 
     setupTabSwitching() {
@@ -152,6 +153,9 @@ class ReservationsManager {
                 tableInfo.textContent = `Showing 1-${rows} of ${rows} cancelled reservations`;
             }
         }
+
+        // Highlight walk-in reservations
+        this.highlightWalkInReservations();
     }
 
     setupSearch() {
@@ -215,6 +219,11 @@ class ReservationsManager {
                 case 'visitor':
                     shouldShow = userType.includes('visitor');
                     break;
+                case 'walkin':
+                    // Filter for walk-in reservations
+                    const isWalkIn = row.dataset.isWalkin === 'true';
+                    shouldShow = isWalkIn;
+                    break;
                 case 'az':
                     // For sorting, we would need to sort the table
                     break;
@@ -256,6 +265,8 @@ class ReservationsManager {
         const program = row.dataset.program || '';
         const studentNumber = row.dataset.studentNumber || '';
         const status = row.dataset.status || '';
+        const isWalkIn = row.dataset.isWalkin === 'true';
+        const isPastBooking = row.dataset.isPast === 'true';
 
         const panelBody = document.getElementById('panelBody');
         if (!panelBody) return;
@@ -265,6 +276,15 @@ class ReservationsManager {
             contentWrapper.classList.add('panel-open');
         }
 
+        // Add walk-in badge if applicable
+        const walkInBadge = isWalkIn ? '<span class="walkin-badge"><i class="fas fa-user-plus"></i> Walk-In</span>' : '';
+
+        // Add status with color
+        let statusBadgeClass = 'status-unknown';
+        if (status === 'accepted') statusBadgeClass = 'status-accepted';
+        else if (status === 'cancelled') statusBadgeClass = 'status-cancelled';
+        else if (status === 'pending') statusBadgeClass = 'status-pending';
+
         panelBody.innerHTML = `
             <div class="details-section user-section">
                 <div class="user-header">
@@ -272,7 +292,7 @@ class ReservationsManager {
                          alt="${userName}" 
                          class="user-avatar-large">
                     <div class="user-info-large">
-                        <h4>${userName}</h4>
+                        <h4>${userName} ${walkInBadge}</h4>
                         <p>${userEmail}</p>
                         <span class="user-type-badge">${userType}</span>
                     </div>
@@ -329,9 +349,10 @@ class ReservationsManager {
                         Status
                     </div>
                     <div class="detail-value">
-                        <span class="status-badge ${status.toLowerCase() === 'accepted' ? 'status-accepted' : 'status-cancelled'}">
+                        <span class="status-badge ${statusBadgeClass}">
                             ${status.charAt(0).toUpperCase() + status.slice(1)}
                         </span>
+                        ${isPastBooking ? ' (Past)' : ''}
                     </div>
                 </div>
             </div>
@@ -513,10 +534,113 @@ class ReservationsManager {
             tableInfo.textContent = `Showing 1-${visibleCount} of ${visibleCount} reservations`;
         }
     }
+
+    highlightWalkInReservations() {
+        const visibleTable = this.currentTab === 'accepted' ? 'acceptedTable' : 'cancelledTable';
+        const table = document.getElementById(visibleTable);
+
+        if (!table) return;
+
+        const rows = table.querySelectorAll('tbody tr');
+        rows.forEach(row => {
+            const isWalkIn = row.dataset.isWalkin === 'true';
+            if (isWalkIn) {
+                row.classList.add('walkin-row');
+
+                // Add walk-in indicator to the name cell
+                const nameCell = row.querySelector('td:nth-child(2) .user-details');
+                if (nameCell) {
+                    const nameElement = nameCell.querySelector('strong');
+                    if (nameElement && !nameElement.querySelector('.walkin-indicator')) {
+                        const walkinIndicator = document.createElement('span');
+                        walkinIndicator.className = 'walkin-indicator';
+                        walkinIndicator.innerHTML = '<i class="fas fa-user-plus"></i> Walk-In';
+                        nameElement.appendChild(walkinIndicator);
+                    }
+                }
+            }
+        });
+    }
+
+    setupAutoRefresh() {
+        // Auto-refresh the page every 60 seconds to show updated reservations
+        setInterval(() => {
+            if (document.visibilityState === 'visible') {
+                this.refreshReservations();
+            }
+        }, 60000); // 60 seconds
+    }
+
+    refreshReservations() {
+        const currentUrl = window.location.href;
+        if (currentUrl.includes('LibrarianReservations')) {
+            window.location.reload();
+        }
+    }
+}
+
+// Add CSS for walk-in styling
+function addWalkInStyles() {
+    if (!document.getElementById('walkin-styles')) {
+        const style = document.createElement('style');
+        style.id = 'walkin-styles';
+        style.textContent = `
+            .walkin-row {
+                border-left: 3px solid #4CAF50 !important;
+                background-color: rgba(76, 175, 80, 0.05) !important;
+            }
+            
+            .walkin-row:hover {
+                background-color: rgba(76, 175, 80, 0.1) !important;
+            }
+            
+            .walkin-indicator {
+                display: inline-flex;
+                align-items: center;
+                gap: 4px;
+                margin-left: 8px;
+                font-size: 0.75rem;
+                background-color: #4CAF50;
+                color: white;
+                padding: 2px 6px;
+                border-radius: 10px;
+                font-weight: 600;
+            }
+            
+            .walkin-indicator i {
+                font-size: 0.7rem;
+            }
+            
+            .walkin-badge {
+                display: inline-flex;
+                align-items: center;
+                gap: 4px;
+                margin-left: 8px;
+                font-size: 0.8rem;
+                background-color: #4CAF50;
+                color: white;
+                padding: 3px 8px;
+                border-radius: 12px;
+                font-weight: 600;
+            }
+            
+            .walkin-badge i {
+                font-size: 0.75rem;
+            }
+            
+            /* Update filter dropdown to include walk-in option */
+            .filter-select option[value="walkin"] {
+                background-color: #4CAF50;
+                color: white;
+            }
+        `;
+        document.head.appendChild(style);
+    }
 }
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
+    addWalkInStyles();
     new NavigationManager();
     if (document.getElementById('tableContent')) {
         new ReservationsManager();

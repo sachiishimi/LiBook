@@ -54,6 +54,7 @@ namespace LiBook.Controllers
             public DateTime? ApprovedAt { get; set; }
             public DateTime? CancelledAt { get; set; }
             public bool IsPastBooking { get; set; }
+            public bool IsWalkIn { get; set; }
 
             public string Status
             {
@@ -200,6 +201,10 @@ namespace LiBook.Controllers
 
             // Available rooms
             stats.TotalRooms = db.Rooms.Count(r => !r.DateArchived.HasValue);
+
+            // Update room statuses first
+            UpdateRoomStatuses();
+
             stats.AvailableRooms = db.Rooms.Count(r => !r.DateArchived.HasValue &&
                 r.Availability == "Available");
 
@@ -375,6 +380,8 @@ namespace LiBook.Controllers
                 {
                     var bookingDateTime = booking.BookingDate.Date.Add(booking.Schedule?.EndTime ?? TimeSpan.Zero);
                     var isPastBooking = bookingDateTime < now;
+                    var isWalkIn = booking.SubmittedAt.HasValue && booking.ApprovedAt.HasValue &&
+                                  (booking.ApprovedAt.Value - booking.SubmittedAt.Value).TotalMinutes < 1;
 
                     var reservation = new RoomReservationViewModel
                     {
@@ -393,6 +400,7 @@ namespace LiBook.Controllers
                         ApprovedAt = booking.ApprovedAt,
                         CancelledAt = booking.CancelledAt,
                         IsPastBooking = isPastBooking,
+                        IsWalkIn = isWalkIn,
                         Members = booking.Members?.Select(m => m.FullName).ToList() ?? new List<string>()
                     };
 
@@ -429,6 +437,9 @@ namespace LiBook.Controllers
         {
             try
             {
+                // Update room statuses based on current bookings
+                UpdateRoomStatuses();
+
                 var allRooms = db.Rooms.Where(r => !r.DateArchived.HasValue).ToList();
                 var rooms = new List<RoomManagementViewModel>();
 
@@ -454,6 +465,7 @@ namespace LiBook.Controllers
                 ViewBag.AvailableCount = allRooms.Count(r => r.Availability == "Available");
                 ViewBag.UnavailableCount = allRooms.Count(r => r.Availability == "Unavailable");
                 ViewBag.MaintenanceCount = allRooms.Count(r => r.Availability == "Under Maintenance");
+                ViewBag.OccupiedCount = allRooms.Count(r => r.Availability == "Occupied");
 
                 // Apply filters
                 if (!string.IsNullOrEmpty(status) && status.ToLower() != "all")
@@ -469,6 +481,9 @@ namespace LiBook.Controllers
                             break;
                         case "maintenance":
                             rooms = rooms.Where(r => r.Status == "Under Maintenance").ToList();
+                            break;
+                        case "occupied":
+                            rooms = rooms.Where(r => r.Status == "Occupied").ToList();
                             break;
                     }
                 }
@@ -490,8 +505,50 @@ namespace LiBook.Controllers
                 ViewBag.AvailableCount = 0;
                 ViewBag.UnavailableCount = 0;
                 ViewBag.MaintenanceCount = 0;
+                ViewBag.OccupiedCount = 0;
                 return View(new List<RoomManagementViewModel>());
             }
+        }
+
+        // Helper method to update room statuses based on current bookings
+        private void UpdateRoomStatuses()
+        {
+            var now = DateTime.Now;
+            var today = DateTime.Today;
+
+            // Reset all rooms to Available first (except maintenance/unavailable)
+            var allRooms = db.Rooms.Where(r => !r.DateArchived.HasValue).ToList();
+            foreach (var room in allRooms)
+            {
+                if (room.Availability != "Under Maintenance" && room.Availability != "Unavailable")
+                {
+                    room.Availability = "Available";
+                }
+            }
+
+            // Find rooms with current active bookings (including walk-ins)
+            var activeBookings = db.Bookings
+                .Include(b => b.Schedule)
+                .Include(b => b.Room)
+                .Where(b => DbFunctions.TruncateTime(b.BookingDate) == today
+                         && !b.CancelledAt.HasValue
+                         && b.ApprovedAt.HasValue
+                         && b.Schedule.StartTime <= now.TimeOfDay
+                         && b.Schedule.EndTime >= now.TimeOfDay)
+                .ToList();
+
+            // Mark these rooms as Occupied
+            foreach (var booking in activeBookings)
+            {
+                if (booking.Room != null &&
+                    booking.Room.Availability != "Under Maintenance" &&
+                    booking.Room.Availability != "Unavailable")
+                {
+                    booking.Room.Availability = "Occupied";
+                }
+            }
+
+            db.SaveChanges();
         }
 
         // ============================================
@@ -511,10 +568,7 @@ namespace LiBook.Controllers
         }
 
         // ============================================
-        // RESERVATIONS MANAGEMENT PAGE - UPDATED WITH SUCCESSFUL STATUS
-        // ============================================
-        // ============================================
-        // RESERVATIONS MANAGEMENT PAGE - UPDATED TO HIDE SUCCESSFUL
+        // RESERVATIONS MANAGEMENT PAGE
         // ============================================
         public ActionResult LibrarianReservations(string statusFilter = "all")
         {
@@ -537,8 +591,12 @@ namespace LiBook.Controllers
                     var bookingDateTime = booking.BookingDate.Date.Add(booking.Schedule?.EndTime ?? TimeSpan.Zero);
                     var isPastBooking = bookingDateTime < now;
 
-                    // Skip successful reservations (past and approved)
-                    if (isPastBooking && booking.ApprovedAt.HasValue && !booking.CancelledAt.HasValue)
+                    // Check if it's a walk-in
+                    var isWalkIn = booking.SubmittedAt.HasValue && booking.ApprovedAt.HasValue &&
+                                  (booking.ApprovedAt.Value - booking.SubmittedAt.Value).TotalMinutes < 1;
+
+                    // Skip successful reservations (past and approved) but NOT walk-ins
+                    if (isPastBooking && booking.ApprovedAt.HasValue && !booking.CancelledAt.HasValue && !isWalkIn)
                     {
                         continue; // Don't add to reservations list
                     }
@@ -552,7 +610,7 @@ namespace LiBook.Controllers
                     );
 
                     var userType = DetermineUserType(booking);
-                    var status = DetermineStatus(booking, isPastBooking);
+                    var status = DetermineStatus(booking, isPastBooking, isWalkIn);
 
                     var startTime = booking.Schedule?.StartTime.ToString(@"hh\:mm") ?? "00:00";
                     var endTime = booking.Schedule?.EndTime.ToString(@"hh\:mm") ?? "00:00";
@@ -573,6 +631,7 @@ namespace LiBook.Controllers
                         UserType = userType,
                         Status = status,
                         IsPastBooking = isPastBooking,
+                        IsWalkIn = isWalkIn,
                         Members = booking.Members?.Select(m => m.FullName).ToList() ?? new List<string>()
                     };
 
@@ -589,7 +648,7 @@ namespace LiBook.Controllers
                     reservations = reservations.Where(r => r.Status.ToLower() == statusFilter.ToLower()).ToList();
                 }
 
-                // Group reservations by status (excluding successful)
+                // Group reservations by status (excluding successful but including walk-ins)
                 var acceptedReservations = reservations.Where(r => r.Status == "accepted").ToList();
                 var cancelledReservations = reservations.Where(r => r.Status == "cancelled").ToList();
                 var pendingReservations = reservations.Where(r => r.Status == "pending").ToList();
@@ -624,11 +683,11 @@ namespace LiBook.Controllers
         // ============================================
         // HELPER METHODS - UPDATED DetermineStatus
         // ============================================
-        private string DetermineStatus(Booking booking, bool isPastBooking)
+        private string DetermineStatus(Booking booking, bool isPastBooking, bool isWalkIn)
         {
             if (booking.CancelledAt.HasValue)
                 return "cancelled";
-            if (isPastBooking && booking.ApprovedAt.HasValue)
+            if (isPastBooking && booking.ApprovedAt.HasValue && !isWalkIn)
                 return "successful"; // This won't be shown in reservations page
             if (booking.ApprovedAt.HasValue)
                 return "accepted";
@@ -636,6 +695,7 @@ namespace LiBook.Controllers
                 return "pending";
             return "unknown";
         }
+
         // ============================================
         // ARCHIVE RESERVATION
         // ============================================
@@ -650,6 +710,23 @@ namespace LiBook.Controllers
                 {
                     TempData["ErrorMessage"] = "Reservation not found.";
                     return RedirectToAction("LibrarianReservations");
+                }
+
+                // If this is an active booking, update room status
+                var now = DateTime.Now;
+                var today = DateTime.Today;
+                if (booking.BookingDate.Date == today &&
+                    booking.Schedule.StartTime <= now.TimeOfDay &&
+                    booking.Schedule.EndTime >= now.TimeOfDay &&
+                    booking.ApprovedAt.HasValue &&
+                    !booking.CancelledAt.HasValue)
+                {
+                    var room = db.Rooms.Find(booking.RoomID);
+                    if (room != null && room.Availability == "Occupied")
+                    {
+                        room.Availability = "Available";
+                        db.Entry(room).State = EntityState.Modified;
+                    }
                 }
 
                 db.Bookings.Remove(booking);
@@ -686,6 +763,23 @@ namespace LiBook.Controllers
                 {
                     TempData["ErrorMessage"] = "Reservation not found.";
                     return RedirectToAction("LibrarianReservations");
+                }
+
+                // If this is an active booking, update room status
+                var now = DateTime.Now;
+                var today = DateTime.Today;
+                if (booking.BookingDate.Date == today &&
+                    booking.Schedule.StartTime <= now.TimeOfDay &&
+                    booking.Schedule.EndTime >= now.TimeOfDay &&
+                    booking.ApprovedAt.HasValue &&
+                    !booking.CancelledAt.HasValue)
+                {
+                    var room = db.Rooms.Find(booking.RoomID);
+                    if (room != null && room.Availability == "Occupied")
+                    {
+                        room.Availability = "Available";
+                        db.Entry(room).State = EntityState.Modified;
+                    }
                 }
 
                 booking.CancelledAt = DateTime.Now;
@@ -737,7 +831,7 @@ namespace LiBook.Controllers
         }
 
         // ============================================
-        // ARCHIVES MANAGEMENT PAGE - UPDATED
+        // ARCHIVES MANAGEMENT PAGE
         // ============================================
         public ActionResult LibrarianArchives(string statusFilter = "successful", string dateFilter = "all", string userTypeFilter = "all")
         {
@@ -759,13 +853,16 @@ namespace LiBook.Controllers
                 {
                     var bookingDateTime = booking.BookingDate.Date.Add(booking.Schedule?.EndTime ?? TimeSpan.Zero);
                     var isPastBooking = bookingDateTime < now;
-                    var isSuccessful = !booking.CancelledAt.HasValue && isPastBooking;
+                    var isWalkIn = booking.SubmittedAt.HasValue && booking.ApprovedAt.HasValue &&
+                                  (booking.ApprovedAt.Value - booking.SubmittedAt.Value).TotalMinutes < 1;
+                    var isSuccessful = !booking.CancelledAt.HasValue && isPastBooking && !isWalkIn;
 
                     return new
                     {
                         Booking = booking,
                         IsSuccessful = isSuccessful,
                         IsCancelled = booking.CancelledAt.HasValue,
+                        IsWalkIn = isWalkIn,
                         BookingDateTime = bookingDateTime,
                         UserType = DetermineUserType(booking)
                     };
@@ -784,7 +881,7 @@ namespace LiBook.Controllers
                 }
                 else
                 {
-                    // Show successful bookings (past and not cancelled)
+                    // Show successful bookings (past and not cancelled, not walk-ins)
                     filteredBookings = bookingsWithStatus
                         .Where(b => b.IsSuccessful)
                         .Select(b => b.Booking)
@@ -801,6 +898,8 @@ namespace LiBook.Controllers
 
                     var bookingDateTime = bookingObj.BookingDate.Date.Add(bookingObj.Schedule?.EndTime ?? TimeSpan.Zero);
                     var isPast = bookingDateTime < now;
+                    var isWalkIn = bookingObj.SubmittedAt.HasValue && bookingObj.ApprovedAt.HasValue &&
+                                  (bookingObj.ApprovedAt.Value - bookingObj.SubmittedAt.Value).TotalMinutes < 1;
 
                     var vm = new ArchiveReservationViewModel
                     {
@@ -815,7 +914,7 @@ namespace LiBook.Controllers
                         RoomName = bookingObj.Room?.RoomName ?? "Unknown Room",
                         Status = bookingObj.CancelledAt.HasValue ? "Cancelled" :
                                 (isPast ? "Successful" : "Upcoming"),
-                        IsSuccessful = !bookingObj.CancelledAt.HasValue && isPast
+                        IsSuccessful = !bookingObj.CancelledAt.HasValue && isPast && !isWalkIn
                     };
                     archivedReservations.Add(vm);
                 }
@@ -912,19 +1011,6 @@ namespace LiBook.Controllers
         }
 
         // ============================================
-        // FILTER ARCHIVES
-        // ============================================
-        //public ActionResult FilterArchives(string statusFilter, string dateFilter, string userTypeFilter)
-        //{
-        //    return RedirectToAction("LibrarianArchives", new
-        //    {
-        //        statusFilter = statusFilter ?? "successful",
-        //        dateFilter = dateFilter ?? "all",
-        //        userTypeFilter = userTypeFilter ?? "all"
-        //    });
-        //}
-
-        // ============================================
         // WALK-IN RESERVATION
         // ============================================
         [HttpPost]
@@ -971,10 +1057,13 @@ namespace LiBook.Controllers
                     return RedirectToAction("RoomManagement");
                 }
 
+                // Check for time conflicts
                 var existingBooking = db.Bookings
+                    .Include(b => b.Schedule)
                     .Where(b => b.RoomID == model.RoomID
                              && b.BookingDate == model.BookingDate
                              && !b.CancelledAt.HasValue
+                             && b.ApprovedAt.HasValue
                              && ((b.Schedule.StartTime <= startTime && b.Schedule.EndTime > startTime)
                                || (b.Schedule.StartTime < endTime && b.Schedule.EndTime >= endTime)
                                || (b.Schedule.StartTime >= startTime && b.Schedule.EndTime <= endTime)))
@@ -986,6 +1075,7 @@ namespace LiBook.Controllers
                     return RedirectToAction("RoomManagement");
                 }
 
+                // Get or create schedule
                 var schedule = db.Schedules
                     .FirstOrDefault(s => s.StartTime == startTime && s.EndTime == endTime);
 
@@ -1000,6 +1090,8 @@ namespace LiBook.Controllers
                     db.SaveChanges();
                 }
 
+                // Create the walk-in booking
+                var now = DateTime.Now;
                 var booking = new Booking
                 {
                     RoomID = model.RoomID,
@@ -1008,8 +1100,8 @@ namespace LiBook.Controllers
                     Program = model.Program,
                     Purpose = model.Purpose,
                     BookingDate = model.BookingDate,
-                    SubmittedAt = DateTime.Now,
-                    ApprovedAt = DateTime.Now,
+                    SubmittedAt = now,
+                    ApprovedAt = now, // Auto-approve walk-ins immediately
                     ReserveeFirstName = model.ReserveeFirstName,
                     ReserveeMiddleName = model.ReserveeMiddleName,
                     ReserveeLastName = model.ReserveeLastName,
@@ -1020,8 +1112,27 @@ namespace LiBook.Controllers
                 db.Bookings.Add(booking);
                 db.SaveChanges();
 
-                TempData["SuccessMessage"] = $"Walk-in reservation created successfully for {room.RoomName}! Reservation ID: BK-{booking.ID:000}";
-                return RedirectToAction("RoomManagement");
+                // Generate booking reference
+                string bookingId = $"BK-{booking.ID:000}";
+
+                // Update room availability if it's for today and happening now
+                if (model.BookingDate.Date == now.Date &&
+                    startTime <= now.TimeOfDay &&
+                    endTime > now.TimeOfDay)
+                {
+                    room.Availability = "Occupied";
+                    db.Entry(room).State = EntityState.Modified;
+                    db.SaveChanges();
+                }
+
+                TempData["SuccessMessage"] = $"Walk-in reservation created successfully for {room.RoomName}! Reservation ID: {bookingId}";
+
+                // Redirect to RoomManagement with the same filters to see the updated status
+                return RedirectToAction("RoomManagement", new
+                {
+                    status = Request.QueryString["status"] ?? "all",
+                    userType = Request.QueryString["userType"] ?? "all"
+                });
             }
             catch (Exception ex)
             {
@@ -1058,37 +1169,37 @@ namespace LiBook.Controllers
             return "Visitor";
         }
 
-        //private string DetermineStatus(Booking booking, bool isPastBooking)
-        //{
-        //    if (booking.CancelledAt.HasValue)
-        //        return "cancelled";
-        //    if (isPastBooking && booking.ApprovedAt.HasValue)
-        //        return "successful";
-        //    if (booking.ApprovedAt.HasValue)
-        //        return "accepted";
-        //    if (booking.SubmittedAt.HasValue && !booking.ApprovedAt.HasValue)
-        //        return "pending";
-        //    return "unknown";
-        //}
-
         private string GetCurrentReservation(int roomId)
         {
             var now = DateTime.Now;
             var today = DateTime.Today;
 
             var currentBooking = db.Bookings
-                .Where(b => b.RoomID == roomId &&
-                           DbFunctions.TruncateTime(b.BookingDate) == today &&
-                           !b.CancelledAt.HasValue)
+                .Include(b => b.Schedule)
+                .Where(b => b.RoomID == roomId
+                         && DbFunctions.TruncateTime(b.BookingDate) == today
+                         && !b.CancelledAt.HasValue
+                         && b.ApprovedAt.HasValue) // Only show approved/active bookings
                 .ToList()
-                .Where(b => b.Schedule.StartTime <= now.TimeOfDay &&
-                           b.Schedule.EndTime >= now.TimeOfDay)
+                .Where(b => b.Schedule.StartTime <= now.TimeOfDay
+                         && b.Schedule.EndTime >= now.TimeOfDay)
+                .OrderByDescending(b => b.ApprovedAt) // Show most recent first
                 .FirstOrDefault();
 
             if (currentBooking != null)
             {
-                return $"{currentBooking.ReserveeFirstName} {currentBooking.ReserveeLastName}";
+                var reserveeName = FormatName(
+                    currentBooking.ReserveeFirstName,
+                    currentBooking.ReserveeMiddleName,
+                    currentBooking.ReserveeLastName,
+                    currentBooking.ReserveeSuffix);
+
+                var timeSlot = $"{currentBooking.Schedule.StartTime.Hours:00}:{currentBooking.Schedule.StartTime.Minutes:00} - " +
+                              $"{currentBooking.Schedule.EndTime.Hours:00}:{currentBooking.Schedule.EndTime.Minutes:00}";
+
+                return $"{reserveeName} ({timeSlot})";
             }
+
             return string.Empty;
         }
 
@@ -1098,22 +1209,39 @@ namespace LiBook.Controllers
             var today = DateTime.Today;
 
             var futureBookings = db.Bookings
-                .Where(b => b.RoomID == roomId &&
-                           !b.CancelledAt.HasValue &&
-                           b.BookingDate >= today)
+                .Include(b => b.Schedule)
+                .Where(b => b.RoomID == roomId
+                         && !b.CancelledAt.HasValue
+                         && b.ApprovedAt.HasValue // Only approved bookings
+                         && (b.BookingDate > today
+                             || (b.BookingDate == today && b.Schedule.StartTime > now.TimeOfDay)))
                 .OrderBy(b => b.BookingDate)
                 .ThenBy(b => b.Schedule.StartTime)
                 .ToList();
 
-            var nextBooking = futureBookings
-                .Where(b => b.BookingDate > today ||
-                           (b.BookingDate == today && b.Schedule.StartTime > now.TimeOfDay))
-                .FirstOrDefault();
+            var nextBooking = futureBookings.FirstOrDefault();
 
             if (nextBooking != null)
             {
-                return $"{nextBooking.ReserveeFirstName} {nextBooking.ReserveeLastName} - {nextBooking.BookingDate:MMM dd}";
+                var reserveeName = FormatName(
+                    nextBooking.ReserveeFirstName,
+                    nextBooking.ReserveeMiddleName,
+                    nextBooking.ReserveeLastName,
+                    nextBooking.ReserveeSuffix);
+
+                var timeSlot = $"{nextBooking.Schedule.StartTime.Hours:00}:{nextBooking.Schedule.StartTime.Minutes:00} - " +
+                              $"{nextBooking.Schedule.EndTime.Hours:00}:{nextBooking.Schedule.EndTime.Minutes:00}";
+
+                if (nextBooking.BookingDate.Date == today)
+                {
+                    return $"{reserveeName} (Today {timeSlot})";
+                }
+                else
+                {
+                    return $"{reserveeName} ({nextBooking.BookingDate:MMM dd} {timeSlot})";
+                }
             }
+
             return string.Empty;
         }
 
@@ -1183,7 +1311,7 @@ namespace LiBook.Controllers
         }
 
         // ============================================
-        // RESERVATION VIEW MODEL - UPDATED WITH SUCCESSFUL STATUS
+        // RESERVATION VIEW MODEL
         // ============================================
         public class ReservationViewModel
         {
@@ -1200,6 +1328,7 @@ namespace LiBook.Controllers
             public string UserType { get; set; }
             public string Status { get; set; }
             public bool IsPastBooking { get; set; }
+            public bool IsWalkIn { get; set; }
             public List<string> Members { get; set; }
 
             // Additional properties for display
