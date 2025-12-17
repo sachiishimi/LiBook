@@ -221,14 +221,6 @@
 
                     <!-- User Dropdown Menu -->
                     <div class="user-dropdown" id="userDropdown">
-                        <a href="#" class="dropdown-item">
-                            <i class="fas fa-user-cog"></i>
-                            <span>Settings</span>
-                        </a>
-                        <a href="#" class="dropdown-item">
-                            <i class="fas fa-question-circle"></i>
-                            <span>Help & Support</span>
-                        </a>
                         <div class="dropdown-divider"></div>
                         @using (Html.BeginForm("Logout", "Account", FormMethod.Post, new { id = "logoutForm" }))
                         {
