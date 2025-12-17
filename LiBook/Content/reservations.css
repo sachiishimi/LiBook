@@ -733,12 +733,14 @@ body {
     justify-content: center;
     z-index: 2000;
     opacity: 0;
-    transition: opacity 0.3s ease;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
     padding: 2rem;
 }
 
     .modal-overlay.active {
         opacity: 1;
+        visibility: visible;
     }
 
 .modal-content {
@@ -1230,5 +1232,278 @@ body {
     .detail-grid {
         grid-template-columns: 1fr;
         gap: 1rem;
+    }
+}
+
+/* ============================================
+   CANCEL CONFIRMATION MODAL STYLES
+   ============================================ */
+#cancelConfirmModal {
+    z-index: 11000;
+}
+
+    #cancelConfirmModal .modal-container {
+        width: 100%;
+        max-width: 550px;
+        background: var(--white);
+        border-radius: 24px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        transform: scale(0.9) translateY(20px);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    #cancelConfirmModal.active .modal-container {
+        transform: scale(1) translateY(0);
+    }
+
+    #cancelConfirmModal .modal-header {
+        background: linear-gradient(135deg, var(--primary-blue) 0%, var(--dark-blue) 100%);
+        padding: 2rem 2.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        border-bottom: none;
+    }
+
+    #cancelConfirmModal .modal-header-content {
+        display: flex;
+        align-items: center;
+        gap: 1.25rem;
+        flex: 1;
+    }
+
+    #cancelConfirmModal .modal-icon-wrapper {
+        width: 56px;
+        height: 56px;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.75rem;
+        flex-shrink: 0;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+        #cancelConfirmModal .modal-icon-wrapper.warning {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            color: var(--white);
+        }
+
+    #cancelConfirmModal .modal-title-wrapper h2 {
+        font-family: 'League Spartan', sans-serif;
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: var(--white);
+        margin: 0 0 0.25rem 0;
+    }
+
+    #cancelConfirmModal .modal-subtitle {
+        font-size: 0.9rem;
+        color: rgba(255, 255, 255, 0.8);
+        margin: 0;
+    }
+
+    #cancelConfirmModal .close-modal {
+        background: rgba(255, 255, 255, 0.1);
+        border: none;
+        color: var(--white);
+        cursor: pointer;
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        transition: all 0.3s ease;
+        flex-shrink: 0;
+    }
+
+        #cancelConfirmModal .close-modal:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.05);
+        }
+
+    #cancelConfirmModal .modal-body {
+        padding: 2rem 2.5rem;
+        flex: 1;
+        background: var(--white);
+    }
+
+    #cancelConfirmModal .cancel-confirm-text {
+        color: var(--text-light);
+        font-size: 0.95rem;
+        line-height: 1.6;
+        margin: 0;
+    }
+
+    #cancelConfirmModal .modal-footer {
+        padding: 1.5rem 2.5rem;
+        background: var(--light-gray);
+        display: flex;
+        justify-content: flex-end;
+        gap: 1rem;
+        border-top: 2px solid var(--border-color);
+    }
+
+/* Button Styles */
+.btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: 'Kumbh Sans', sans-serif;
+    text-decoration: none;
+    min-width: 140px;
+    justify-content: center;
+}
+
+    .btn i {
+        font-size: 1rem;
+    }
+
+.btn-primary {
+    background: var(--primary-blue);
+    color: var(--white);
+    box-shadow: 0 4px 12px rgba(44, 62, 80, 0.2);
+}
+
+    .btn-primary:hover {
+        background: var(--dark-blue);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(44, 62, 80, 0.3);
+    }
+
+.btn-secondary {
+    background: var(--medium-gray);
+    color: var(--white);
+    box-shadow: 0 4px 12px rgba(149, 165, 166, 0.2);
+}
+
+    .btn-secondary:hover {
+        background: #7f8c8d;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(149, 165, 166, 0.3);
+    }
+
+.btn-danger {
+    background: var(--danger);
+    color: var(--white);
+    box-shadow: 0 4px 12px rgba(231, 76, 60, 0.2);
+}
+
+    .btn-danger:hover {
+        background: #c0392b;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(231, 76, 60, 0.3);
+    }
+
+.btn:active {
+    transform: translateY(0);
+}
+
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+/* ============================================
+   NOTIFICATION ANIMATIONS
+   ============================================ */
+@keyframes slideIn {
+    from {
+        transform: translateX(400px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+
+    to {
+        transform: translateX(400px);
+        opacity: 0;
+    }
+}
+
+/* ============================================
+   RESPONSIVE MODAL STYLES
+   ============================================ */
+@media (max-width: 768px) {
+    #cancelConfirmModal .modal-container {
+        max-width: 95%;
+    }
+
+    #cancelConfirmModal .modal-header {
+        padding: 1.5rem 1.75rem;
+    }
+
+    #cancelConfirmModal .modal-header-content {
+        gap: 1rem;
+    }
+
+    #cancelConfirmModal .modal-icon-wrapper {
+        width: 48px;
+        height: 48px;
+        font-size: 1.5rem;
+    }
+
+    #cancelConfirmModal .modal-title-wrapper h2 {
+        font-size: 1.5rem;
+    }
+
+    #cancelConfirmModal .modal-subtitle {
+        font-size: 0.85rem;
+    }
+
+    #cancelConfirmModal .modal-body {
+        padding: 1.75rem;
+    }
+
+    #cancelConfirmModal .modal-footer {
+        padding: 1.25rem 1.75rem;
+        flex-direction: column;
+    }
+
+        #cancelConfirmModal .modal-footer .btn {
+            width: 100%;
+        }
+}
+
+@media (max-width: 480px) {
+    #cancelConfirmModal .modal-header {
+        padding: 1.25rem 1.5rem;
+    }
+
+    #cancelConfirmModal .modal-icon-wrapper {
+        width: 42px;
+        height: 42px;
+        font-size: 1.25rem;
+    }
+
+    #cancelConfirmModal .modal-title-wrapper h2 {
+        font-size: 1.25rem;
+    }
+
+    #cancelConfirmModal .modal-body {
+        padding: 1.5rem;
     }
 }

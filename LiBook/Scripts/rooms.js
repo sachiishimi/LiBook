@@ -12,14 +12,18 @@ var userDropdown = document.getElementById('userDropdown');
 var addRoomModal = document.getElementById('addRoomModal');
 var editRoomModal = document.getElementById('editRoomModal');
 var archiveModal = document.getElementById('archiveModal');
+var cancelConfirmModal = document.getElementById('cancelConfirmModal');
 var addRoomBtn = document.getElementById('addRoomBtn');
 var bulkArchiveBtn = document.getElementById('bulkArchiveBtn');
 var closeAddModalBtn = document.getElementById('closeAddModal');
 var closeEditModalBtn = document.getElementById('closeEditModal');
 var closeArchiveModalBtn = document.getElementById('closeArchiveModal');
+var closeCancelConfirmBtn = document.getElementById('closeCancelConfirmBtn');
 var cancelAddBtn = document.getElementById('cancelAddBtn');
 var cancelEditBtn = document.getElementById('cancelEditBtn');
 var cancelArchiveBtn = document.getElementById('cancelArchiveBtn');
+var cancelConfirmNoBtn = document.getElementById('cancelConfirmNoBtn');
+var cancelConfirmYesBtn = document.getElementById('cancelConfirmYesBtn');
 var confirmArchiveBtn = document.getElementById('confirmArchiveBtn');
 var addRoomForm = document.getElementById('addRoomForm');
 var editRoomForm = document.getElementById('editRoomForm');
@@ -29,6 +33,7 @@ var selectAllCheckbox = document.getElementById('selectAll');
 // Track editing state
 var editingRow = null;
 var selectedRoomsForArchive = [];
+var cancelConfirmCallback = null;
 
 // ============================================
 // SIDEBAR FUNCTIONALITY
@@ -192,6 +197,25 @@ if (confirmArchiveBtn) {
     });
 }
 
+// Cancel confirmation modal handlers
+if (closeCancelConfirmBtn) {
+    closeCancelConfirmBtn.addEventListener('click', function () {
+        closeCancelConfirm();
+    });
+}
+
+if (cancelConfirmNoBtn) {
+    cancelConfirmNoBtn.addEventListener('click', function () {
+        closeCancelConfirm();
+    });
+}
+
+if (cancelConfirmYesBtn) {
+    cancelConfirmYesBtn.addEventListener('click', function () {
+        confirmCancelAction();
+    });
+}
+
 // Close modals when clicking outside
 if (addRoomModal) {
     addRoomModal.addEventListener('click', function (e) {
@@ -217,16 +241,24 @@ if (archiveModal) {
     });
 }
 
+if (cancelConfirmModal) {
+    cancelConfirmModal.addEventListener('click', function (e) {
+        if (e.target === cancelConfirmModal) {
+            closeCancelConfirm();
+        }
+    });
+}
+
 // Close modals with Escape key
 document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape') {
-        if (addRoomModal && addRoomModal.classList.contains('active')) {
+        if (cancelConfirmModal && cancelConfirmModal.classList.contains('active')) {
+            closeCancelConfirm();
+        } else if (addRoomModal && addRoomModal.classList.contains('active')) {
             closeAddModal();
-        }
-        if (editRoomModal && editRoomModal.classList.contains('active')) {
+        } else if (editRoomModal && editRoomModal.classList.contains('active')) {
             closeEditModal();
-        }
-        if (archiveModal && archiveModal.classList.contains('active')) {
+        } else if (archiveModal && archiveModal.classList.contains('active')) {
             closeArchiveModal();
         }
     }
@@ -420,27 +452,79 @@ document.querySelectorAll('.icon-btn.edit').forEach(function (btn) {
 // Archive button functionality
 document.querySelectorAll('.icon-btn.archive').forEach(function (btn) {
     btn.addEventListener('click', function (e) {
-        var target = e.target;
+        e.preventDefault(); // Prevent form submission
+        e.stopPropagation();
+
+        var target = e.currentTarget; // Use currentTarget to get the button, not the icon
         if (!target) return;
 
-        var row = target.closest('tr');
-        if (!row) return;
+        var form = target.closest('form');
+        var roomName = target.getAttribute('data-room-name') || 'this room';
+        var roomId = target.getAttribute('data-room-id') || '';
 
-        var roomNameEl = row.querySelector('.room-details h3');
-        var roomIdEl = row.querySelector('.room-id');
-        var roomName = roomNameEl && roomNameEl.textContent ? roomNameEl.textContent : 'this room';
-        var roomId = roomIdEl && roomIdEl.textContent ? roomIdEl.textContent : '';
+        showCancelConfirm(
+            'Archive Room?',
+            'Are you sure you want to archive "' + roomName + '"? (' + roomId + ')\n\nThis room will be moved to archives.',
+            'Archive Room',
+            function () {
+                // Get form data
+                if (!form) {
+                    showNotification('Error: Form not found', 'error');
+                    return;
+                }
 
-        if (confirm('Are you sure you want to archive "' + roomName + '"?\n' + roomId + '\n\nThis room will be moved to archives.')) {
-            showNotification('Archiving room...', 'info');
+                var formData = new FormData(form);
+                var actionUrl = form.getAttribute('action');
 
-            setTimeout(function () {
-                row.remove();
-                updateRoomCount();
-                showNotification('"' + roomName + '" archived successfully!', 'success');
-                console.log('Archived room:', roomName, roomId);
-            }, 500);
-        }
+                // Show loading notification
+                showNotification('Archiving room...', 'info');
+
+                // Disable the button during submission
+                target.disabled = true;
+                var originalHtml = target.innerHTML;
+                target.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+                // Submit via AJAX
+                fetch(actionUrl, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                    .then(function (response) {
+                        // Re-enable button
+                        target.disabled = false;
+                        target.innerHTML = originalHtml;
+
+                        if (response.ok) {
+                            // Success
+                            showNotification('Room "' + roomName + '" archived successfully!', 'success');
+
+                            // Remove the row from the table
+                            var row = target.closest('tr');
+                            if (row) {
+                                row.style.opacity = '0.5';
+                                row.style.transition = 'opacity 0.3s ease';
+                                setTimeout(function () {
+                                    row.remove();
+                                    updateRoomCount();
+                                }, 300);
+                            }
+                        } else {
+                            // Server returned an error status
+                            showNotification('Failed to archive room. Please try again.', 'error');
+                        }
+                    })
+                    .catch(function (error) {
+                        // Network or other error
+                        target.disabled = false;
+                        target.innerHTML = originalHtml;
+                        showNotification('Error archiving room: ' + error.message, 'error');
+                        console.error('Archive error:', error);
+                    });
+            }
+        );
     });
 });
 
@@ -813,6 +897,43 @@ function closeArchiveModal() {
     }
 }
 
+// Cancel confirmation modal functions
+function showCancelConfirm(title, message, yesButtonText, callback) {
+    if (!cancelConfirmModal) return;
+
+    cancelConfirmCallback = callback;
+
+    // Update modal content
+    var titleEl = document.querySelector('#cancelConfirmModal .modal-title-wrapper h2');
+    var messageEl = document.getElementById('cancelConfirmText');
+    var yesBtn = document.getElementById('cancelConfirmYesBtn');
+
+    if (titleEl) titleEl.textContent = title || 'Confirm Action';
+    if (messageEl) messageEl.textContent = message || 'Are you sure you want to proceed?';
+    if (yesBtn) {
+        var yesText = yesButtonText || 'Yes, Proceed';
+        yesBtn.innerHTML = '<i class="fas fa-check"></i><span>' + yesText + '</span>';
+    }
+
+    // Show modal
+    cancelConfirmModal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeCancelConfirm() {
+    if (!cancelConfirmModal) return;
+    cancelConfirmModal.classList.remove('active');
+    document.body.style.overflow = '';
+    cancelConfirmCallback = null;
+}
+
+function confirmCancelAction() {
+    if (cancelConfirmCallback) {
+        cancelConfirmCallback();
+    }
+    closeCancelConfirm();
+}
+
 // Confirm archive
 function confirmArchive() {
     if (selectedRoomsForArchive.length === 0) {
@@ -906,7 +1027,7 @@ function showNotification(message, type) {
         'color: white;' +
         'border-radius: 12px;' +
         'box-shadow: 0 4px 12px rgba(0,0,0,0.2);' +
-        'z-index: 10001;' +
+        'z-index: 11001;' +
         'font-family: \'Kumbh Sans\', sans-serif;' +
         'animation: slideIn 0.3s ease;' +
         'display: flex;' +
@@ -960,4 +1081,4 @@ window.addEventListener('resize', function () {
     }, 250);
 });
 
-console.log('Room Management with separate modals initialized successfully!'); 
+console.log('Room Management with separate modals initialized successfully!');

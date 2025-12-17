@@ -1,25 +1,21 @@
-﻿﻿// @ts-nocheck
-/* 
-   IMPORTANT: This comment above MUST be the first line of the file
-   It tells Visual Studio to skip TypeScript checking for this file
-*/
-
-// DOM Elements
+﻿// DOM Elements
 var menuToggle, sidebar, closeSidebar, sidebarToggleDesktop, mainContent;
 var userProfile, userDropdown, userSearch, addUserBtn;
 var tabBtns, tableSections, navItems;
 
 // Modal Elements
-var addUserModal, editUserModal, confirmationModal;
-var editUserForm, confirmationForm;
+var addUserModal, editUserModal, confirmationModal, archiveModal, cancelConfirmModal;
+var editUserForm, confirmationForm, archiveForm;
+var cancelConfirmCallback = null;
 
 // Current active tab
 var activeTab = 'librarians';
 var currentUserType = 'librarian';
 var currentEditUserData = null;
 var pendingEditData = null;
+var pendingArchiveUser = null;
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     initializeDOMElements();
     initializeSidebar();
     initializeUserProfile();
@@ -45,14 +41,17 @@ function initializeDOMElements() {
     addUserModal = document.getElementById('addUserModal');
     editUserModal = document.getElementById('editUserModal');
     confirmationModal = document.getElementById('confirmationModal');
+    archiveModal = document.getElementById('archiveModal');
+    cancelConfirmModal = document.getElementById('cancelConfirmModal');
     editUserForm = document.getElementById('editUserForm');
     confirmationForm = document.getElementById('confirmationForm');
+    archiveForm = document.getElementById('archiveForm');
 }
 
 function initializeSidebar() {
     if (!sidebar || !mainContent) return;
     if (sidebarToggleDesktop) {
-        sidebarToggleDesktop.addEventListener('click', function(e) {
+        sidebarToggleDesktop.addEventListener('click', function (e) {
             e.stopPropagation();
             sidebar.classList.toggle('collapsed');
             mainContent.classList.toggle('expanded');
@@ -64,18 +63,18 @@ function initializeSidebar() {
         mainContent.classList.add('expanded');
     }
     if (menuToggle) {
-        menuToggle.addEventListener('click', function() {
+        menuToggle.addEventListener('click', function () {
             sidebar.classList.add('active');
             sidebar.classList.remove('collapsed');
             mainContent.classList.remove('expanded');
         });
     }
     if (closeSidebar) {
-        closeSidebar.addEventListener('click', function() {
+        closeSidebar.addEventListener('click', function () {
             sidebar.classList.remove('active');
         });
     }
-    document.addEventListener('click', function(e) {
+    document.addEventListener('click', function (e) {
         if (window.innerWidth <= 768 && sidebar && menuToggle) {
             if (!sidebar.contains(e.target) && !menuToggle.contains(e.target)) {
                 sidebar.classList.remove('active');
@@ -86,22 +85,22 @@ function initializeSidebar() {
 
 function initializeUserProfile() {
     if (userProfile) {
-        userProfile.addEventListener('click', function(e) {
+        userProfile.addEventListener('click', function (e) {
             e.stopPropagation();
             userProfile.classList.toggle('active');
         });
     }
-    document.addEventListener('click', function() {
+    document.addEventListener('click', function () {
         if (userProfile) userProfile.classList.remove('active');
     });
 }
 
 function initializeNavigation() {
     if (!navItems) return;
-    navItems.forEach(function(item) {
-        item.addEventListener('click', function() {
+    navItems.forEach(function (item) {
+        item.addEventListener('click', function () {
             if (!item.classList.contains('logout') && item.getAttribute('href') !== '#') {
-                navItems.forEach(function(nav) { nav.classList.remove('active'); });
+                navItems.forEach(function (nav) { nav.classList.remove('active'); });
                 item.classList.add('active');
                 if (window.innerWidth <= 768 && sidebar) sidebar.classList.remove('active');
             }
@@ -117,8 +116,8 @@ function initializeUserManagement() {
 
 function initializeTabs() {
     if (!tabBtns) return;
-    tabBtns.forEach(function(btn) {
-        btn.addEventListener('click', function() {
+    tabBtns.forEach(function (btn) {
+        btn.addEventListener('click', function () {
             var tabName = btn.getAttribute('data-tab');
             if (tabName) switchTab(tabName);
         });
@@ -127,10 +126,10 @@ function initializeTabs() {
 
 function switchTab(tabName) {
     if (!tabBtns || !tableSections) return;
-    tabBtns.forEach(function(btn) {
+    tabBtns.forEach(function (btn) {
         btn.classList.toggle('active', btn.getAttribute('data-tab') === tabName);
     });
-    tableSections.forEach(function(section) {
+    tableSections.forEach(function (section) {
         section.classList.toggle('active', section.id === tabName + '-section');
     });
     activeTab = tabName;
@@ -151,7 +150,7 @@ function updateAddButtonText() {
 
 function initializeSearch() {
     if (userSearch) {
-        userSearch.addEventListener('input', function(e) {
+        userSearch.addEventListener('input', function (e) {
             filterUsers(e.target.value.toLowerCase().trim());
         });
     }
@@ -160,14 +159,14 @@ function initializeSearch() {
 function filterUsers(searchTerm) {
     var activeTable = document.querySelector('#' + activeTab + '-section .users-table tbody');
     if (!activeTable) return;
-    activeTable.querySelectorAll('tr').forEach(function(row) {
+    activeTable.querySelectorAll('tr').forEach(function (row) {
         var nameEl = row.querySelector('.user-name');
         var usernameEl = row.querySelector('td:nth-child(2)');
         var emailEl = row.querySelector('.user-email');
         var name = nameEl ? nameEl.textContent.toLowerCase() : '';
         var username = usernameEl ? usernameEl.textContent.toLowerCase() : '';
         var email = emailEl ? emailEl.textContent.toLowerCase() : '';
-        row.style.display = (searchTerm === '' || name.includes(searchTerm) || 
+        row.style.display = (searchTerm === '' || name.includes(searchTerm) ||
             username.includes(searchTerm) || email.includes(searchTerm)) ? '' : 'none';
     });
 }
@@ -176,13 +175,19 @@ function initializeActionButtons() {
     if (addUserBtn) addUserBtn.addEventListener('click', addNewUser);
     document.addEventListener('click', function (e) {
         var editBtn = e.target.closest('.icon-btn.small:not(.danger)');
-        // Only prevent default for edit button, not for delete/archive button
+        var archiveBtn = e.target.closest('.icon-btn.small.danger');
+
         if (editBtn) {
             e.preventDefault();
             e.stopPropagation();
             editUser(editBtn);
         }
-        // Don't handle delete button here - let the form submit normally
+
+        if (archiveBtn) {
+            e.preventDefault();
+            e.stopPropagation();
+            openArchiveModal(archiveBtn);
+        }
     });
 }
 
@@ -206,14 +211,104 @@ function editUser(button) {
     openEditModal(userData);
 }
 
-function deleteUser(button) {
+function openArchiveModal(button) {
     var row = button.closest('tr');
     if (!row) return;
+
     var nameEl = row.querySelector('.user-name');
     var userName = nameEl ? nameEl.textContent : 'User';
-    var userType = activeTab === 'librarians' ? 'Librarian' : 'Admin';
-    if (confirm('Are you sure you want to delete ' + userType + ' "' + userName + '"?\n\nThis action cannot be undone.')) {
-        showNotification(userType + ' "' + userName + '" deleted successfully', 'success');
+    var userType = activeTab === 'librarians' ? 'Librarian' : 'Administrator';
+    var userId = row.dataset.userId || '';
+    var userEmail = row.dataset.email || '';
+
+    pendingArchiveUser = {
+        id: userId,
+        name: userName,
+        type: userType,
+        email: userEmail
+    };
+
+    // Update modal content
+    document.getElementById('archiveUserName').textContent = userName;
+    document.getElementById('archiveUserType').textContent = userType;
+    document.getElementById('archiveUserEmail').textContent = userEmail;
+
+    // Open the modal
+    var modal = document.getElementById('archiveModal');
+    if (modal) {
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+
+        // Reset password field
+        var pwdInput = document.getElementById('archiveAdminPassword');
+        if (pwdInput) {
+            pwdInput.value = '';
+            pwdInput.classList.remove('error', 'success');
+        }
+        resetPasswordToggles(['archiveAdminPassword']);
+
+        setTimeout(function () {
+            if (pwdInput) pwdInput.focus();
+        }, 100);
+    }
+}
+
+function submitArchiveForm() {
+    var pwdInput = document.getElementById('archiveAdminPassword');
+    var pwd = pwdInput ? pwdInput.value : '';
+    var confirmBtn = document.getElementById('confirmArchiveBtn');
+
+    if (!pwd) {
+        showToastNotification('Administrator password is required', 'error');
+        return;
+    }
+
+    if (confirmBtn && pendingArchiveUser) {
+        var originalText = confirmBtn.innerHTML;
+        confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Archiving...';
+        confirmBtn.disabled = true;
+
+        // Simulate API call
+        setTimeout(function () {
+            confirmBtn.innerHTML = originalText;
+            confirmBtn.disabled = false;
+
+            // Show success toast
+            showToastNotification(pendingArchiveUser.type + ' "' + pendingArchiveUser.name + '" has been archived successfully!', 'success');
+
+            // Close modal
+            closeModal('archiveModal');
+
+            // Remove the row from the table
+            var activeTable = document.querySelector('#' + activeTab + '-section .users-table tbody');
+            if (activeTable) {
+                var row = activeTable.querySelector('tr[data-user-id="' + pendingArchiveUser.id + '"]');
+                if (row) {
+                    row.style.opacity = '0.5';
+                    row.style.textDecoration = 'line-through';
+                    // Or remove completely after animation
+                    setTimeout(function () {
+                        row.remove();
+                        // Update user count
+                        updateUserCount();
+                    }, 1000);
+                }
+            }
+
+            pendingArchiveUser = null;
+        }, 1500);
+    }
+}
+
+function updateUserCount() {
+    var activeSection = document.querySelector('#' + activeTab + '-section');
+    if (activeSection) {
+        var userCount = activeSection.querySelectorAll('.users-table tbody tr').length;
+        var countSpan = activeSection.querySelector('.user-count');
+        if (countSpan) {
+            var userType = activeTab === 'librarians' ? 'librarians' : 'administrators';
+            countSpan.textContent = userCount + ' ' + userType;
+        }
     }
 }
 
@@ -221,6 +316,8 @@ function initializeModals() {
     initializeAddUserModal();
     initializeEditUserModal();
     initializeConfirmationModal();
+    initializeArchiveModal();
+    initializeCancelConfirmModal();
     initializePasswordToggles();
     initializeModalEvents();
 }
@@ -230,14 +327,14 @@ function initializeAddUserModal() {
     var cancelBtn = document.getElementById('cancelAddModalBtn');
     var pwdInput = document.getElementById('password');
     var confirmPwdInput = document.getElementById('confirmPassword');
-    if (closeBtn) closeBtn.addEventListener('click', function() { closeModal('addUserModal'); });
-    if (cancelBtn) cancelBtn.addEventListener('click', function() { closeModal('addUserModal'); });
+    if (closeBtn) closeBtn.addEventListener('click', function () { closeModal('addUserModal'); });
+    if (cancelBtn) cancelBtn.addEventListener('click', function () { closeModal('addUserModal'); });
     if (pwdInput) {
-        pwdInput.addEventListener('focus', function() {
+        pwdInput.addEventListener('focus', function () {
             var reqBox = document.getElementById('passwordRequirements');
             if (reqBox) reqBox.style.display = 'block';
         });
-        pwdInput.addEventListener('input', function(e) {
+        pwdInput.addEventListener('input', function (e) {
             var reqBox = document.getElementById('passwordRequirements');
             if (reqBox) reqBox.style.display = 'block';
             updatePasswordRequirements(e.target.value, 'add');
@@ -253,7 +350,7 @@ function openAddModal() {
         modal.classList.add('active');
         document.body.style.overflow = 'hidden';
         resetAddForm();
-        setTimeout(function() {
+        setTimeout(function () {
             var firstInput = document.getElementById('firstName');
             if (firstInput) firstInput.focus();
         }, 100);
@@ -263,10 +360,10 @@ function openAddModal() {
 function resetAddForm() {
     var form = document.getElementById('addUserForm');
     if (form && form.reset) form.reset();
-    document.querySelectorAll('#addUserModal .form-control').forEach(function(input) {
+    document.querySelectorAll('#addUserModal .form-control').forEach(function (input) {
         input.classList.remove('error', 'success');
     });
-    document.querySelectorAll('#addUserModal .error-message').forEach(function(msg) {
+    document.querySelectorAll('#addUserModal .error-message').forEach(function (msg) {
         msg.classList.remove('show');
     });
     updatePasswordRequirements('', 'add');
@@ -277,8 +374,8 @@ function initializeEditUserModal() {
     var closeBtn = document.getElementById('closeEditModalBtn');
     var cancelBtn = document.getElementById('cancelEditModalBtn');
     var submitBtn = document.getElementById('submitEditBtn');
-    if (closeBtn) closeBtn.addEventListener('click', function() { closeModal('editUserModal'); });
-    if (cancelBtn) cancelBtn.addEventListener('click', function() { closeModal('editUserModal'); });
+    if (closeBtn) closeBtn.addEventListener('click', function () { closeModal('editUserModal'); });
+    if (cancelBtn) cancelBtn.addEventListener('click', function () { closeModal('editUserModal'); });
     if (submitBtn) submitBtn.addEventListener('click', submitEditForm);
 }
 
@@ -294,7 +391,7 @@ function openEditModal(userData) {
         }
         modal.classList.add('active');
         document.body.style.overflow = 'hidden';
-        setTimeout(function() {
+        setTimeout(function () {
             var firstInput = document.getElementById('editFirstName');
             if (firstInput) firstInput.focus();
         }, 100);
@@ -304,7 +401,7 @@ function openEditModal(userData) {
 function submitEditForm(e) {
     e.preventDefault();
     if (!validateEditForm()) {
-        showNotification('Please fill in all required fields correctly', 'error');
+        showToastNotification('Please fill in all required fields correctly', 'error');
         return;
     }
     pendingEditData = {
@@ -317,7 +414,7 @@ function submitEditForm(e) {
         userType: currentEditUserData ? currentEditUserData.userType : 'librarian'
     };
     closeModal('editUserModal');
-    setTimeout(function() { openConfirmationModal(); }, 300);
+    setTimeout(function () { openConfirmationModal(); }, 300);
 }
 
 function getValue(id) {
@@ -356,20 +453,24 @@ function openConfirmationModal() {
         resetPasswordToggles(['adminPassword']);
         confirmationModal.classList.add('active');
         document.body.style.overflow = 'hidden';
-        setTimeout(function() { if (pwdInput) pwdInput.focus(); }, 100);
+        setTimeout(function () { if (pwdInput) pwdInput.focus(); }, 100);
     }
 }
 
 function handleCloseConfirmation() {
-    if (confirm('Are you sure you want to cancel? Your changes will not be saved.')) {
-        closeModal('confirmationModal');
-        pendingEditData = null;
-    }
+    showCancelConfirm(
+        'Cancel Changes?',
+        'Are you sure you want to cancel? Your changes will not be saved.',
+        function () {
+            closeModal('confirmationModal');
+            pendingEditData = null;
+        }
+    );
 }
 
 function backToEdit() {
     closeModal('confirmationModal');
-    setTimeout(function() {
+    setTimeout(function () {
         if (pendingEditData && editUserModal) {
             openEditModal(pendingEditData);
             editUserModal.classList.add('active');
@@ -382,19 +483,19 @@ function confirmEditSubmit() {
     var pwd = pwdInput ? pwdInput.value : '';
     var confirmBtn = document.getElementById('confirmSubmitBtn');
     if (!pwd) {
-        showNotification('Administrator password is required', 'error');
+        showToastNotification('Administrator password is required', 'error');
         return;
     }
     if (confirmBtn) {
         var originalText = confirmBtn.innerHTML;
         confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';
         confirmBtn.disabled = true;
-        setTimeout(function() {
+        setTimeout(function () {
             confirmBtn.innerHTML = originalText;
             confirmBtn.disabled = false;
             var userType = pendingEditData && pendingEditData.userType === 'admin' ? 'Administrator' : 'Librarian';
             var userName = pendingEditData ? (pendingEditData.firstName + ' ' + pendingEditData.lastName) : '';
-            showNotification(userType + ' "' + userName + '" updated successfully!', 'success');
+            showToastNotification(userType + ' "' + userName + '" updated successfully!', 'success');
             closeModal('confirmationModal');
             pendingEditData = null;
             currentEditUserData = null;
@@ -402,11 +503,80 @@ function confirmEditSubmit() {
     }
 }
 
+function initializeArchiveModal() {
+    var closeBtn = document.getElementById('closeArchiveModalBtn');
+    var cancelBtn = document.getElementById('cancelArchiveBtn');
+    var confirmBtn = document.getElementById('confirmArchiveBtn');
+
+    if (closeBtn) closeBtn.addEventListener('click', handleCloseArchive);
+    if (cancelBtn) cancelBtn.addEventListener('click', function () { closeModal('archiveModal'); });
+    if (confirmBtn) confirmBtn.addEventListener('click', submitArchiveForm);
+}
+
+function handleCloseArchive() {
+    showCancelConfirm(
+        'Cancel Archive?',
+        'Are you sure you want to cancel? The user will not be archived.',
+        function () {
+            closeModal('archiveModal');
+            pendingArchiveUser = null;
+        }
+    );
+}
+
+function initializeCancelConfirmModal() {
+    var closeBtn = document.getElementById('closeCancelConfirmBtn');
+    var noBtn = document.getElementById('cancelConfirmNoBtn');
+    var yesBtn = document.getElementById('cancelConfirmYesBtn');
+
+    if (closeBtn) closeBtn.addEventListener('click', closeCancelConfirm);
+    if (noBtn) noBtn.addEventListener('click', closeCancelConfirm);
+    if (yesBtn) yesBtn.addEventListener('click', confirmCancelAction);
+
+    // Handle escape key
+    if (cancelConfirmModal) {
+        cancelConfirmModal.addEventListener('click', function (e) {
+            if (e.target === cancelConfirmModal) {
+                closeCancelConfirm();
+            }
+        });
+    }
+}
+
+function showCancelConfirm(title, message, callback) {
+    if (!cancelConfirmModal) return;
+
+    cancelConfirmCallback = callback;
+
+    // Update modal content
+    var titleEl = document.querySelector('#cancelConfirmModal .modal-title-wrapper h2');
+    var messageEl = document.getElementById('cancelConfirmText');
+
+    if (titleEl) titleEl.textContent = title;
+    if (messageEl) messageEl.textContent = message;
+
+    // Show modal
+    cancelConfirmModal.classList.add('active');
+}
+
+function closeCancelConfirm() {
+    if (!cancelConfirmModal) return;
+    cancelConfirmModal.classList.remove('active');
+    cancelConfirmCallback = null;
+}
+
+function confirmCancelAction() {
+    if (cancelConfirmCallback) {
+        cancelConfirmCallback();
+    }
+    closeCancelConfirm();
+}
+
 function initializePasswordToggles() {
-    document.querySelectorAll('.password-toggle').forEach(function(toggle) {
+    document.querySelectorAll('.password-toggle').forEach(function (toggle) {
         var newToggle = toggle.cloneNode(true);
         if (toggle.parentNode) toggle.parentNode.replaceChild(newToggle, toggle);
-        newToggle.addEventListener('click', function(e) {
+        newToggle.addEventListener('click', function (e) {
             e.preventDefault();
             var targetId = this.getAttribute('data-target');
             if (!targetId) return;
@@ -428,7 +598,7 @@ function initializePasswordToggles() {
 }
 
 function resetPasswordToggles(inputIds) {
-    inputIds.forEach(function(inputId) {
+    inputIds.forEach(function (inputId) {
         var input = document.getElementById(inputId);
         var toggle = document.querySelector('.password-toggle[data-target="' + inputId + '"]');
         var icon = toggle ? toggle.querySelector('i') : null;
@@ -441,20 +611,23 @@ function resetPasswordToggles(inputIds) {
 }
 
 function initializeModalEvents() {
-    ['addUserModal', 'editUserModal', 'confirmationModal'].forEach(function(modalId) {
+    ['addUserModal', 'editUserModal', 'confirmationModal', 'archiveModal'].forEach(function (modalId) {
         var modal = document.getElementById(modalId);
         if (modal) {
-            modal.addEventListener('click', function(e) {
+            modal.addEventListener('click', function (e) {
                 if (e.target === modal) {
                     if (modalId === 'confirmationModal') handleCloseConfirmation();
+                    else if (modalId === 'archiveModal') handleCloseArchive();
                     else closeModal(modalId);
                 }
             });
         }
     });
-    document.addEventListener('keydown', function(e) {
+    document.addEventListener('keydown', function (e) {
         if (e.key === 'Escape') {
-            if (confirmationModal && confirmationModal.classList.contains('active')) handleCloseConfirmation();
+            if (cancelConfirmModal && cancelConfirmModal.classList.contains('active')) closeCancelConfirm();
+            else if (archiveModal && archiveModal.classList.contains('active')) handleCloseArchive();
+            else if (confirmationModal && confirmationModal.classList.contains('active')) handleCloseConfirmation();
             else if (editUserModal && editUserModal.classList.contains('active')) closeModal('editUserModal');
             else if (addUserModal && addUserModal.classList.contains('active')) closeModal('addUserModal');
         }
@@ -466,8 +639,9 @@ function closeModal(modalId) {
     if (modal) {
         modal.classList.remove('active');
         document.body.style.overflow = '';
-        if (modalId === 'addUserModal') setTimeout(function() { resetAddForm(); }, 300);
-        else if (modalId === 'editUserModal') setTimeout(function() { currentEditUserData = null; pendingEditData = null; }, 300);
+        if (modalId === 'addUserModal') setTimeout(function () { resetAddForm(); }, 300);
+        else if (modalId === 'editUserModal') setTimeout(function () { currentEditUserData = null; pendingEditData = null; }, 300);
+        else if (modalId === 'archiveModal') setTimeout(function () { pendingArchiveUser = null; }, 300);
     }
 }
 
@@ -524,20 +698,36 @@ function isValidEmail(email) {
 
 function initializeNotifications() {
     var notifBtn = document.querySelector('.notification-btn');
-    if (notifBtn) notifBtn.addEventListener('click', function() { showNotification('You have 3 new notifications', 'info'); });
+    if (notifBtn) notifBtn.addEventListener('click', function () {
+        showToastNotification('You have 3 new notifications', 'info');
+    });
 }
 
 function showNotification(message, type) {
+    // Keep for backward compatibility
+    showToastNotification(message, type);
+}
+
+function showToastNotification(message, type) {
     var colors = { success: '#27ae60', error: '#c62828', warning: '#ffc107', info: '#2c3e50' };
-    var icons = { success: 'fa-check-circle', error: 'fa-exclamation-circle', warning: 'fa-exclamation-triangle', info: 'fa-info-circle' };
-    var notif = document.createElement('div');
-    notif.style.cssText = 'position:fixed;top:20px;right:20px;padding:1rem 1.5rem;background:' + (colors[type] || colors.info) + 
-        ';color:white;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,0.2);z-index:10000;animation:slideIn 0.3s ease;display:flex;align-items:center;gap:0.75rem;max-width:400px';
-    notif.innerHTML = '<i class="fas ' + (icons[type] || icons.info) + '"></i><span>' + message + '</span>';
-    document.body.appendChild(notif);
-    setTimeout(function() {
-        notif.style.animation = 'slideOut 0.3s ease';
-        setTimeout(function() { if (notif.parentNode) notif.parentNode.removeChild(notif); }, 300);
+    var icons = {
+        success: 'fa-check-circle',
+        error: 'fa-exclamation-circle',
+        warning: 'fa-exclamation-triangle',
+        info: 'fa-info-circle'
+    };
+
+    var toast = document.createElement('div');
+    toast.className = 'toast-notification toast-' + type;
+    toast.innerHTML = '<i class="fas ' + (icons[type] || icons.info) + '"></i><span>' + message + '</span>';
+
+    document.body.appendChild(toast);
+
+    setTimeout(function () {
+        toast.style.animation = 'slideOut 0.3s ease';
+        setTimeout(function () {
+            if (toast.parentNode) toast.parentNode.removeChild(toast);
+        }, 300);
     }, 3000);
 }
 
@@ -549,12 +739,12 @@ if (!document.getElementById('notification-styles')) {
 }
 
 var resizeTimer;
-window.addEventListener('resize', function() {
+window.addEventListener('resize', function () {
     clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(function() {
+    resizeTimer = setTimeout(function () {
         if (window.innerWidth > 768) {
             if (sidebar) sidebar.classList.remove('active');
             if (userProfile) userProfile.classList.remove('active');
         }
     }, 250);
-}); 
+});

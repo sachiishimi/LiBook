@@ -38,6 +38,11 @@ class ReservationsApp {
         // Modals
         this.roomModal = null;
         this.bookingDetailModal = null;
+        this.cancelConfirmModal = document.getElementById('cancelConfirmModal');
+        this.closeCancelConfirmBtn = document.getElementById('closeCancelConfirmBtn');
+        this.cancelConfirmNoBtn = document.getElementById('cancelConfirmNoBtn');
+        this.cancelConfirmYesBtn = document.getElementById('cancelConfirmYesBtn');
+        this.cancelConfirmCallback = null;
 
         // State
         this.currentRoomId = null;
@@ -84,6 +89,24 @@ class ReservationsApp {
         // Notification Events
         if (this.notificationBtn) {
             this.notificationBtn.addEventListener('click', () => this.showNotification('You have 3 new notifications', 'info'));
+        }
+
+        // Cancel Confirm Modal Events
+        if (this.closeCancelConfirmBtn) {
+            this.closeCancelConfirmBtn.addEventListener('click', () => this.closeCancelConfirm());
+        }
+        if (this.cancelConfirmNoBtn) {
+            this.cancelConfirmNoBtn.addEventListener('click', () => this.closeCancelConfirm());
+        }
+        if (this.cancelConfirmYesBtn) {
+            this.cancelConfirmYesBtn.addEventListener('click', () => this.confirmCancelAction());
+        }
+        if (this.cancelConfirmModal) {
+            this.cancelConfirmModal.addEventListener('click', (e) => {
+                if (e.target === this.cancelConfirmModal) {
+                    this.closeCancelConfirm();
+                }
+            });
         }
 
         // Global Events
@@ -157,8 +180,12 @@ class ReservationsApp {
 
     handleKeyDown(e) {
         if (e.key === 'Escape') {
-            this.closeBookingDetailModal();
-            this.closeRoomModal();
+            if (this.cancelConfirmModal && this.cancelConfirmModal.classList.contains('active')) {
+                this.closeCancelConfirm();
+            } else {
+                this.closeBookingDetailModal();
+                this.closeRoomModal();
+            }
         }
     }
 
@@ -631,18 +658,21 @@ class ReservationsApp {
         const booking = this.currentRoomBookings.find(b => b.Id === bookingId);
         const reserveeName = booking?.ReserveeName || 'this booking';
 
-        if (!confirm(`Are you sure you want to cancel ${reserveeName}'s booking?`)) {
-            return;
-        }
-
-        try {
-            await this.performCancellation(bookingId, 'single');
-            this.showNotification('Booking cancelled successfully', 'success');
-            this.closeBookingDetailModal();
-            await this.refreshRoomModal();
-        } catch (error) {
-            this.showNotification('Failed to cancel booking', 'error');
-        }
+        this.showCancelConfirm(
+            'Cancel Booking?',
+            `Are you sure you want to cancel ${reserveeName}'s booking?`,
+            'Yes, Cancel Booking',
+            async () => {
+                try {
+                    await this.performCancellation(bookingId, 'single');
+                    this.showNotification('Booking cancelled successfully', 'success');
+                    this.closeBookingDetailModal();
+                    await this.refreshRoomModal();
+                } catch (error) {
+                    this.showNotification('Failed to cancel booking', 'error');
+                }
+            }
+        );
     }
 
     async cancelSelectedBookings() {
@@ -651,33 +681,39 @@ class ReservationsApp {
             return;
         }
 
-        if (!confirm(`Are you sure you want to cancel ${this.selectedBookings.size} selected booking(s)?`)) {
-            return;
-        }
+        this.showCancelConfirm(
+            'Cancel Selected Bookings?',
+            `Are you sure you want to cancel ${this.selectedBookings.size} selected booking(s)?`,
+            'Yes, Cancel Bookings',
+            async () => {
+                const bookingIds = Array.from(this.selectedBookings);
 
-        const bookingIds = Array.from(this.selectedBookings);
-
-        try {
-            const result = await this.performBulkCancellation(bookingIds);
-            this.showNotification(`Successfully cancelled ${result.count} booking(s)`, 'success');
-            await this.refreshRoomModal();
-        } catch (error) {
-            this.showNotification('Failed to cancel bookings', 'error');
-        }
+                try {
+                    const result = await this.performBulkCancellation(bookingIds);
+                    this.showNotification(`Successfully cancelled ${result.count} booking(s)`, 'success');
+                    await this.refreshRoomModal();
+                } catch (error) {
+                    this.showNotification('Failed to cancel bookings', 'error');
+                }
+            }
+        );
     }
 
     async cancelAllBookingsForRoom(roomName) {
-        if (!confirm(`Are you sure you want to cancel ALL bookings for ${roomName}?`)) {
-            return;
-        }
-
-        try {
-            const result = await this.performRoomCancellation(this.currentRoomId);
-            this.showNotification(`Successfully cancelled ${result.count} booking(s) for ${roomName}`, 'success');
-            await this.refreshRoomModal();
-        } catch (error) {
-            this.showNotification('Failed to cancel bookings', 'error');
-        }
+        this.showCancelConfirm(
+            'Cancel All Bookings?',
+            `Are you sure you want to cancel ALL bookings for ${roomName}?`,
+            'Yes, Cancel All',
+            async () => {
+                try {
+                    const result = await this.performRoomCancellation(this.currentRoomId);
+                    this.showNotification(`Successfully cancelled ${result.count} booking(s) for ${roomName}`, 'success');
+                    await this.refreshRoomModal();
+                } catch (error) {
+                    this.showNotification('Failed to cancel bookings', 'error');
+                }
+            }
+        );
     }
 
     async performCancellation(bookingId, type = 'single') {
@@ -685,39 +721,37 @@ class ReservationsApp {
 
         console.log('Anti-forgery token:', token ? 'Found' : 'Not found'); // Debug
 
-        const headers = {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-        };
-
-        // Add token if found
-        if (token) {
-            headers['RequestVerificationToken'] = token;
-        }
-
         const url = type === 'single'
-            ? `/AdminDashboard/CancelBooking?id=${bookingId}`
+            ? `/AdminDashboard/CancelBooking`
             : type === 'bulk'
                 ? '/AdminDashboard/CancelMultipleBookings'
-                : `/AdminDashboard/CancelAllBookings?roomId=${this.currentRoomId}`;
+                : `/AdminDashboard/CancelAllBookings`;
 
-        const body = type === 'bulk'
-            ? JSON.stringify(Array.from(this.selectedBookings))
-            : type === 'single'
-                ? JSON.stringify({ id: bookingId })
-                : null;
+        // Create FormData and include the anti-forgery token
+        const formData = new FormData();
+        formData.append('__RequestVerificationToken', token);
+
+        if (type === 'single') {
+            formData.append('id', bookingId);
+        } else if (type === 'bulk') {
+            // For bulk, we'll use a different approach
+            formData.append('ids', JSON.stringify(Array.from(this.selectedBookings)));
+        } else {
+            formData.append('roomId', this.currentRoomId);
+        }
 
         try {
             const response = await fetch(url, {
                 method: 'POST',
-                headers: headers,
-                body: body,
+                body: formData,
                 credentials: 'same-origin' // Important for cookie-based auth
             });
 
             console.log('Response status:', response.status); // Debug
 
             if (!response.ok) {
+                const errorText = await response.text();
+                console.error('Error response:', errorText);
                 throw new Error(`Network response was not ok: ${response.status}`);
             }
 
@@ -738,16 +772,25 @@ class ReservationsApp {
     async performBulkCancellation(bookingIds) {
         const token = this.getAntiForgeryToken();
 
-        const response = await fetch('/AdminDashboard/CancelMultipleBookings', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'RequestVerificationToken': token
-            },
-            body: JSON.stringify(bookingIds)
+        const formData = new FormData();
+        formData.append('__RequestVerificationToken', token);
+
+        // Add each booking ID as a separate form field
+        bookingIds.forEach((id, index) => {
+            formData.append(`ids[${index}]`, id);
         });
 
-        if (!response.ok) throw new Error('Network response was not ok');
+        const response = await fetch('/AdminDashboard/CancelMultipleBookings', {
+            method: 'POST',
+            body: formData,
+            credentials: 'same-origin'
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Error response:', errorText);
+            throw new Error('Network response was not ok');
+        }
 
         const data = await response.json();
         if (!data.success) throw new Error(data.message || 'Bulk cancellation failed');
@@ -758,14 +801,21 @@ class ReservationsApp {
     async performRoomCancellation(roomId) {
         const token = this.getAntiForgeryToken();
 
-        const response = await fetch(`/AdminDashboard/CancelAllBookings?roomId=${roomId}`, {
+        const formData = new FormData();
+        formData.append('__RequestVerificationToken', token);
+        formData.append('roomId', roomId);
+
+        const response = await fetch(`/AdminDashboard/CancelAllBookings`, {
             method: 'POST',
-            headers: {
-                'RequestVerificationToken': token
-            }
+            body: formData,
+            credentials: 'same-origin'
         });
 
-        if (!response.ok) throw new Error('Network response was not ok');
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Error response:', errorText);
+            throw new Error('Network response was not ok');
+        }
 
         const data = await response.json();
         if (!data.success) throw new Error(data.message || 'Room cancellation failed');
@@ -857,6 +907,50 @@ class ReservationsApp {
     // NOTIFICATION SYSTEM
     // ============================================
 
+    // ============================================
+    // CANCEL CONFIRMATION MODAL
+    // ============================================
+
+    showCancelConfirm(title, message, yesButtonText, callback) {
+        if (!this.cancelConfirmModal) return;
+
+        this.cancelConfirmCallback = callback;
+
+        // Update modal content
+        const titleEl = this.cancelConfirmModal.querySelector('.modal-title-wrapper h2');
+        const messageEl = document.getElementById('cancelConfirmText');
+        const yesBtn = document.getElementById('cancelConfirmYesBtn');
+
+        if (titleEl) titleEl.textContent = title || 'Confirm Action';
+        if (messageEl) messageEl.textContent = message || 'Are you sure you want to proceed?';
+        if (yesBtn) {
+            const buttonText = yesButtonText || 'Yes, Proceed';
+            yesBtn.innerHTML = `<i class="fas fa-check"></i><span>${buttonText}</span>`;
+        }
+
+        // Show modal
+        this.cancelConfirmModal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    closeCancelConfirm() {
+        if (!this.cancelConfirmModal) return;
+        this.cancelConfirmModal.classList.remove('active');
+        document.body.style.overflow = '';
+        this.cancelConfirmCallback = null;
+    }
+
+    confirmCancelAction() {
+        if (this.cancelConfirmCallback) {
+            this.cancelConfirmCallback();
+        }
+        this.closeCancelConfirm();
+    }
+
+    // ============================================
+    // NOTIFICATION
+    // ============================================
+
     showNotification(message, type = 'info') {
         const notification = document.createElement('div');
         notification.className = 'notification';
@@ -902,7 +996,7 @@ class ReservationsApp {
                 color: white;
                 border-radius: 12px;
                 box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-                z-index: 10000;
+                z-index: 11001;
                 font-family: 'Kumbh Sans', sans-serif;
                 display: flex;
                 align-items: center;

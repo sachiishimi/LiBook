@@ -1706,3 +1706,27 @@ select.form-control {
         height: 35px;
     }
 }
+
+/* ============================================
+   CANCEL CONFIRMATION MODAL STYLES
+   ============================================ */
+#cancelConfirmModal {
+    z-index: 11000;
+}
+
+.modal-cancel-confirm {
+    max-width: 500px;
+}
+
+.modal-icon-wrapper.warning {
+    background: linear-gradient(135deg, #f39c12, #e67e22);
+    color: var(--white);
+}
+
+.cancel-confirm-text {
+    color: var(--text-light);
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin: 0;
+}
+    
