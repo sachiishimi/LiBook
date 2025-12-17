@@ -130,17 +130,27 @@ class ReservationsManager {
         const acceptedTable = document.getElementById('acceptedTable');
         const cancelledTable = document.getElementById('cancelledTable');
         const tableInfo = document.getElementById('tableInfo');
+        const acceptedBadge = document.getElementById('acceptedCountBadge');
+        const cancelledBadge = document.getElementById('cancelledCountBadge');
+
+        // Store the counts from the server-side rendered badges
+        const acceptedCount = acceptedBadge ? parseInt(acceptedBadge.textContent) || 0 : 0;
+        const cancelledCount = cancelledBadge ? parseInt(cancelledBadge.textContent) || 0 : 0;
 
         if (tabName === 'accepted') {
             if (acceptedTable) acceptedTable.style.display = 'block';
             if (cancelledTable) cancelledTable.style.display = 'none';
-            const rows = acceptedTable ? acceptedTable.querySelectorAll('tbody tr').length : 0;
-            if (tableInfo) tableInfo.textContent = `Showing 1-${rows} of ${rows} reservations`;
+            if (tableInfo) {
+                const rows = acceptedTable ? acceptedTable.querySelectorAll('tbody tr').length : 0;
+                tableInfo.textContent = `Showing 1-${rows} of ${rows} accepted reservations`;
+            }
         } else {
             if (acceptedTable) acceptedTable.style.display = 'none';
             if (cancelledTable) cancelledTable.style.display = 'block';
-            const rows = cancelledTable ? cancelledTable.querySelectorAll('tbody tr').length : 0;
-            if (tableInfo) tableInfo.textContent = `Showing 1-${rows} of ${rows} reservations`;
+            if (tableInfo) {
+                const rows = cancelledTable ? cancelledTable.querySelectorAll('tbody tr').length : 0;
+                tableInfo.textContent = `Showing 1-${rows} of ${rows} cancelled reservations`;
+            }
         }
     }
 
@@ -245,6 +255,7 @@ class ReservationsManager {
         const purpose = row.dataset.purpose || '';
         const program = row.dataset.program || '';
         const studentNumber = row.dataset.studentNumber || '';
+        const status = row.dataset.status || '';
 
         const panelBody = document.getElementById('panelBody');
         if (!panelBody) return;
@@ -312,6 +323,17 @@ class ReservationsManager {
                     </div>
                     <div class="detail-value">${studentNumber}</div>
                 </div>
+                <div class="detail-row">
+                    <div class="detail-label">
+                        <i class="fas fa-tag"></i>
+                        Status
+                    </div>
+                    <div class="detail-value">
+                        <span class="status-badge ${status.toLowerCase() === 'accepted' ? 'status-accepted' : 'status-cancelled'}">
+                            ${status.charAt(0).toUpperCase() + status.slice(1)}
+                        </span>
+                    </div>
+                </div>
             </div>
 
             <div class="panel-actions">
@@ -331,12 +353,10 @@ class ReservationsManager {
         this.setupPanelActions();
     }
 
-    // In showReservationDetails method, update the actions section:
     setupPanelActions() {
         setTimeout(() => {
             const archiveBtn = document.getElementById("archiveBtn");
             const cancelBtn = document.getElementById("cancelBtn");
-            const approveBtn = document.getElementById("approveBtn");
 
             if (archiveBtn) {
                 archiveBtn.addEventListener("click", (e) => {
@@ -355,16 +375,6 @@ class ReservationsManager {
                     const reservationId = cancelBtn.dataset.reservationId;
                     const userName = cancelBtn.closest('.panel-actions')?.previousElementSibling?.querySelector('h4')?.textContent || '';
                     this.openCancelModal(reservationId, userName);
-                });
-            }
-
-            if (approveBtn) {
-                approveBtn.addEventListener("click", (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    const reservationId = approveBtn.dataset.reservationId;
-                    // You might want to add an approve form submission here
-                    alert(`Approving reservation ${reservationId}`);
                 });
             }
         }, 100);

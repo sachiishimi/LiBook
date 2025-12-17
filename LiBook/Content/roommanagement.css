@@ -1,4 +1,4 @@
-﻿﻿ /* ========================================
+﻿/* ========================================
    BASE RESET AND VARIABLES
    ======================================== */
 * {
@@ -1942,7 +1942,7 @@ body {
     padding: 1rem 1.5rem;
     border-radius: 12px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-    z-index: 10000;
+    z-index: 20000;
     font-family: 'Kumbh Sans', sans-serif;
     animation: slideIn 0.3s ease;
     color: white;
@@ -3460,7 +3460,7 @@ body {
     display: none;
     align-items: center;
     justify-content: center;
-    z-index: 10000;
+    z-index: 5000;
     backdrop-filter: blur(4px);
     animation: fadeIn 0.3s ease;
 }
@@ -4855,7 +4855,7 @@ gap: 0.5rem;
         transform: translate(-50%, -50%);
         background: white;
         border-radius: 12px;
-        z-index: 10000;
+        z-index: 5000;
         box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
         width: 90%;
         max-width: 900px;
@@ -4869,7 +4869,7 @@ gap: 0.5rem;
         height: 100vh;
         background: rgba(0, 0, 0, 0.5);
         backdrop-filter: blur(4px);
-        z-index: 9999;
+        z-index: 4999;
         display: none;
     }
 
@@ -4911,4 +4911,51 @@ gap: 0.5rem;
         .modal-close:hover {
             background: var(--light-gray);
             color: var(--text-dark);
+        }
+
+    /* ========================================
+   WALK-IN MODAL - NUCLEAR FIX
+   This WILL work or nothing will!
+   ======================================== */
+
+    /* Hide by default - SUPER specific */
+    div.modal-overlay#walkInModal,
+    .modal-overlay#walkInModal,
+    #walkInModal {
+        display: none !important;
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        background: rgba(0, 0, 0, 0.7) !important;
+        z-index: 99999 !important;
+        align-items: center !important;
+        justify-content: center !important;
+        backdrop-filter: blur(4px) !important;
+    }
+
+        /* Show when active - SUPER specific */
+        div.modal-overlay#walkInModal.active,
+        .modal-overlay#walkInModal.active,
+        #walkInModal.active {
+            display: flex !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+            pointer-events: auto !important;
+        }
+
+        /* Container */
+        #walkInModal .modal-container,
+        #walkInModal > .modal-container {
+            display: block !important;
+            position: relative !important;
+            z-index: 100000 !important;
+            background: white !important;
+            border-radius: 16px !important;
+            max-width: 800px !important;
+            max-height: 90vh !important;
+            overflow-y: auto !important;
         }
